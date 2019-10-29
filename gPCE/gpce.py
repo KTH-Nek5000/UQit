@@ -179,6 +179,10 @@ def legendrePoly(m,x):
        P=0.5*0.125*(231.*x**6.-315.*x**4.+105.*x**2.-5);
     elif (m==7):         
        P=0.5*0.125*(429.*x**7.-693.*x**5.+315.*x**3.-35.*x);
+    elif (m==8):         
+       P=(1./128.)*(6435.*x**8.-12012*x**6.+6930.*x**4.-1260.*x**2.+35.);
+    elif (m==9):         
+       P=(1./128.)*(12155.*x**9.-25740*x**7.+18018.*x**5.-4620.*x**3.+315.*x);
     else:
        print('ERROR: number of samples is invalid legendrePoly()!')
     return P
@@ -216,7 +220,7 @@ def pce_LegUnif_1d_cnstrct(fVal):
 #//////////////////////////////
 def pce_LegUnif_1d_eval(fk,xi):
     """ 
-    Evaluate a 1D PCE at a set of samples xi\in[-1,1]
+    Evaluate a 1D PCE at a set of test points xi\in[-1,1]
     Uniform Uncertain Parameter
     => Legendre Polynomials
     Given {f_k}, find f(q)=\sum_k f_k psi_k(q) 
@@ -258,8 +262,8 @@ def pce_LegUnif_2d_cnstrct(fVal,nQ1,nQ2):
              for j2 in range(nQ2):
                  for j1 in range(nQ1):
                      j=j2*nQ1+j1
-                     sum1 += fVal[j]*psi_k1[j1]*w1[j1]*psi_k2[j2]*w2[j2]
-                     sum2_+=        (psi_k1[j1]*psi_k2[j2])**2.*w1[j1]*w2[j2]
+                     sum1 += fVal[j]*(psi_k1[j1]*psi_k2[j2]*w1[j1]*w2[j2])
+                     sum2_+=         (psi_k1[j1]*psi_k2[j2])**2.*w1[j1]*w2[j2]
              fCoef[k]=sum1/sum2_
              sum2.append(sum2_)
     #find the mean and variance of f(q) as estimated by PCE
@@ -272,7 +276,7 @@ def pce_LegUnif_2d_cnstrct(fVal,nQ1,nQ2):
 #//////////////////////////////
 def pce_LegUnif_2d_eval(fk,nQ1,nQ2,xi1,xi2):
     """ 
-    Evaluate a 2D PCE at a set of samples xi1,xi2\in[-1,1]
+    Evaluate a 2D PCE at a set of test points xi1,xi2\in[-1,1] which are assumed to make a tensor-product grid
     Uniform Uncertain Parameter
     => Legendre Polynomials
     Given {f_k}, find f(q)=\sum_k f_k psi_k(q) 
@@ -294,15 +298,75 @@ def pce_LegUnif_2d_eval(fk,nQ1,nQ2,xi1,xi2):
     return fpce
 
 
+#//////////////////////////////
+def pce_LegUnif_3d_cnstrct(fVal,nQ1,nQ2,nQ3):
+    """ 
+    Construct a PCE over a 3D parameter space. 
+    Uniform Uncertain Parameter
+    => Legendre Polynomials
+    Find {f_k} in f(q)=\sum_k f_k psi_k(q) 
+        nQ1,nQ2, nQ3: number of parameter samples for 1st, 2nd, and 3rd parameters
+    """
+#    print('NOTE: Make sure the reponses are imported by keeping the loop of the 2nd param outside of that of param1 (Always: latest parameter has the outermost loop)')
+    [xi1,w1]=GaussLeg_ptswts(nQ1)
+    [xi2,w2]=GaussLeg_ptswts(nQ2)
+    [xi3,w3]=GaussLeg_ptswts(nQ3)
+    K=nQ1*nQ2*nQ3;  #upper bound of sum in PCE
+                    #NOTE: assuming Tensor Product
+    #find the coefficients in the expansion
+    fCoef=np.zeros(K)
+    sum2=[]
+    for k3 in range(nQ3):      #k-th coeff in PCE - param3
+        psi_k3=legendrePoly(k3,xi3)
+        for k2 in range(nQ2):  #k-th coeff in PCE - param2
+            psi_k2=legendrePoly(k2,xi2)
+            for k1 in range(nQ1):  #k-th coeff in PCE - param1
+                psi_k1=legendrePoly(k1,xi1)
+                sum1=0.0
+                sum2_=0.0
+                k=(k3*nQ2*nQ1)+(k2*nQ1)+k1
+                for j3 in range(nQ3):
+                    for j2 in range(nQ2):
+                        for j1 in range(nQ1):
+                            j=(j3*nQ2*nQ1)+(j2*nQ1)+j1
+                            sum1 += fVal[j]*(psi_k1[j1]*psi_k2[j2]*psi_k3[j3]*w1[j1]*w2[j2]*w3[j3])
+                            sum2_+=         (psi_k1[j1]*psi_k2[j2]*psi_k3[j3])**2.*w1[j1]*w2[j2]*w3[j3]
+                fCoef[k]=sum1/sum2_
+                sum2.append(sum2_)
+    #find the mean and variance of f(q) as estimated by PCE
+    fMean=fCoef[0]
+    fVar=0.0
+    for k in range(1,K):
+        fVar+=fCoef[k]*fCoef[k]*sum2[k]
+    return fCoef,fMean,fVar
 
-#========================================
-#========================================
-###MAIN
-#TESTS:    
-#xi=mapToUnit([0,1,2],[-1,3])
-#xx=mapFromUnit([-1,0,1],[1,3])
-#print(xx)
-
+#///////////////////////////////////////////
+def pce_LegUnif_3d_eval(fk,nQ1,nQ2,nQ3,xi1,xi2,xi3):
+    """ 
+    Evaluate a 3D PCE at a set of test points xi1,xi2,xi3\in[-1,1] which are assumed to make a tensor-product grid
+    Uniform Uncertain Parameter
+    => Legendre Polynomials
+    Given {f_k}, find f(q)=\sum_k f_k psi_k(q) 
+    #NOTE: assumes Tensor product
+    """
+    xi1 = np.array(xi1, copy=False, ndmin=1)
+    xi2 = np.array(xi2, copy=False, ndmin=1)
+    xi3 = np.array(xi3, copy=False, ndmin=1)
+    n1=xi1.size
+    n2=xi2.size
+    n3=xi3.size
+    fpce=np.zeros((n1,n2,n3))
+    for i3 in range(n3):
+        for i2 in range(n2):
+            for i1 in range(n1):
+                sum1=0.0;
+                for k3 in range(nQ3):
+                    for k2 in range(nQ2):
+                        for k1 in range(nQ1):
+                            k=(k3*nQ2*nQ1)+(k2*nQ1)+k1
+                            sum1+=fk[k]*legendrePoly(k1,xi1[i1])*legendrePoly(k2,xi2[i2])*legendrePoly(k3,xi3[i3])
+                fpce[i1,i2,i3]=sum1
+    return fpce
     
 
 ################################
@@ -318,8 +382,7 @@ def pce_LegUnif_2d_eval(fk,nQ1,nQ2,xi1,xi2):
 #/////////////////
 def gpce_test_1d():
     """
-    Test 1 of gPCE methods:
-    PCE for 1d uniform random parameter over [a,b] using Legendre polynomial bases
+    Test PCE for 1 uncertain parameter uniformly distributed over [a1,b1] using Legendre polynomial bases
     """
     print('------ gPCE TEST 1 ------')
     #--- settings -------------------------
@@ -358,8 +421,7 @@ def gpce_test_1d():
 #/////////////////
 def gpce_test_2d():
     """
-    Test 2 of gPCE methods:
-    PCE for 2d uniform random parameters over [a1,b1]x[a2,b2] using Legendre polynomial bases
+    Test PCE for 2 uncertain parameters uniformly distributed over [a1,b1]x[a2,b2] using Legendre polynomial bases
     """
     print('------ gPCE TEST 2 ------')
     #settings------------
@@ -427,7 +489,34 @@ def gpce_test_2d():
     plt.title('|Exact-Surrogate|/Exact %')
     plt.show()
      
-    
-
-
+#/////////////////
+def gpce_test_3d():
+    """
+    Test PCE for 3 uncertain parameters uniformly distributed over [a1,b1]x[a2,b2]x[a3,b3] using Legendre polynomial bases
+    """
+    print('------ gPCE TEST 3 ------')
+    #settings------------
+    q1Bound=[-1.0,2.0]   #range of param1
+    q2Bound=[-3.0,3.0]   #range of param2
+    q3Bound=[-1.0,1.0]   #range of param3
+    nQ1=5      #number of collocation smaples of param1
+    nQ2=5      #number of collocation smaples of param2
+    nQ3=5      #number of collocation smaples of param3
+    funOpt={'a':7.0,'b':0.1}   #parameters in Ishigami function
+#    nTest1=100;   #number of test points in param1 space
+#    nTest2=101;   #number of test points in param2 space
+    #--------------------
+    #generate observations   
+    [xi1,w1]=GaussLeg_ptswts(nQ1)   #Gauss sample pts in [-1,1]
+    [xi2,w2]=GaussLeg_ptswts(nQ2)   #Gauss sample pts in [-1,1]
+    [xi3,w3]=GaussLeg_ptswts(nQ3)   #Gauss sample pts in [-1,1]
+    q1=mapFromUnit(xi1,q1Bound)    #map Gauss points to param1 space
+    q2=mapFromUnit(xi2,q2Bound)    #map Gauss points to param2 space
+    q3=mapFromUnit(xi3,q3Bound)    #map Gauss points to param3 space
+    fVal=analyticTestFuncs.fEx3D(q1,q2,q3,'Ishigami','tensorProd',funOpt)  #function value at the parameter samples (Gauss quads)    
+    #construct the gPCE and compute the moments
+    fCoefs,fMean,fVar=pce_LegUnif_3d_cnstrct(fVal,nQ1,nQ2,nQ3)
+    #exact moments of Ishigami function
+    m,v=analyticTestFuncs.ishigami_moments(q1Bound,q2Bound,q3Bound,funOpt)
+    print(m,fMean,v,fVar)
 

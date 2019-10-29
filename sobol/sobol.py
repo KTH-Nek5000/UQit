@@ -64,7 +64,6 @@ def sobolDecomposCoefs_3par(Q,f):
         """
         n1=fi.size
         n2=fj.size
-        print(n1,n2)
         fij=np.zeros((n1,n2))   #f12(q1,q2): interaction term
         for i2 in range(n2):
             for i1 in range(n1):
