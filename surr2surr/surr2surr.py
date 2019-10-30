@@ -23,61 +23,6 @@ import lagrangeInterpol
 import reshaper
 import plot2d
 
-#////////////////////////////////////////////////////////////////
-def lagIntAtGaussPts_1d(fVal1,q1,space1,nSampMod2,space2,GType):
-    """
-       Given fVal1 at nSampMod1 arbitrary samples over space1, construct a Lagrange interpolation from these and predict the values at nSampMod2 Gauss quadrature points over space2. Note that space2<space1. Also the destination Gauss quadratures can be the abscissa of different types of polynomials such as Lagrange, ..., as eventually meant to be specifid by GType. 
-       This function is useful when we want to construct a gPCE over space2, while the samples q1 are not .e.g. Gauss-Legendre points over space1. 
-       NOTE: q1, q2 are over their admissible spaces (not on [-1,+1])
-         fVal1: numpy 1D array of length n1
-         q1: numpy 1D array of length n1
-         nSampMod2: integer
-         space1, space2: list of two values specifying bounds [.,.]
-         GType: type of Gauss points: 'GL': Gauss Legendre
-    """
-    #(1) Check space2<space1
-    d1=space1[1]-space1[0]
-    d2=space2[1]-space2[0]
-    if (d2>d1):
-       print('ERROR in lagIntAtGaussPts_1d: space2 should be smaller than space1')
-    #(2) Construct the Gauss-Legendre stochastic samples for model2
-    if GType=='GL':
-       [xi2,w2]=gpce.GaussLeg_ptswts(nSampMod2)    
-    else: 
-       print('ERROR in lagIntAtGaussPts_1d: currently only Gauss-Legndre are supported')
-    q2=gpce.mapFromUnit(xi2,space2)    
-    #(3) Use lagrange interpolation to find values at q2, given fVal1 at q1
-    fVal2Interp=lagrangeInterpol.lagrangeInterpol_singleVar(fVal1,q1,q2)
-    return q2,fVal2Interp
-
-#////////////////////////////////////////////////////////////////////
-def lagIntAtGaussPts_2d(fValM1,qM1,spaceM1,nM2,spaceM2,method,GType):
-    """
-       Given fVal1 at nSampMod1 arbitrary samples over space1, construct a Lagrange interpolation from these and predict the values at nSampMod2 Gauss quadrature points over space2. Note that space2<space1. Also the destination Gauss quadratures can be the abscissa of different types of polynomials such as Lagrange, ..., as eventually meant to be specifid by GType. 
-       This function is useful when we want to construct a gPCE over space2, while the samples q1 are not .e.g. Gauss-Legendre points over space1. 
-       NOTE: Multi-dimensionality is handled by method that is by default 'tensorProd'
-          qM1: List of GL samples in 2D, model1: qM1=[qM1_1|qM1_2] where qM1_1 and qM1_2 are 1d numpy array of lengths nM1_1 and nM1_2, respectively 
-          fVal1: numpy 2D array of length (nM1_1,nM1_2)
-          spaceM1: Admissible space of qM1, List of 2 one-D lists: [spaceM1_1|spaceM1_2] where spaceM1_i=[.,.]
-          nM2=List of number of GL samples in the two dimensions of qM2: [nM2_1,nM2_2]
-          spaceM2: Admissible space of qM2, List of 2 one-D lists: [spaceM2_1|spaceM2_2] where spaceM2_i=[.,.]
-       GType: type of Gauss points: 'GL': Gauss Legendre
-    """
-    #(1) Check space2<space1 in each parameter direction
-    for idim in range(2):
-       d1=spaceM1[idim][1]-spaceM1[idim][0]
-       d2=spaceM2[idim][1]-spaceM2[idim][0]
-       if (d2>d1):
-          print('ERROR in pce2pce_GaussLeg_2d: spaceM2 should be smaller than spaceM1. Issue in parmeter %d' %(idim+1))
-    #(2) Construct the Gauss-Legendre stochastic samples for model2
-    [xi2_1,w2_1]=gpce.GaussLeg_ptswts(nM2[0])   #for param1
-    qM2_1=gpce.mapFromUnit(xi2_1,spaceM2[0])    
-    [xi2_2,w2_2]=gpce.GaussLeg_ptswts(nM2[1])   #for param2
-    qM2_2=gpce.mapFromUnit(xi2_2,spaceM2[1])    
-    qM2=reshaper.vecs2grid(qM2_1,qM2_2) #Make a grid out of two 1D vectors
-    #(3) Use lagrange interpolation to find values at q2, given fVal1 at q1
-    fVal2Interp=lagrangeInterpol.lagrangeInterpol_multiVar(fValM1,qM1,qM2,method)
-    return qM2,fVal2Interp
 
 #////////////////////////////////////////////////////////////////////
 def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,method,GType):
