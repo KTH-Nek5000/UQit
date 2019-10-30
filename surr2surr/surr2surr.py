@@ -23,46 +23,45 @@ import lagrangeInterpol
 import reshaper
 import plot2d
 
-#/////////////////////////////////////////////////////////
-def pce2pce_GaussLeg_1d(fVal1,q1,space1,nSampMod2,space2):
+#////////////////////////////////////////////////////////////////
+def lagIntAtGaussPts_1d(fVal1,q1,space1,nSampMod2,space2,GType):
     """
-       Given fVal1 at nSampMod1 Gauss-Legndre samples over space1, construct a new stochastic collocation surrogate over 1D space2 with nSampMod2 Gauss-Legendre points. Note that space2<space1.
-       (A Lagrange interpolation based on fVal1 at nodal set q1 is constructed in space1. Then we use it to interpolate at q2 GL samples over space2. Using Gl points 2, a new PCE is constructed over space2)
+       Given fVal1 at nSampMod1 arbitrary samples over space1, construct a Lagrange interpolation from these and predict the values at nSampMod2 Gauss quadrature points over space2. Note that space2<space1. Also the destination Gauss quadratures can be the abscissa of different types of polynomials such as Lagrange, ..., as eventually meant to be specifid by GType. 
+       This function is useful when we want to construct a gPCE over space2, while the samples q1 are not .e.g. Gauss-Legendre points over space1. 
        NOTE: q1, q2 are over their admissible spaces (not on [-1,+1])
-       fVal1: numpy 1D array of length n1
-       q1: numpy 1D array of length n1
-       nSampMod2: integer
-       space1, space2: list of two values
+         fVal1: numpy 1D array of length n1
+         q1: numpy 1D array of length n1
+         nSampMod2: integer
+         space1, space2: list of two values specifying bounds [.,.]
+         GType: type of Gauss points: 'GL': Gauss Legendre
     """
     #(1) Check space2<space1
     d1=space1[1]-space1[0]
     d2=space2[1]-space2[0]
     if (d2>d1):
-       print('ERROR in pce2pce_GaussLeg_1d: space2 should be smaller than space1')
-  
+       print('ERROR in lagIntAtGaussPts_1d: space2 should be smaller than space1')
     #(2) Construct the Gauss-Legendre stochastic samples for model2
-    [xi2,w2]=gpce.GaussLeg_ptswts(nSampMod2)    
+    if GType=='GL':
+       [xi2,w2]=gpce.GaussLeg_ptswts(nSampMod2)    
+    else: 
+       print('ERROR in lagIntAtGaussPts_1d: currently only Gauss-Legndre are supported')
     q2=gpce.mapFromUnit(xi2,space2)    
-    
     #(3) Use lagrange interpolation to find values at q2, given fVal1 at q1
     fVal2Interp=lagrangeInterpol.lagrangeInterpol_singleVar(fVal1,q1,q2)
+    return q2,fVal2Interp
 
-    #(4) Construct PCE2
-    fCoef2,fMean2,fVar2=gpce.pce_LegUnif_1d_cnstrct(fVal2Interp)  
-    return fCoef2,fMean2,fVar2,q2,fVal2Interp
-
-#////////////////////////////////////////////////////////
-def pce2pce_GaussLeg_2d(fValM1,qM1,spaceM1,nM2,spaceM2,method):
+#////////////////////////////////////////////////////////////////////
+def lagIntAtGaussPts_2d(fValM1,qM1,spaceM1,nM2,spaceM2,method,GType):
     """
-       Given fValM1 at Gauss-Legndre samples over 2D spaceM1, construct a new stochastic collocation surrogate over the 2D spaceM2 with nM2_1xnM2_2 Gauss-Legendre points. Note that space2<space1.
-       (A Lagrange interpolation based on fValM1 at nodal set qM1 is constructed in spaceM1. Then we use it to interpolate at qM2 GL samples over spaceM2. Based on GL points of M2 a new PCE is constructed over spaceM2).
+       Given fVal1 at nSampMod1 arbitrary samples over space1, construct a Lagrange interpolation from these and predict the values at nSampMod2 Gauss quadrature points over space2. Note that space2<space1. Also the destination Gauss quadratures can be the abscissa of different types of polynomials such as Lagrange, ..., as eventually meant to be specifid by GType. 
+       This function is useful when we want to construct a gPCE over space2, while the samples q1 are not .e.g. Gauss-Legendre points over space1. 
        NOTE: Multi-dimensionality is handled by method that is by default 'tensorProd'
-
-          qM1: List of samples in 2D, model1: qM1=[qM1_1|qM1_2] where qM1_1 and qM1_2 are 1d numpy array of lengths nM1_1 and nM1_2, respectively 
+          qM1: List of GL samples in 2D, model1: qM1=[qM1_1|qM1_2] where qM1_1 and qM1_2 are 1d numpy array of lengths nM1_1 and nM1_2, respectively 
           fVal1: numpy 2D array of length (nM1_1,nM1_2)
           spaceM1: Admissible space of qM1, List of 2 one-D lists: [spaceM1_1|spaceM1_2] where spaceM1_i=[.,.]
-          nM2=List of number of samples in the two dimensions of qM2: [nM2_1,nM2_2]
+          nM2=List of number of GL samples in the two dimensions of qM2: [nM2_1,nM2_2]
           spaceM2: Admissible space of qM2, List of 2 one-D lists: [spaceM2_1|spaceM2_2] where spaceM2_i=[.,.]
+       GType: type of Gauss points: 'GL': Gauss Legendre
     """
     #(1) Check space2<space1 in each parameter direction
     for idim in range(2):
@@ -70,20 +69,113 @@ def pce2pce_GaussLeg_2d(fValM1,qM1,spaceM1,nM2,spaceM2,method):
        d2=spaceM2[idim][1]-spaceM2[idim][0]
        if (d2>d1):
           print('ERROR in pce2pce_GaussLeg_2d: spaceM2 should be smaller than spaceM1. Issue in parmeter %d' %(idim+1))
-  
     #(2) Construct the Gauss-Legendre stochastic samples for model2
     [xi2_1,w2_1]=gpce.GaussLeg_ptswts(nM2[0])   #for param1
     qM2_1=gpce.mapFromUnit(xi2_1,spaceM2[0])    
     [xi2_2,w2_2]=gpce.GaussLeg_ptswts(nM2[1])   #for param2
     qM2_2=gpce.mapFromUnit(xi2_2,spaceM2[1])    
     qM2=reshaper.vecs2grid(qM2_1,qM2_2) #Make a grid out of two 1D vectors
-    
     #(3) Use lagrange interpolation to find values at q2, given fVal1 at q1
-    fVal2Interp=lagrangeInterpol.lagrangeInterpol_multiVar(fValM1,qM1,qM2,'tensorProd')
+    fVal2Interp=lagrangeInterpol.lagrangeInterpol_multiVar(fValM1,qM1,qM2,method)
+    return qM2,fVal2Interp
 
-    #(4) Construct PCE2
+#////////////////////////////////////////////////////////////////////
+def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,method,GType):
+    """
+       Given fVal1 at nSampMod1 arbitrary samples over space1, construct a Lagrange interpolation from these and predict the values at nSampMod2 Gauss quadrature points over space2. Note that space2<space1. Also the destination Gauss quadratures can be the abscissa of different types of polynomials such as Lagrange, ..., as eventually meant to be specifid by GType. 
+       - This function is useful when we want to construct a gPCE over space2, while the samples q1 are not .e.g. Gauss-Legendre points over space1. 
+       - NOTE: Dimension of admissible spaces space1 and space2 should be the same =p 
+           ndim: dimension of parameter spaces space1 and space2 (=p)
+           qM1: List of GL samples in p-dimensions, model1: qM1=[qM1_1|qM1_2|...|qM1_p] where qM1_i are 1D numpy arrays of length nM1_i, where i=1,2,...,p. 
+           fVal1: numpy pD array of size (nM1_1,nM1_2,...,nM1_p)
+           spaceM1: Admissible space of qM1 = List of p 1D lists: [spaceM1_1|spaceM1_2|...|spaceM1_p] where spaceM1_i are lists [.,.]. 
+           nM2=List of number of Gauss samples qM2 i npD parameter space: nM2=[nM2_1,nM2_2,...,nM2_p]
+           spaceM2: Admissible space of qM2 = List of p 1D lists: [spaceM2_1|spaceM2_2|...|spaceM2_p] where spaceM1_i are lists [.,.]. 
+           method: how to handle the multi-dimsnsionality of the parameters, default is 'tensorProd' 
+           GType: type of Gauss points: 'GL': Gauss Legendre
+            
+    """
+    #(1) Check if the inputs have sent in correctly
+    #  (1a) Check both space1 and space2 have the same dimension
+    ndim=len(spaceM1)   #dimension of parameter spaces
+    if (ndim!=len(spaceM2) or ndim!=len(qM1)):
+       print('ERROR in lagIntAtGaussPts: parameter spaces and samples should have the same dimensions.')
+    #  (1b) Check space2<space1 in each parameter direction
+    for idim in range(ndim):
+       d1=spaceM1[idim][1]-spaceM1[idim][0]
+       d2=spaceM2[idim][1]-spaceM2[idim][0]
+       if (d2>d1):
+          print('ERROR in lagIntAtGaussPts: spaceM2 should be smaller than spaceM1. Issue in parmeter %d' %(idim+1))
+    #(2) Construct the Gauss-Legendre stochastic samples for model2
+    qM2=[]
+    for i in range(ndim):
+        [xi,w]=gpce.GaussLeg_ptswts(nM2[i])   #for i-th param
+        qM2_=gpce.mapFromUnit(xi,spaceM2[i])
+        qM2.append(qM2_)
+    if (ndim==1): 
+       qM2=qM2[0]
+    elif (ndim==2):
+       if (method=='tensorProd'):
+          qM2=reshaper.vecs2grid(qM2[0],qM2[1]) #Make a grid out of two 1D vectors
+       else:
+          print('ERROR in lagIntAtGaussPts: currently only tensor-product is available')
+    elif(ndim==3):
+       if (method=='tensorProd'):
+          qM2=reshaper.vecs2grid(qM2[0],qM2[1],qM2[2]) #Make a grid out of three 1D vectors
+       else:
+          print('ERROR in lagIntAtGaussPts: currently only tensor-product is available')
+    else:
+       print('ERROR in lagIntAtGaussPts: currently up to 3D parameter space can be handled.')
+
+    #(3) Use lagrange interpolation to find values at q2, given fVal1 at q1
+    if ndim==1:
+       fVal2Interp=lagrangeInterpol.lagrangeInterpol_singleVar(fValM1,qM1,qM2)
+    elif (ndim==2 or ndim==3):
+       fVal2Interp=lagrangeInterpol.lagrangeInterpol_multiVar(fValM1,qM1,qM2,method)
+    else:
+       print('ERROR in lagIntAtGaussPts: currently up to 3D parameter space can be handled.')
+    return qM2,fVal2Interp
+
+    
+
+#/////////////////////////////////////////////////////////
+def pce2pce_GaussLeg_1d(fValM1,qM1,spaceM1,nM2,spaceM2,GType):
+    """
+       Given fValM1 at nM1 Gauss-Legndre samples over spaceM1, construct a new stochastic collocation surrogate over 1D spaceM2 with nM2 Gauss-Legendre points. Note that spaceM2<spaceM1.
+       (A Lagrange interpolation based on fValM1 at nodal set qM1 is constructed in spaceM1. Then we use it to interpolate at qM2 GL samples over spaceM2. Using GL points 2, a new PCE is constructed over space2)
+       NOTE: qM1, qM2 are over their admissible spaces (not on [-1,+1])
+       fValM1: numpy 1D array of length n1
+       qM1: numpy 1D array of length n1
+       nM2: integer
+       spaceM1, spaceM2: list of two values specifying bounds [.,.]
+       GType: type of Gauss points: 'GL': Gauss Legendre
+    """
+    #(1) Use lagrange interpolation to find values at q2 (Gauss points over space2), given fVal1 at q1
+    qM2,fVal2Interp=lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,'',GType)
+    #(2) Construct PCE2 over space2
+    fCoef2,fMean2,fVar2=gpce.pce_LegUnif_1d_cnstrct(fVal2Interp)  
+    return fCoef2,fMean2,fVar2,qM2,fVal2Interp
+
+#////////////////////////////////////////////////////////
+def pce2pce_GaussLeg_2d(fValM1,qM1,spaceM1,nM2,spaceM2,method,GType):
+    """
+       Given fValM1 at Gauss-Legndre samples over 2D spaceM1, construct a new stochastic collocation surrogate over the 2D spaceM2 with nM2_1xnM2_2 Gauss-Legendre points. Note that space2<space1.
+       (A Lagrange interpolation based on fValM1 at nodal set qM1 is constructed in spaceM1. Then we use it to interpolate at qM2 GL samples over spaceM2. Based on GL points of M2 a new PCE is constructed over spaceM2).
+       NOTE: Multi-dimensionality is handled by method that is by default 'tensorProd'
+
+          qM1: List of GL samples in 2D, model1: qM1=[qM1_1|qM1_2] where qM1_1 and qM1_2 are 1d numpy array of lengths nM1_1 and nM1_2, respectively 
+          fVal1: numpy 2D array of length (nM1_1,nM1_2)
+          spaceM1: Admissible space of qM1, List of 2 one-D lists: [spaceM1_1|spaceM1_2] where spaceM1_i=[.,.]
+          nM2=List of number of GL samples in the two dimensions of qM2: [nM2_1,nM2_2]
+          spaceM2: Admissible space of qM2, List of 2 one-D lists: [spaceM2_1|spaceM2_2] where spaceM2_i=[.,.]
+       GType: type of Gauss points: 'GL': Gauss Legendre
+    """
+    #(1) Use lagrange interpolation to find values at q2 (Gauss points over space2), given fVal1 at q1
+    qM2,fVal2Interp=lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,'tensorProd',GType)
+    #(2) Construct PCE2 over space2
     fCoef2,fMean2,fVar2=gpce.pce_LegUnif_2d_cnstrct(fVal2Interp,nM2[0],nM2[1])
     return fCoef2,fMean2,fVar2,qM2,fVal2Interp
+
 
 
 ############################
@@ -95,30 +187,30 @@ def pce2pce_GaussLeg_1d_test():
        Test pce2pce_GaussLeg_1d(...)      
     """
     #------ SETTINGS --------------------
-    nSampMod1=7        #number of samples in PCE1
-    space1=[-0.5,2.]   #admissible space of param in PCE1
-    nSampMod2=5        #number of samples in PCE2
-    space2=[0.0,1.5]   #admissible space of param in PCE2
+    nSampMod1=[7]        #number of samples in PCE1
+    space1=[[-0.5,2.]]   #admissible space of param in PCE1
+    nSampMod2=[5]        #number of samples in PCE2
+    space2=[[0.0,1.5]]   #admissible space of param in PCE2
     nTest=100   #number of test samples
     #------------------------------------
     #(1) Construct PCE1
-    [xi1,w1]=gpce.GaussLeg_ptswts(nSampMod1)   #Gauss sample pts in [-1,1]
-    q1=gpce.mapFromUnit(xi1,space1)    #map Gauss points to param space
+    [xi1,w1]=gpce.GaussLeg_ptswts(nSampMod1[0])   #Gauss sample pts in [-1,1]
+    q1=gpce.mapFromUnit(xi1,space1[0])    #map Gauss points to param space
     fVal1=analyticTestFuncs.fEx1D(q1)  #function value at the parameter samples (Gauss quads)
     fCoef1,fMean1,fVar1=gpce.pce_LegUnif_1d_cnstrct(fVal1)  #find PCE coefficients
 
     #(2) Construct PCE2 given values predicted by PCE1 at nSampMod2 GL samples over space2
-    fCoef2,fMean2,fVar2,q2,fVal2=pce2pce_GaussLeg_1d(fVal1,q1,space1,nSampMod2,space2)
+    fCoef2,fMean2,fVar2,q2,fVal2=pce2pce_GaussLeg_1d(fVal1,q1,space1,nSampMod2,space2,'GL')
 
     #(3) Make predictions by PCE1 and PCE2 over their admissible spaces
-    qTest1=np.linspace(space1[0],space1[1],nTest)  #test points in param space
+    qTest1=np.linspace(space1[0][0],space1[0][1],nTest)  #test points in param space
     fTest1=analyticTestFuncs.fEx1D(qTest1)   #exact response at test points
-    xiTest1=gpce.mapToUnit(qTest1,space1)
+    xiTest1=gpce.mapToUnit(qTest1,space1[0])
     fPCETest1=gpce.pce_LegUnif_1d_eval(fCoef1,xiTest1)    
 
-    qTest2=np.linspace(space2[0],space2[1],nTest)  #test points in param space
+    qTest2=np.linspace(space2[0][0],space2[0][1],nTest)  #test points in param space
     fTest2=analyticTestFuncs.fEx1D(qTest2)   #exact response at test points
-    xiTest2=gpce.mapToUnit(qTest2,space2)
+    xiTest2=gpce.mapToUnit(qTest2,space2[0])
     fPCETest2=gpce.pce_LegUnif_1d_eval(fCoef2,xiTest2)    
 
     #(4) Plot
@@ -164,7 +256,7 @@ def pce2pce_GaussLeg_2d_test():
     fCoefM1,fMeanM1,fVarM1=gpce.pce_LegUnif_2d_cnstrct(fValM1,nSampM1[0],nSampM1[1])  
 
     #(2) Construct PCE2 given values predicted by PCE1 at GL samples over spaceM2
-    fCoefM2,fMeanM2,fVarM2,qM2,fVal2Interp=pce2pce_GaussLeg_2d(fValM1,qM1,spaceM1,nSampM2,spaceM2,'tensorProd')
+    fCoefM2,fMeanM2,fVarM2,qM2,fVal2Interp=pce2pce_GaussLeg_2d(fValM1,qM1,spaceM1,nSampM2,spaceM2,'tensorProd','GL')
 
     #(3) Make predictions by PCE1 and PCE2 over their admissible spaces
     #Predictions by PCE1 over spaceM1
