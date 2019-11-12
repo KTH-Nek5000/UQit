@@ -66,7 +66,7 @@ def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType):
           print('ERROR in lagIntAtGaussPts: currently only tensor-product is available')
     elif(ndim==3):
        if (pDmethod=='tensorProd'):
-          qM2=reshaper.vecs2grid(qM2[0],qM2[1],qM2[2]) #Make a grid out of three 1D vectors
+          qM2=reshaper.vecs2grid3d(qM2[0],qM2[1],qM2[2]) #Make a grid out of three 1D vectors
        else:
           print('ERROR in lagIntAtGaussPts: currently only tensor-product is available')
     else:

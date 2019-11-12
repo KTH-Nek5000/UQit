@@ -343,11 +343,11 @@ def pce_LegUnif_3d_cnstrct(fVal,nQ1,nQ2,nQ3):
 #///////////////////////////////////////////
 def pce_LegUnif_3d_eval(fk,nQ1,nQ2,nQ3,xi1,xi2,xi3):
     """ 
-    Evaluate a 3D PCE at a set of test points xi1,xi2,xi3\in[-1,1] which are assumed to make a tensor-product grid
-    Uniform Uncertain Parameter
-    => Legendre Polynomials
-    Given {f_k}, find f(q)=\sum_k f_k psi_k(q) 
-    #NOTE: assumes Tensor product
+       Evaluate a 3D PCE at a set of test points xi1,xi2,xi3\in[-1,1] which are assumed to make a tensor-product grid
+         Uniform Uncertain Parameter
+         => Legendre Polynomials
+        Given {f_k}, find f(q)=\sum_k f_k psi_k(q) 
+       #NOTE: assumes Tensor product
     """
     xi1 = np.array(xi1, copy=False, ndmin=1)
     xi2 = np.array(xi2, copy=False, ndmin=1)
