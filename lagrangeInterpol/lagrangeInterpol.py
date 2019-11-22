@@ -2,6 +2,10 @@
 #           Lagrange Interpolation
 # Using response values at a given nodal set and interpolate
 #     at test points within a space defined by the nodes.
+# NOTE: To avoid Runge's phenomenon, the nodal set should 
+#       be non-uniformly distributed in each dimension of 
+#       parameter space. A good example of proper nodal set
+#       are Gauss quadratures.  
 ###########################################################
 # Saleh Rezaeiravesh, salehr@kth.se
 #----------------------------------------------------------
@@ -157,7 +161,7 @@ def lagrangeBasis_multiVar_metric(qNodes,k,Q):
 #///////////////////////////////
 def lagrangeInterpol_Quads2Line(fQuads,quads,lineDef):
     """ 
-       Lagrange interpolation of the response fromtensor-product quadratures (e.g. Gauss-Legendre points) in a 2D plane of parameters to the points located on a straight line lying in the same parameter plane. 
+       Lagrange interpolation of the response from tensor-product quadratures (e.g. Gauss-Legendre points) in a 2D plane of parameters to the points located on a straight line lying in the same parameter plane. 
        quads: [Q1|Q2]  list of quadratures in directions 1 and 2. Qi is a 1d numpy array of length ni
        fQuads: Values of the response at the quadratures: 1D numpy array of length n1*n2
        lineDef: a dictionary defining the line 
@@ -243,7 +247,7 @@ def lagrangeInterpol_multiVar_test2d():
     """
     #----- SETTINGS --------------------------------------------------------------
     # Settings of the discrete samples in space of param1 & param2
-    nNodes=[6,5]   #number of (non-uniform=Gauss-Legendre) nodes in 1d parameter spaces
+    nNodes=[4,4]   #number of (non-uniform=Gauss-Legendre) nodes in 1d parameter spaces
     qBound=[[-0.75,1.5],  #param_k-space <range_k
             [-0.5 ,2.5]]  
     # Settings of the exact response surface
@@ -371,10 +375,10 @@ def lagrangeInterpol_Quads2Line_test():
     # Settings of the discrete samples in space of param1 & param2
     nNodes=[9,9]   #number of (non-uniform=Gauss-Legendre) nodes in 1d parameter spaces
     qBound=[[-0.75,1.5],  #param_k-space <range_k
-            [-0.5 ,2.5]]  #(line k: range for param k)
+            [-0.8 ,2.5]]  #(line k: range for param k)
     # Define the line in qBound[0]xqBound[1] plane over which interpolation is to be done
     lineDef={'start':[1.4,2.3],    #coordinates of the line's starting point in the q1-q2 plane
-             'end':[-0.7,-0.4],    #coordinates of the line's end point in the q1-q2 plane
+             'end':[-0.7,-0.2],    #coordinates of the line's end point in the q1-q2 plane
              'noPtsLine':100
             }
     #-----------------------------------------------------------------------------

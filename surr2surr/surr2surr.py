@@ -32,13 +32,13 @@ def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType):
        - This function is currently working for 1d, 2d, 3d parameter spaces.
        - NOTE: Dimension of admissible spaces spaceM1 and spaceM2 should be the same =p 
            ndim: dimension of parameter spaces spaceM1 and spaceM2 (=p)
-           qM1: List of GL samples in p-dimensions for model1: qM1=[qM1_1|qM1_2|...|qM1_p] where qM1_i are 1D numpy arrays of length nM1_i, where i=1,2,...,p. 
+           qM1: List of samples (non-uniform) in p-dimensions for model1: qM1=[qM1_1|qM1_2|...|qM1_p] where qM1_i are 1D numpy arrays of length nM1_i, where i=1,2,...,p. 
            fValM1: numpy pD array of size (nM1_1,nM1_2,...,nM1_p)
            spaceM1: Admissible space of qM1 = List of p 1D lists: [spaceM1_1|spaceM1_2|...|spaceM1_p] where spaceM1_i is a list of two elements [.,.]. 
-           nM2=List of the number of Gauss samples qM2 in pD parameter space: nM2=[nM2_1,nM2_2,...,nM2_p]
+           nM2=List of the number of Gauss quadratures qM2 in pD parameter space: nM2=[nM2_1,nM2_2,...,nM2_p]
            spaceM2: Admissible space of qM2 = List of p 1D lists: [spaceM2_1|spaceM2_2|...|spaceM2_p] where spaceM1_i is a list of two elements [.,.]. 
            pDmethod: how to handle the multi-dimsnsionality of the parameters, default is 'tensorProd' 
-           GType: type of Gauss points: 'GL': Gauss Legendre
+           GType: type of Gauss quadratures: 'GL': Gauss Legendre
     """
     #(1) Check if the inputs have sent in correctly
     #  (1a) Check both space1 and space2 have the same dimension
