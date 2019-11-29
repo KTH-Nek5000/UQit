@@ -17,10 +17,12 @@ sys.path.append('../analyticFuncs/')
 sys.path.append('../plot/')
 sys.path.append('../gPCE/')
 sys.path.append('../general/')
+sys.path.append('../nodes/')
 import analyticTestFuncs
 import plot2d
 import gpce
 import reshaper
+import nodes
 
 #////////////////////////////////////////
 def lagrangeBasis_singleVar(qNodes,k,Q):
@@ -206,11 +208,11 @@ def lagrangeInterpol_singleVar_test():
        Take nNodes random samples from the 1D parameter space at which the value of function f is known. Use these in Lagrange interpolation to predict values of f at all q in the subset of the parameter space defined by min and max of the samples. 
     """
     #----- SETTINGS -------------------
-    nNodes=16     #number of nodes
+    nNodes=10     #number of nodes
     qBound=[-1,3] #range over which nodes are randomly chosen
     nTest=100     #number of test points for plot
-    how='GL'  #how to generate nodes
-                  #'random', 'uniform', 'GL' (Gauss-Legendre)
+    how='Clenshaw'  #how to generate nodes
+              #'random', 'uniform', 'GL' (Gauss-Legendre), 'Clenshaw', 
     #---------------------------------- 
     # create nNodes random nodal points over qBound range and function value at the nodes
     qNodes=np.zeros(nNodes)
@@ -220,11 +222,11 @@ def lagrangeInterpol_singleVar_test():
     elif how =='uniform':
        xi=np.linspace(0,1,nNodes)
     elif how =='GL':
-       xi,wXI=gpce.GaussLeg_ptswts(nNodes)
-       print(xi)
-       print(wXI)
-       xi=gpce.mapFromUnit(xi,[0,1]) 
+       xi,wXI=gpce.GaussLeg_ptswts(nNodes)  #on [-1,1]
+    elif how=='Clenshaw':
+       xi=nodes.Clenshaw_pts(nNodes)
  
+    xi=gpce.mapFromUnit(xi,[0,1])    #map to [0,1]
     qNodes=(qBound[1]-qBound[0])*xi+qBound[0]
     fNodes=analyticTestFuncs.fEx1D(qNodes)
 
