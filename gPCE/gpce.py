@@ -14,6 +14,8 @@ import numpy as np
 import math as mt
 import matplotlib
 import matplotlib.pyplot as plt
+#from numpy.polynomial import legendre
+
 
 sys.path.append('../analyticFuncs/')
 sys.path.append('../plot/')
@@ -42,150 +44,21 @@ def mapFromUnit(xi,xBound):
 
 #////////////////////////////
 def GaussLeg_ptswts(n):
-    """ 
-       Returns n Gauss-Legendre points over [-1,+1] along with associated weights for Gauss-lgenedre integration
-       taken from: 
-           https://pomax.github.io/bezierinfo/legendre-gauss.html
     """
-    xGauss=np.zeros(n)
-    w=np.zeros(n)
+       Returns n Gauss-Legendre Quadrature points over [-1,1] and associated Weights
+    """
+    x=np.polynomial.legendre.leggauss(n)
+    quads=x[0]
+    weights=x[1]
+    return quads,weights
 
-    if (n==1):
-       xGauss[0]=0;
-       w[0]=2.0;
-    elif (n==2):
-       xGauss[0]=-1.0/mt.sqrt(3.0);
-       xGauss[1]=1.0/mt.sqrt(3.0);
-       w[0]=1.0
-       w[1]=1.0
-    elif (n==3):
-       xGauss[0]=-mt.sqrt(3.0/5.0);
-       xGauss[1]=0.0;
-       xGauss[2]=mt.sqrt(3.0/5.0);
-       w[0]=5./9.
-       w[1]=8./9.
-       w[2]=5./9.
-    elif (n==4):
-       temp1=mt.sqrt(15.0-2.0*mt.sqrt(30.0))/mt.sqrt(35.0);
-       temp2=mt.sqrt(15.0+2.0*mt.sqrt(30.0))/mt.sqrt(35.0);
-       xGauss[0]=-temp2;
-       xGauss[1]=-temp1;
-       xGauss[2]= temp1;
-       xGauss[3]= temp2;
-       w[0]=49./(6.*(18.+mt.sqrt(30.)));
-       w[1]=49./(6.*(18.-mt.sqrt(30.)));
-       w[2]=49./(6.*(18.-mt.sqrt(30.)));
-       w[3]=49./(6.*(18.+mt.sqrt(30.)));
-    elif (n==5):
-       temp1=mt.sqrt(5.0-2.0*mt.sqrt(10.0/7.0))/3.0;
-       temp2=mt.sqrt(5.0+2.0*mt.sqrt(10.0/7.0))/3.0;
-       xGauss[0]=-temp2;
-       xGauss[1]=-temp1;
-       xGauss[2]=0.0;
-       xGauss[3]= temp1;
-       xGauss[4]= temp2;
-       w[0]=(322.-13.*mt.sqrt(70.))/900.;
-       w[1]=(322.+13.*mt.sqrt(70.))/900.;
-       w[2]=(128./225.);
-       w[3]=(322.+13.*mt.sqrt(70.))/900.;
-       w[4]=(322.-13.*mt.sqrt(70.))/900.;
-    elif (n==6):
-       xGauss[0]=-0.9324695142031521;
-       xGauss[5]= 0.9324695142031521;
-       xGauss[1]=-0.2386191860831969;
-       xGauss[4]= 0.2386191860831969;
-       xGauss[2]=-0.6612093864662645;
-       xGauss[3]= 0.6612093864662645;
-       w[0]= 0.1713244923791704;
-       w[5]= w[0];
-       w[1]=0.4679139345726910;
-       w[4]=w[1];
-       w[2]=0.3607615730481386;
-       w[3]=w[2];
-    elif (n==7):
-       xGauss[0]=-0.9491079123427585;
-       xGauss[6]= 0.9491079123427585;
-       xGauss[1]=-0.7415311855993945;
-       xGauss[5]= 0.7415311855993945;
-       xGauss[2]= 0.4058451513773972;
-       xGauss[4]=-0.4058451513773972;
-       xGauss[3]=0.0;
-       w[0]=0.1294849661688697;
-       w[6]=0.1294849661688697;
-       w[1]=0.2797053914892766;
-       w[5]=w[1];
-       w[2]=0.3818300505051189;
-       w[4]=0.3818300505051189;
-       w[3]=0.4179591836734694;
-    elif (n==8):
-       xGauss[0]=-0.960289856497536
-       xGauss[1]=-0.796666477413626
-       xGauss[2]=-0.525532409916329
-       xGauss[3]=-0.183434642495649
-       xGauss[4]=0.183434642495649
-       xGauss[5]=0.525532409916329
-       xGauss[6]=0.796666477413626
-       xGauss[7]=0.960289856497536
-       w[0]=0.101228536290376
-       w[1]=0.222381034453374
-       w[2]=0.313706645877887
-       w[3]=0.362683783378362
-       w[4]=0.362683783378362
-       w[5]=0.313706645877887
-       w[6]=0.222381034453374
-       w[7]=0.101228536290376
-    elif (n==9):
-       xGauss[0]=-0.968160239507626
-       xGauss[1]=-0.836031107326635
-       xGauss[2]=-0.613371432700590
-       xGauss[3]=-0.324253423403808
-       xGauss[4]=0.000000000000000
-       xGauss[5]=0.324253423403808
-       xGauss[6]=0.613371432700590
-       xGauss[7]=0.836031107326635
-       xGauss[8]=0.968160239507626
-       w[0]=0.081274388361574
-       w[1]=0.180648160694857
-       w[2]=0.260610696402935
-       w[3]=0.312347077040002
-       w[4]=0.330239355001259
-       w[5]=0.312347077040002
-       w[6]=0.260610696402935
-       w[7]=0.180648160694857
-       w[8]=0.081274388361574
-    else:
-       print('ERROR in GaussLeg_ptswts(): Invalid n.')
-
-    return xGauss,w
 
 #//////////////////////////////
-def legendrePoly(m,x):
+def legendrePoly(n,xi):
     """
-       Standard Legendre polynomial of order m evaluated at x\in[-1,1] at x, where x is a d-dim in general
+        Evaluate Legendre polynomial of order n at xi\in[-1,1]
     """
-    if (m==0):
-       P=np.ones(x.size);
-    elif (m==1):
-       P=x;
-    elif (m==2):    
-       P=0.5*(3.*x**2.-1);
-    elif (m==3):    
-       P=0.5*(5.*x**3.-3.*x);    
-    elif (m==4):    
-       P=0.125*(35.*x**4.-30.*x**2.+3);    
-    elif (m==5):    
-       P=0.125*(63.*x**5.-70.*x**3.+15.*x);        
-    elif (m==6):         
-       P=0.5*0.125*(231.*x**6.-315.*x**4.+105.*x**2.-5);
-    elif (m==7):         
-       P=0.5*0.125*(429.*x**7.-693.*x**5.+315.*x**3.-35.*x);
-    elif (m==8):         
-       P=(1./128.)*(6435.*x**8.-12012*x**6.+6930.*x**4.-1260.*x**2.+35.);
-    elif (m==9):         
-       P=(1./128.)*(12155.*x**9.-25740*x**7.+18018.*x**5.-4620.*x**3.+315.*x);
-    else:
-       print('ERROR: number of samples is invalid legendrePoly()!')
-    return P
+    return np.polynomial.legendre.legval(xi,[0]*n+[1])
 
 #//////////////////////////////
 def pce_LegUnif_1d_cnstrct(fVal):
@@ -427,8 +300,8 @@ def gpce_test_2d():
     #settings------------
     q1Bound=[-1.0,2.0]   #range of param1
     q2Bound=[-3.0,3.0]     #range of param2
-    nQ1=7      #number of collocation smaples of param1
-    nQ2=7      #number of collocation smaples of param2
+    nQ1=11      #number of collocation smaples of param1
+    nQ2=6      #number of collocation smaples of param2
     nTest1=100;   #number of test points in param1 space
     nTest2=101;   #number of test points in param2 space
     #--------------------

@@ -206,16 +206,27 @@ def lagrangeInterpol_singleVar_test():
        Take nNodes random samples from the 1D parameter space at which the value of function f is known. Use these in Lagrange interpolation to predict values of f at all q in the subset of the parameter space defined by min and max of the samples. 
     """
     #----- SETTINGS -------------------
-    nNodes=10     #number of nodes
+    nNodes=16     #number of nodes
     qBound=[-1,3] #range over which nodes are randomly chosen
     nTest=100     #number of test points for plot
+    how='GL'  #how to generate nodes
+                  #'random', 'uniform', 'GL' (Gauss-Legendre)
     #---------------------------------- 
     # create nNodes random nodal points over qBound range and function value at the nodes
     qNodes=np.zeros(nNodes)
     fNodes=np.zeros(nNodes)
-    for i in range(nNodes): 
-        qNodes[i]=(qBound[1]-qBound[0])*np.random.uniform()+qBound[0]
-        fNodes[i]=analyticTestFuncs.fEx1D(qNodes[i])
+    if how=='random': 
+       xi=np.random.uniform(0,1,size=[nNodes])
+    elif how =='uniform':
+       xi=np.linspace(0,1,nNodes)
+    elif how =='GL':
+       xi,wXI=gpce.GaussLeg_ptswts(nNodes)
+       print(xi)
+       print(wXI)
+       xi=gpce.mapFromUnit(xi,[0,1]) 
+ 
+    qNodes=(qBound[1]-qBound[0])*xi+qBound[0]
+    fNodes=analyticTestFuncs.fEx1D(qNodes)
 
     #test points
     qTestFull=np.linspace(qBound[0],qBound[1],nTest)
@@ -226,11 +237,13 @@ def lagrangeInterpol_singleVar_test():
 
     #plot
     fTestFull=analyticTestFuncs.fEx1D(qTestFull)
-    plt.figure(figsize=(17,7))
+    plt.figure(figsize=(12,7))
     plt.plot(qTestFull,fTestFull,'--r',lw=2,label='Exact f(q)')
     plt.plot(qTest,fInterpTest,'-b',lw=2,label='Interpolated f(q) by Lagrange Bases')
     plt.plot(qNodes,fNodes,'oc',markersize='8',label='Lagrange Nodes')
-    plt.legend(loc='best')
+    plt.legend(loc='best',fontsize=17)
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
     plt.grid()
     plt.xlabel(r'$q$',fontsize=26)
     plt.ylabel(r'$f(q)$',fontsize=26)
@@ -247,7 +260,7 @@ def lagrangeInterpol_multiVar_test2d():
     """
     #----- SETTINGS --------------------------------------------------------------
     # Settings of the discrete samples in space of param1 & param2
-    nNodes=[4,4]   #number of (non-uniform=Gauss-Legendre) nodes in 1d parameter spaces
+    nNodes=[5,5]   #number of (non-uniform=Gauss-Legendre) nodes in 1d parameter spaces
     qBound=[[-0.75,1.5],  #param_k-space <range_k
             [-0.5 ,2.5]]  
     # Settings of the exact response surface
@@ -290,17 +303,21 @@ def lagrangeInterpol_multiVar_test2d():
     plt.subplot(1,2,1)
     ax=plt.gca()
     CS1 = plt.contour(x1TestFullGrid,x2TestFullGrid,fTestFullGrid,35)#,cmap=plt.get_cmap('viridis'))
-    plt.clabel(CS1, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
+    plt.clabel(CS1, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     qNodesGrid=reshaper.vecs2grid(qNodes[0],qNodes[1])  #2d mesh 
     plt.plot(qNodesGrid[:,0],qNodesGrid[:,1],'o',color='r',markersize=6)
-    plt.xlabel('q1');plt.ylabel('q2');
+    plt.xlabel(r'$q_1$',fontsize=20);plt.ylabel(r'$q_2$',fontsize=20);
+    plt.xticks(fontsize=17)
+    plt.yticks(fontsize=17)
     plt.title('Exact Response Surface')
     plt.subplot(1,2,2)
     ax=plt.gca()
     CS2 = plt.contour(x1TestGrid,x2TestGrid,fTestGrid,20)#,cmap=plt.get_cmap('viridis'))
-    plt.clabel(CS2, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
+    plt.clabel(CS2, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     plt.plot(qNodesGrid[:,0],qNodesGrid[:,1],'o',color='r',markersize=6)
-    plt.xlabel('q1');plt.ylabel('q2');
+    plt.xlabel('q1',fontsize=20);plt.ylabel('q2',fontsize=20);
+    plt.xticks(fontsize=17)
+    plt.yticks(fontsize=17)
     plt.title('Response Surface by Lagrange Interpolation from Sampled Values')
     plt.xlim(domRange[0])
     plt.ylim(domRange[1])

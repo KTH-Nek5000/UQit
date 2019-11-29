@@ -40,6 +40,8 @@ def fEx2D(z1,z2,typ,method):
            tmp=tmp1+tmp2
         elif typ=='type3':   #simple enough for analytical derivation of Sobol indices
            tmp=z1_**2.+z1_*z2_
+        elif typ=='Rosenbrock':
+           tmp=100*(z2_-z1_**2.)**2.+(1-z1_)**2.
         return tmp
 
     z1 = np.array(z1, copy=False, ndmin=1)
