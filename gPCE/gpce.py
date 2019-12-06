@@ -87,7 +87,7 @@ def pce_LegUnif_1d_cnstrct(fVal):
     fMean=fCoef[0]
     fVar=0.0
     for k in range(1,K):
-        fVar+=fCoef[k]*fCoef[k]*sum2[k]
+        fVar+=0.5*fCoef[k]*fCoef[k]*sum2[k]   #0.5:PDF of U on [-1,1]
     return fCoef,fMean,fVar
 
 #//////////////////////////////
@@ -143,7 +143,7 @@ def pce_LegUnif_2d_cnstrct(fVal,nQ1,nQ2):
     fMean=fCoef[0]
     fVar=0.0
     for k in range(1,K):
-        fVar+=fCoef[k]*fCoef[k]*sum2[k]
+        fVar+=(0.5**2.)*fCoef[k]*fCoef[k]*sum2[k]   #0.5:PDF of Uniform on [-1,1]
     return fCoef,fMean,fVar
 
 #//////////////////////////////
@@ -210,7 +210,7 @@ def pce_LegUnif_3d_cnstrct(fVal,nQ1,nQ2,nQ3):
     fMean=fCoef[0]
     fVar=0.0
     for k in range(1,K):
-        fVar+=fCoef[k]*fCoef[k]*sum2[k]
+        fVar+=(0.5**3.)*fCoef[k]*fCoef[k]*sum2[k]    #0.5:PDF of U on [-1,1]
     return fCoef,fMean,fVar
 
 #///////////////////////////////////////////
@@ -259,16 +259,21 @@ def gpce_test_1d():
     """
     print('------ gPCE TEST 1 ------')
     #--- settings -------------------------
-    qBound=[-.5,2.0]   #parameter bounds
-    n=7   #number of Gauss samples
+    qBound=[-2,4.0]   #parameter bounds
+    n=20   #number of Gauss samples
     nTest=100   #number of test sample sin the parameter space
     #--------------------------------------
+    #compute exact moments
+    fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qBound)
+
+    #construct the PCE
     [xi,w]=GaussLeg_ptswts(n)   #Gauss sample pts in [-1,1]
     q=mapFromUnit(xi,qBound)    #map Gauss points to param space
     f=analyticTestFuncs.fEx1D(q)  #function value at the parameter samples (Gauss quads)
     fCoef,fMean,fVar=pce_LegUnif_1d_cnstrct(f)  #find PCE coefficients
-    print('Mean of f(q) estimated by PCE = %g' %fMean)
-    print('Var of f(q) estimated by PCE = %g' %fVar)
+    print('-------------- Exact -------- PCE --------- Error % ') 
+    print('Mean of f(q) = %g\t%g\t%g' %(fMean_ex,fMean,(fMean-fMean_ex)/fMean_ex*100.))
+    print('Var of f(q) = %g\t%g\t%g' %(fVar_ex,fVar,(fVar-fVar_ex)/fVar_ex*100.))
     #plot
     qTest=np.linspace(qBound[0],qBound[1],nTest)  #test points in param space
     fTest=analyticTestFuncs.fEx1D(qTest)   #exact response at test points

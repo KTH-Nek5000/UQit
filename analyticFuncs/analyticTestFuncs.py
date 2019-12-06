@@ -11,9 +11,21 @@ def fEx1D(z):
        Analytical test function for 1D parameter space
     """
     z = np.array(z, copy=False, ndmin=1)
-    val=(10.0+.7*np.sin(5.0*z)+3.*np.cos(1.*z))
+    val=(10.0+.7*np.sin(5.0*z)+3.*np.cos(z))
     val=np.array(val)
     return val  
+
+#/////////////////////////
+def fEx1D_moments(qBound):
+    """ Mean and Variance of fEx1D(z) when z~U[qBound] """
+    def mean_(q_):
+        return (10.*q_-0.7*mt.cos(5.*q_)/5.0+3.*mt.sin(q_))
+    def var_(q_):
+        tmp=100*q_+0.245*(q_-0.1*mt.sin(10*q_))+4.5*(q_+0.5*mt.sin(2*q_))
+        return (tmp-2.8*mt.cos(5*q_)+60*mt.sin(q_)-2.1*(mt.cos(6*q_)/6.+0.25*mt.cos(4*q_)))
+    fMean=(mean_(qBound[1])-mean_(qBound[0]))/(qBound[1]-qBound[0])                 
+    fVar =(var_(qBound[1])-var_(qBound[0]))/(qBound[1]-qBound[0])-fMean**2.
+    return fMean,fVar
 
 #////////////////////
 def fEx2D(z1,z2,typ,method):

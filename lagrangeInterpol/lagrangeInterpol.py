@@ -208,7 +208,7 @@ def lagrangeInterpol_singleVar_test():
        Take nNodes random samples from the 1D parameter space at which the value of function f is known. Use these in Lagrange interpolation to predict values of f at all q in the subset of the parameter space defined by min and max of the samples. 
     """
     #----- SETTINGS -------------------
-    nNodes=10     #number of nodes
+    nNodes=15     #number of nodes
     qBound=[-1,3] #range over which nodes are randomly chosen
     nTest=100     #number of test points for plot
     how='Clenshaw'  #how to generate nodes
@@ -242,7 +242,7 @@ def lagrangeInterpol_singleVar_test():
     plt.figure(figsize=(12,7))
     plt.plot(qTestFull,fTestFull,'--r',lw=2,label='Exact f(q)')
     plt.plot(qTest,fInterpTest,'-b',lw=2,label='Interpolated f(q) by Lagrange Bases')
-    plt.plot(qNodes,fNodes,'oc',markersize='8',label='Lagrange Nodes')
+    plt.plot(qNodes,fNodes,'oc',markersize='8',label='Nodes')
     plt.legend(loc='best',fontsize=17)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
@@ -250,7 +250,11 @@ def lagrangeInterpol_singleVar_test():
     plt.xlabel(r'$q$',fontsize=26)
     plt.ylabel(r'$f(q)$',fontsize=26)
     print('Rerun to change distribution of nodal points!')
-    plt.title('Nodes are chosen randomly over [%g,%g]' %(qBound[0],qBound[1]))
+#    plt.title('Nodes are chosen randomly over [%g,%g]' %(qBound[0],qBound[1]))
+    fig = plt.gcf()
+    DPI = fig.get_dpi()
+    fig.set_size_inches(1000/float(DPI),500/float(DPI))
+    plt.savefig('../testFigs/lag1d4'+'.png',bbox_inches='tight')
     plt.show()
 
 #//////////////////////////////////////
