@@ -140,9 +140,8 @@ def fEx3D(z1,z2,z3,typ,method,opts):
     f=np.asarray(f)
     return f
 
-
 #///////////////////////////////////
-def ishigami_moments(a1,a2,a3,opts):
+def ishigami_exactMoments(a1,a2,a3,opts):
     """ 
        Analytical values of mean and variance of Ishigami function f(q1,q2,q3)
        Assume q1~U[a11,a12], q3~U[q21,q22], q3~U[a31,a32], 
@@ -150,14 +149,19 @@ def ishigami_moments(a1,a2,a3,opts):
        ai: [ai1,ai2] list specifying range of each of the 3 parameters
        opts={a:aVal,b:bVal}: parameters of Ishigami function
     """
+    #evaluate the integral for the exact mean
     a1_=a1[1]-a1[0]
     a2_=a2[1]-a2[0]
     a3_=a3[1]-a3[0]
-    m=-a2_*a3_*mt.cos(a1_)+0.5*opts['a']*a1_*a3_*(a2_-0.5*mt.sin(a2_))-0.2*opts['b']*a2_*a3_**5.*mt.cos(a1_)
-    m=(m/(a1_*a2_*a3_))  #expectation
-
-    v=0.5*(a1_-0.5*mt.sin(2*a1_))*(a3_+opts['b']**2.*a3_**9./9.+0.4*opts['b']*a3_**5.)*a2_ -\
-       opts['a']*mt.cos(a1_)*(a2_-0.5*mt.sin(2*a2_))*(a3_+0.2*opts['b']*a3_**5.)+\
-       0.25*opts['a']**2.*a1_*a3_*(1.5*a2_-mt.sin(2.*a2_)+mt.sin(4.*a2_)/8.)
-    v=v/(a1_*a2_*a3_) - m**2.   #variance
+    m=-a2_*a3_*(mt.cos(a1[1])-mt.cos(a1[0]))+0.5*opts['a']*a1_*a3_*(a2_-0.5*(mt.sin(2.*a2[1])-mt.sin(2*a2[0])))-0.2*opts['b']*a2_*(a3[1]**5.-a3[0]**5.)*(mt.cos(a1[1])-mt.cos(a1[0]))
+    m=(m/(a1_*a2_*a3_))  #analytical mean
+    #evaluate the integral for the exact variance
+    SIN2_1=(mt.sin(2*a1[1])-mt.sin(2*a1[0]))
+    SIN2_2=(mt.sin(2*a2[1])-mt.sin(2*a2[0]))
+    SIN4_2=(mt.sin(4*a2[1])-mt.sin(4*a2[0]))
+    v1=0.5*(a1_-0.5*SIN2_1)*(a3_+opts['b']**2.*(a3[1]**9.-a3[0]**9.)/9.0 + 0.4*opts['b']*(a3[1]**5.-a3[0]**5.))*a2_
+    v2=-opts['a']*(mt.cos(a1[1])-mt.cos(a1[0]))*(a2_-0.5*SIN2_2)*(a3_+0.2*opts['b']*(a3[1]**5.-a3[0]**5.))
+    v3=0.25*opts['a']**2.*a1_*a3_*(1.5*a2_-SIN2_2+0.125*SIN4_2)
+    v=v1+v2+v3
+    v=v/(a1_*a2_*a3_) - m**2.  #analytical variance 
     return m,v

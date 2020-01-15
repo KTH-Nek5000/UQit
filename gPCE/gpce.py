@@ -19,8 +19,10 @@ import matplotlib.pyplot as plt
 
 sys.path.append('../analyticFuncs/')
 sys.path.append('../plot/')
+sys.path.append('../writeUQ/')
 import analyticTestFuncs
 import plot2d
+import writeUQ
 
 #////////////////////////////
 def mapToUnit(x,xBound):
@@ -374,15 +376,13 @@ def gpce_test_3d():
     """
     print('------ gPCE TEST 3 ------')
     #settings------------
-    q1Bound=[-1.0,2.0]   #range of param1
-    q2Bound=[-3.0,3.0]   #range of param2
-    q3Bound=[-1.0,1.0]   #range of param3
-    nQ1=5      #number of collocation smaples of param1
-    nQ2=5      #number of collocation smaples of param2
-    nQ3=5      #number of collocation smaples of param3
-    funOpt={'a':7.0,'b':0.1}   #parameters in Ishigami function
-#    nTest1=100;   #number of test points in param1 space
-#    nTest2=101;   #number of test points in param2 space
+    q1Bound=[-0.75,1.5]   #range of param1
+    q2Bound=[-0.5,2.5]   #range of param2
+    q3Bound=[ 1.0,3.0]   #range of param3
+    nQ1=4      #number of collocation smaples of param1
+    nQ2=4      #number of collocation smaples of param2
+    nQ3=3      #number of collocation smaples of param3
+    funOpt={'a':7,'b':0.1}   #parameters in Ishigami function
     #--------------------
     #generate observations   
     [xi1,w1]=GaussLeg_ptswts(nQ1)   #Gauss sample pts in [-1,1]
@@ -395,6 +395,9 @@ def gpce_test_3d():
     #construct the gPCE and compute the moments
     fCoefs,fMean,fVar=pce_LegUnif_3d_cnstrct(fVal,nQ1,nQ2,nQ3)
     #exact moments of Ishigami function
-    m,v=analyticTestFuncs.ishigami_moments(q1Bound,q2Bound,q3Bound,funOpt)
-    print(m,fMean,v,fVar)
-
+    m,v=analyticTestFuncs.ishigami_exactMoments(q1Bound,q2Bound,q3Bound,funOpt)
+    #print the results
+    print(writeUQ.printRepeated('-',50))
+    print('\t\t Exact \t\t PCE')
+    print('E[f]:  ',m,fMean)
+    print('V[f]:  ',v,fVar)

@@ -340,14 +340,14 @@ def lagrangeInterpol_multiVar_test3d():
     """
     #----- SETTINGS -------------------
     # Settings of the discrete samples in space of param1 & param2
-    nNodes=[4,5,4] #number of nodes in each of 3 parameter spaces
+    nNodes=[7,8,7] #number of Gauss quadratures in each of the 3 parameter spaces
     qBound=[[-0.75,1.5], #1D parameter spaces
             [-0.5 ,2.5],
             [1,3]]
     # Test points over each 1D parameter space
-    nTest=[5,4,3]
+    nTest=[8,6,7]
     #parameters in Ishigami function
-    a=7
+    a=0.2
     b=0.1
     #---------------------------------- 
     # (1) Generate uniformly-spaced samples over each of the 1D parameter spaces
