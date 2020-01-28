@@ -20,9 +20,12 @@ import matplotlib.pyplot as plt
 sys.path.append('../analyticFuncs/')
 sys.path.append('../plot/')
 sys.path.append('../writeUQ/')
+sys.path.append('../general/')
 import analyticTestFuncs
 import plot2d
 import writeUQ
+import reshaper
+import linAlg
 
 #////////////////////////////
 def mapToUnit(x,xBound):
@@ -61,6 +64,59 @@ def legendrePoly(n,xi):
         Evaluate Legendre polynomial of order n at xi\in[-1,1]
     """
     return np.polynomial.legendre.legval(xi,[0]*n+[1])
+
+#//////////////////////////////
+def pceDict_corrector(pceDict):
+    """
+       Correct pceDict for PCE over multi-dimensional parameter space, so that options become consistent. 
+         * For 'GQ' samples+'TP' truncation method: either 'Projection' or 'Regression' can be used
+         * For all combination of sample points and truncation, 'Projection' can be used to compute PCE coefficients
+    """
+    if pceDict['truncMethod']=='TO':
+       pceDict['pceSolveMethod']='Regression'
+    if pceDict['truncMethod']=='TP' and pceDict['sampleType']!='GQ':
+       pceDict['pceSolveMethod']='Regression'
+    if pceDict['pceSolveMethod']=='Regression' and pceDict['truncMethod']!='TP':
+       if 'LMax' not in pceDict:
+          print("ERROR in pceDict: 'LMax' should be set when Total-Order method is used.")
+    return pceDict
+
+#////////////////////////////////////
+def PCE_coef_conv_plot(fCoef,kSet,distType):
+    """
+       Plot convergence of PCE terms
+       ||fk*Psi_k||/||f0*Psi_0|| is plotted versus |k|=sum(k_i)
+       Inputs:
+          fCoef: 1D array of length K containing a PCE coefficients
+          kSet: Index set of PCE, kSet=[[k1,k2,...,kp],...]
+          distType: A list containing distribution type of RVs, distType=[dist1,dist2,...,distp]      
+    """
+    K=len(fCoef)   #no of terms in PCE
+    p=len(kSet[0]) #dimension of parameter-space
+    #magnitude of indices
+    kMag=[]
+    for i in range(K):
+        kMag.append(sum(kSet[i]))
+    #compute norm of the PCE bases
+    xi=np.linspace(-1,1,1000)
+    termNorm=[]
+    for ik in range(K):   #over PCE terms
+        PsiNorm=1.0
+        for ip in range(p):   #over parameter dimension 
+            k_=kSet[ik][ip]
+            if distType[ip]=='Unif':   
+               psi_k_=legendrePoly(k_,xi)
+               PsiNorm*=np.linalg.norm(psi_k_,2)
+            else:
+               print('NOW only uniform distribution is considered!')
+        termNorm.append(abs(fCoef[ik])*PsiNorm)
+    termNorm0=termNorm[0]
+    plt.semilogy(kMag,termNorm/termNorm0,'ob')
+    plt.xlabel(r'$|\mathbf{k}|$',fontsize=18)
+    plt.ylabel(r'$||\hat{f}_\mathbf{k}\Psi_{\mathbf{k}(\mathbf{\xi})}||_2/||\hat{f}_0||_2$',fontsize=18)
+    plt.grid()
+    #plt.ylim([1e-40,1.1])
+
 
 #//////////////////////////////
 def pce_LegUnif_1d_cnstrct(fVal):
@@ -110,68 +166,219 @@ def pce_LegUnif_1d_eval(fk,xi):
         fpce.append(sum1)
     return fpce
 
-#//////////////////////////////
-def pce_LegUnif_2d_cnstrct(fVal,nQ1,nQ2):
+#///////////////////////////////////////////////////
+def pce_LegUnif_2d_cnstrct(fVal,nQList,xiGrid,pceDict):
     """ 
-    Construct a PCE over a 2D parameter space. 
-    Uniform Uncertain Parameter
-    => Legendre Polynomials
-    Find {f_k} in f(q)=\sum_k f_k psi_k(q) 
-        nQ1,nQ2: number of parameter samples for 1st and 2nd parameters
+       Construct a PCE over a 2D parameter space. 
+       Uniform Uncertain Parameter
+       => Legendre Polynomials
+       Find {f_k} in f(q)=\sum_k f_k psi_k(q) 
+          Input:
+             fVal: 1d numpy array containing response value at the samples
+             nQList: A list containing number of samples, nQList=[nQ1|nQ2]
+                     For Tensor Product method: nQ1,nQ2 are number of samples in each direction
+                     For Other methods: nQ1=nData (total no of samples), nQ2=1
+             xiGrid: A 2D grid of sampled parameters mapped in [-1,1]^2 space
+                     xiGrid=2d np array, [nData,2]
+                     Always Required to be provided unless 'GQ' samples are used
+             pceDict: A dictionary containing different options for PCE with these keys:   
+                    'truncMethod': method of truncating PCE
+                                 ='TP' (tensor product method)         
+                                 ='TO' (total order method)
+                    'pceSolveMethod': method of solving for PCE coeffcients
+                                 ='Projection' (Requires samples to be Gauss-Quadratures)
+                                 ='Regression' (can be uniquely-, over-, and under-determined. In the latter compressed sensing with L1/L2 regularization is needed.)                                                  NOTE: for 'GQ'+'TP' the pceSolveMethod is 'Projection'. For any other combination, we use 'Regression'
+                    'sampleType': type of parameter samples at which observations are made
+                                ='GQ' (Gauss Quadrature nodes)
+                                =' '  (Any other nodal set)
+          Output:
+             fCoef: Coefcients in the PCE: length =K
+             kSet:  Index set, list of pd lists
+             fMean: PCE estimation for E[f(q)]
+             fVar:  PCE estimation for V[f(q)]
+    """
+    truncMethod=pceDict['truncMethod']   #Truncation method for PCE
+    sampleType=pceDict['sampleType']     #Types of parameter samples
+    if sampleType=='GQ' and truncMethod=='TP':   #Gauss Quadrature samples with Tensor-Product Rules
+       fCoef,kSet,fMean,fVar=pce_LegUnif_2d_GQTP_cnstrct(fVal,nQList,pceDict)
+    else:                  #Other type of samples (structured/unstructured)
+       fCoef,kSet,fMean,fVar=pce_LegUnif_2d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict)
+    return fCoef,kSet,fMean,fVar
+
+#//////////////////////////////////////////////////
+def pce_LegUnif_2d_GQTP_cnstrct(fVal,nQList,pceDict):
+    """ 
+       Construct a PCE over a 2D parameter space 
+       Uniform Uncertain Parameter=> Legendre Polynomials, 
+       Find {f_k} in f(q)=\sum_k f_k psi_k(q) 
+       * Type of parameter samples: Gauss-Quadrature nodes
+       * Method of truncating PCE: Tensor Product Method
+         pceSolveMethod= 'Projection' or 'Regression 
     """
 #    print('NOTE: Make sure the reponses are imported by keeping the loop of the 2nd param outside of that of param1 (Always: latest parameter has the outermost loop)')
+    print('... A gPCE for a 2D parameter space is constructed.')
+    print('       Samples in each direction are Gauss Quadrature nodes (User should check this!).')
+    print('       PCE is truncated using Tensor Product method.')
+    print('       Coeffcients are computed by %s method.' %pceDict['pceSolveMethod'])
+    #(1) Set variables
+    nQ1=nQList[0]
+    nQ2=nQList[1]
     [xi1,w1]=GaussLeg_ptswts(nQ1)
     [xi2,w2]=GaussLeg_ptswts(nQ2)
-    K=nQ1*nQ2;  #upper bound of sum in PCE
-                #NOTE: assuming Tensor Product
-    #find the coefficients in the expansion
+    K=nQ1*nQ2;  #upper bound of sum in PCE using Tensor Product truncation
+    print('...... Number of terms in PCE, K= ',K)
+    nData=len(fVal)   #number of observations
+    print('...... Number of Data point, n= ',nData)
+    if K!=nData:
+       print('ERROR in pce_LegUnif_2d_TP_cnstrct(): ')
+    #(2) Find the coefficients in the expansion
+    #By default, Projection method is used (assuming samples are Gauss-Quadrature points)
     fCoef=np.zeros(K)
     sum2=[]
+    kSet=[]    #index set
     for k2 in range(nQ2):  #k-th coeff in PCE - param2
         psi_k2=legendrePoly(k2,xi2)
         for k1 in range(nQ1):  #k-th coeff in PCE - param1
-             psi_k1=legendrePoly(k1,xi1)
-             sum1=0.0
-             sum2_=0.0
-             k=k2*nQ1+k1
-             for j2 in range(nQ2):
-                 for j1 in range(nQ1):
-                     j=j2*nQ1+j1
-                     sum1 += fVal[j]*(psi_k1[j1]*psi_k2[j2]*w1[j1]*w2[j2])
-                     sum2_+=         (psi_k1[j1]*psi_k2[j2])**2.*w1[j1]*w2[j2]
-             fCoef[k]=sum1/sum2_
-             sum2.append(sum2_)
-    #find the mean and variance of f(q) as estimated by PCE
+            psi_k1=legendrePoly(k1,xi1)
+            sum1=0.0
+            sum2_=0.0
+            k=k2*nQ1+k1
+            kSet.append([k1,k2])
+            for j2 in range(nQ2):
+                for j1 in range(nQ1):
+                    j=j2*nQ1+j1
+                    sum1 += fVal[j]*(psi_k1[j1]*psi_k2[j2]*w1[j1]*w2[j2])
+                    sum2_+=         (psi_k1[j1]*psi_k2[j2])**2.*w1[j1]*w2[j2]
+            fCoef[k]=sum1/sum2_
+            sum2.append(sum2_)
+
+    #(2b) Recompute fCoef via Regression, in case Regression is chosen
+    if pceDict['pceSolveMethod']=='Regression':
+       xiGrid=reshaper.vecs2grid(xi1,xi2)
+       A=np.zeros((nData,K))
+       k=-1
+       for k2 in range(nQ2): 
+           for k1 in range(nQ1): 
+               k+=1
+               for j in range(nData):
+                   A[j,k]=legendrePoly(k1,xiGrid[j,0])*legendrePoly(k2,xiGrid[j,1])
+       #Linear Regression to solve the linear set of equations
+       fCoef=linAlg.myLinearRegress(A,fVal)   #This is a uniquely determined system
+    
+    #(3) Find the mean and variance of f(q) as estimated by PCE
     fMean=fCoef[0]
     fVar=0.0
     for k in range(1,K):
         fVar+=(0.5**2.)*fCoef[k]*fCoef[k]*sum2[k]   #0.5:PDF of Uniform on [-1,1]
-    return fCoef,fMean,fVar
+    return fCoef,kSet,fMean,fVar
+
+#//////////////////////////////////////////////////
+def pce_LegUnif_2d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict):
+    """ 
+       Construct a PCE over a 2D parameter space 
+       Uniform Uncertain Parameter=> Legendre Polynomials, 
+       Find {f_k} in f(q)=\sum_k f_k psi_k(q) 
+       Inputs:
+           xiGrid: sampled parameters mapped to [-1,1]^2  
+                  A Grid of nData x 2
+                  NOTE: xiGrid is ALWAYS needed in this routine
+           nQList: only needed if 'TP' is selected
+       * Method of truncating PCE: Total Order or Tensor Product
+       * Method of solving for PCE coefficients: ONLY Regression
+       (Any combination but 'GQ'+'TP')
+    """
+#    print('NOTE: Make sure the reponses are imported by keeping the loop of the 2nd param outside of that of param1 (Always: latest parameter has the outermost loop)')
+    pceSolveMethod=pceDict['pceSolveMethod']
+    truncMethod=pceDict['truncMethod']
+    print('... A gPCE for a 2D parameter space is constructed.')
+    print('      PCE is truncated using %s method.' %truncMethod)    
+    print('      Coeffcients are computed by %s method,' %pceSolveMethod)
+    if pceDict['truncMethod']=='TO':
+       LMax=pceDict['LMax']   #max order of polynomial in each direction
+       print('         with LMax=%d as the max polynomial order in each direction.' %LMax)
+    if pceSolveMethod!='Regression':
+       print('ERROR in pce_LegUnif_2d_TO_cnstrct(): only Regression method can be used for PCE with Total Order truncation method.')
+
+    #(1) Set variables
+    #Number of terms in PCE
+    if truncMethod=='TO':
+       K=int((LMax+2)*(LMax+1)/2)  
+       N1=LMax+1  #loops' upper bound
+       N2=LMax+1
+    elif truncMethod=='TP':   #'TP' needs nQList 
+       N1=nqList[0]
+       N2=nqList[1]
+       K=N1*N2           
+       
+    print('...... Number of terms in PCE, K= ',K)
+    nData=len(fVal)   #number of observations
+    print('...... Number of Data point, n= ',nData)
+    #(2) Find the coefficients in the expansion:Only Regression method can be used. 
+    #    Also we need to compute gamma_k (=sum2) required to estimate the variance by PCE.
+    #    For this we create an auxiliary Gauss-Quadrature grid to compute intgerals
+    A=np.zeros((nData,K))    #Matrix of known coeffcient for regression to compute PCE coeffcients
+    kSet=[]
+    sum2=[]
+    k=-1
+    xi1_aux,w1_aux=GaussLeg_ptswts(N1)  #auxiliary GQ rule for computing gamma_k
+    xi2_aux,w2_aux=GaussLeg_ptswts(N2)
+    for k2 in range(N2):    
+        psi_aux_k2=legendrePoly(k2,xi2_aux)
+        for k1 in range(N1):
+            psi_aux_k1=legendrePoly(k1,xi1_aux)
+            if (truncMethod=='TO' and (k1+k2)<=LMax) or (truncMethod=='TP'):
+               #constructing Aij
+               k+=1
+               kSet.append([k1,k2])    #index set
+               for j in range(nData):
+                   A[j,k]=legendrePoly(k1,xiGrid[j,0])*legendrePoly(k2,xiGrid[j,1])
+               #computing sum2=gamma_k
+               sum2_=0.0
+               k_aux=k2*(N1)+k1  
+               for j2 in range(N2):
+                   for j1 in range(N1):
+                       sum2_+=(psi_aux_k1[j1]*psi_aux_k2[j2])**2.*w1_aux[j1]*w2_aux[j2]
+               sum2.append(sum2_)
+
+    #Find the PCE coeffs by Linear Regression 
+    fCoef=linAlg.myLinearRegress(A,fVal)   #This can be over-, under-, or uniquely- determined systetm.
+    
+    #(3) Find the mean and variance of f(q) as estimated by PCE
+    fMean=fCoef[0]
+    fVar=0.0
+    for k in range(1,K):
+        fVar+=(0.5**2.)*fCoef[k]*fCoef[k]*sum2[k]   #0.5:PDF of Uniform on [-1,1]
+    return fCoef,kSet,fMean,fVar
 
 #//////////////////////////////
-def pce_LegUnif_2d_eval(fk,nQ1,nQ2,xi1,xi2):
+def pce_LegUnif_2d_eval(fk,kSet,xi1,xi2):
     """ 
-    Evaluate a 2D PCE at a set of test points xi1,xi2\in[-1,1] which are assumed to make a tensor-product grid
-    Uniform Uncertain Parameter
-    => Legendre Polynomials
-    Given {f_k}, find f(q)=\sum_k f_k psi_k(q) 
-    #NOTE: assumes Tensor product
+       Evaluate a PCE over 2D param space at a set of test points xi1,xi2\in[-1,1] 
+       i.e., Given {f_k}, find f(q)=\sum_k f_k psi_k(q) 
+       Note: This routine works for any PCE no matter what truncation method has been used for its construction. Because, we use the index set kSet.
+        Uniform Uncertain Parameter    => Legendre Polynomials
+        Inputs:
+           fk: 1D array of length K containing the coefficients of the PCE
+           kSet: List of indices:[[k1,1,k2,1],[k1,2,k2,2],...,[k1,K,k2,K]] produced based on the tensor product or total order rules when constructing the PCE
+           xi1,xi2: Test points in each direction of the 2D parameter space. Always a tensor product grid is constructed based on test points to evaluate the PCE.
+        Outputs: 
+           fpce: Response values predicted (inerpolated) by the PCE at the test points
     """
     xi1 = np.array(xi1, copy=False, ndmin=1)
     xi2 = np.array(xi2, copy=False, ndmin=1)
     n1=xi1.size
     n2=xi2.size
     fpce=np.zeros((n1,n2))
+    K=len(kSet)   #number of terms in the PCE
     for i2 in range(n2):
         for i1 in range(n1):
             sum1=0.0;
-            for k2 in range(nQ2):
-                for k1 in range(nQ1):
-                    k=k2*nQ1+k1
-                    sum1+=fk[k]*legendrePoly(k1,xi1[i1])*legendrePoly(k2,xi2[i2])
+            for k in range(K):
+                k1=kSet[k][0]
+                k2=kSet[k][1]
+                sum1+=fk[k]*legendrePoly(k1,xi1[i1])*legendrePoly(k2,xi2[i2])
             fpce[i1,i2]=sum1
     return fpce
-
 
 #//////////////////////////////
 def pce_LegUnif_3d_cnstrct(fVal,nQ1,nQ2,nQ3):
@@ -307,11 +514,21 @@ def gpce_test_2d():
     #settings------------
     q1Bound=[-1.0,2.0]   #range of param1
     q2Bound=[-3.0,3.0]     #range of param2
-    nQ1=11      #number of collocation smaples of param1
-    nQ2=6      #number of collocation smaples of param2
+    nQ1=6      #number of collocation smaples of param1
+    nQ2=7      #number of collocation smaples of param2
     nTest1=100;   #number of test points in param1 space
     nTest2=101;   #number of test points in param2 space
+    truncMethod='TO'  #'TP'=Tensor Product
+                      #'TO'=Total Order  
+    sampleType=''     #'GQ'=Gauss Quadrature nodes
+                      #''= any other sample => only 'TO' can be selected
+    pceSolveMethod='Projection' #'Regression': for any combination of sample points and truncation methods
+                                #'Projection': only for GQ+Tensor Product
+    #NOTE: for 'TO' only 'Regression can be used'. pceSolveMethod will be overwritten
+    if truncMethod=='TO':
+       LMax=12   #max polynomial order in each parameter direction
     #--------------------
+
     #generate observations   
     [xi1,w1]=GaussLeg_ptswts(nQ1)   #Gauss sample pts in [-1,1]
     [xi2,w2]=GaussLeg_ptswts(nQ2)   #Gauss sample pts in [-1,1]
@@ -319,14 +536,23 @@ def gpce_test_2d():
     q2=mapFromUnit(xi2,q2Bound)    #map Gauss points to param2 space
     fVal=analyticTestFuncs.fEx2D(q1,q2,'type1','tensorProd')  #function value at the parameter samples (Gauss quads)    
     #construct the gPCE
-    fCoefs,fMean,fVar=pce_LegUnif_2d_cnstrct(fVal,nQ1,nQ2)
+    pceDict={'truncMethod':truncMethod,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod}
+    if truncMethod=='TO':
+       pceDict.update({'LMax':LMax,'pceSolveMethod':'Regression'})
+    pceDict=pceDict_corrector(pceDict)
+    xiGrid=reshaper.vecs2grid(xi1,xi2)
+    fCoefs,kSet,fMean,fVar=pce_LegUnif_2d_cnstrct(fVal,[nQ1,nQ2],xiGrid,pceDict)
+
+    #plot convergence of PCE terms
+    PCE_coef_conv_plot(fCoefs,kSet,['Unif','Unif'])
+
     #make predictions at test points in the parameter space
     q1Test =np.linspace(q1Bound[0],q1Bound[1],nTest1)  #test points in param1 space
     xi1Test=mapToUnit(q1Test,q1Bound)
     q2Test =np.linspace(q2Bound[0],q2Bound[1],nTest2)  #test points in param2 space
     xi2Test=mapToUnit(q2Test,q2Bound)
     fTest=analyticTestFuncs.fEx2D(q1Test,q2Test,'type1','tensorProd')   #response value at the test points
-    fPCE=pce_LegUnif_2d_eval(fCoefs,nQ1,nQ2,xi1Test,xi2Test)  #Prediction at test points by PCE
+    fPCE=pce_LegUnif_2d_eval(fCoefs,kSet,xi1Test,xi2Test)  #Prediction at test points by PCE
     #create 2D grid and response surface over it
     x1TestGrid,x2TestGrid,fTestGrid=plot2d.plot2D_gridVals(q1Test,q2Test,fTest)
     fErrorGrid=np.zeros((nTest1,nTest2))
