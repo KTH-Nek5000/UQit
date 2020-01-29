@@ -9,14 +9,14 @@ import cvxpy as cvx
 #/////////////////////////////
 def myLinearRegress(A,R,L_=1):
     """
-       Solve a linear system 
+       Solve a linear system of equations.
        This solver works for uniquely-, over-, and under-determined linear system. 
        If system is under-determined we use compressed sensing with L1 or L2 regularization. Library cvxpy is used for this purpose.  https://www.cvxpy.org
-          Inputs:
+          Input:
              Af=R => At*A f = At*R (normal system)
              A:nxK (n:no of data, K: no of PCE terms), f: unknown coefs:Kx1, R: Responses nx1
              L_: =1 or 2: Regularization Order
-          Outputs:
+          Output:
              set of coeffcients f: 1d array of length K
     """
     def linearSysSolver(A,R,L_=1):
@@ -31,8 +31,8 @@ def myLinearRegress(A,R,L_=1):
         constraints = [M*f == R]
         prob = cvx.Problem(objective, constraints)
         object_value = prob.solve(verbose=True)
-        print('...... Convex Optimization is done to compute PCE coeffcients, fHat.')
-        print('       object_value= ||fHat|| = %g in L%d-sense.'%(object_value,L_))
+        print('...... Compressed sensing (regularization) is done to compute PCE coeffcients, fHat.')
+        print('       Min objective value=||fHat||= %g in L%d-sense.'%(object_value,L_))
         fHat=f.value
         return fHat
     f=linearSysSolver(A,R,1)

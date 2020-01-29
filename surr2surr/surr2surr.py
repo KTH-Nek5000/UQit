@@ -53,20 +53,24 @@ def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType):
           print('ERROR in lagIntAtGaussPts: ||spaceM2|| should be smaller than ||spaceM1||. Issue in parmeter %d' %(idim+1))
     #(2) Construct the Gauss-Legendre stochastic samples for model2
     qM2=[]
+    xiM2=[]
     for i in range(ndim):
-        [xi,w]=gpce.GaussLeg_ptswts(nM2[i])   #for i-th param
-        qM2_=gpce.mapFromUnit(xi,spaceM2[i])
+        [xi_,w]=gpce.GaussLeg_ptswts(nM2[i])   #for i-th param
+        qM2_=gpce.mapFromUnit(xi_,spaceM2[i])
         qM2.append(qM2_)
+        xiM2.append(xi_)
     if (ndim==1): 
        qM2=qM2[0]
     elif (ndim==2):
        if (pDmethod=='tensorProd'):
           qM2=reshaper.vecs2grid(qM2[0],qM2[1]) #Make a grid out of two 1D vectors
+          xiM2=reshaper.vecs2grid(xiM2[0],xiM2[1]) #Make a grid out of two 1D vectors
        else:
           print('ERROR in lagIntAtGaussPts: currently only tensor-product is available')
     elif(ndim==3):
        if (pDmethod=='tensorProd'):
           qM2=reshaper.vecs2grid3d(qM2[0],qM2[1],qM2[2]) #Make a grid out of three 1D vectors
+          xiM2=reshaper.vecs2grid3d(xiM2[0],xiM2[1],xiM2[2]) #Make a grid out of three 1D vectors
        else:
           print('ERROR in lagIntAtGaussPts: currently only tensor-product is available')
     else:
@@ -79,7 +83,7 @@ def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType):
        fVal2Interp=lagrangeInterpol.lagrangeInterpol_multiVar(fValM1,qM1,qM2,pDmethod)
     else:
        print('ERROR in lagIntAtGaussPts: currently up to 3D parameter space can be handled.')
-    return qM2,fVal2Interp
+    return qM2,xiM2,fVal2Interp
 
 #////////////////////////////////////////////////////////
 def pce2pce_GaussLeg(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType):
@@ -110,17 +114,20 @@ def pce2pce_GaussLeg(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType):
        if (d2>d1):
           print('ERROR in pce2pce_GaussLeg: ||spaceM2|| should be smaller than ||spaceM1||. Issue in parmeter %d' %(idim+1))
     #(2) Use lagrange interpolation to find values at qM2 (Gauss points over spaceM2), given fValM1 at Gauss-Legendre samples qM1
-    qM2,fVal2Interp=lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType)
+    qM2,xiGridM2,fVal2Interp=lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType)
     #(3) Construct PCE2 over spaceM2
     if ndim==1:
        fCoef2,fMean2,fVar2=gpce.pce_LegUnif_1d_cnstrct(fVal2Interp)  
-    elif ndim==2:
-       fCoef2,fMean2,fVar2=gpce.pce_LegUnif_2d_cnstrct(fVal2Interp,nM2[0],nM2[1])
-    elif ndim==3:  
-       fCoef2,fMean2,fVar2=gpce.pce_LegUnif_3d_cnstrct(fVal2Interp,nM2[0],nM2[1],nM2[2])
-    else:
-        print('ERROR in pce2pce_GaussLeg: currently up to 3D parameter space can be handled')
-    return fCoef2,fMean2,fVar2,qM2,fVal2Interp
+    else: #multi-dimensional param space
+       pceDict={'sampleType':'GQ','pceSolveMethod':'Projection','truncMethod':'TO'}
+       pceDict=gpce.pceDict_corrector(pceDict)
+       if ndim==2:
+          fCoef2,kSet2,fMean2,fVar2=gpce.pce_LegUnif_2d_cnstrct(fVal2Interp,[nM2[0],nM2[1]],xiGridM2,pceDict)
+       elif ndim==3:  
+          fCoef2,kSet2,fMean2,fVar2=gpce.pce_LegUnif_3d_cnstrct(fVal2Interp,[nM2[0],nM2[1],nM2[2]],xiGridM2,pceDict)
+       else:
+          print('ERROR in pce2pce_GaussLeg: currently up to 3D parameter space can be handled')
+    return fCoef2,kSet2,fMean2,fVar2,qM2,fVal2Interp
 
 
 ############################
@@ -147,7 +154,7 @@ def pce2pce_GaussLeg_1d_test():
     fCoef1,fMean1,fVar1=gpce.pce_LegUnif_1d_cnstrct(fVal1)  #find PCE coefficients
 
     #(2) Construct PCE2 given values predicted by PCE1 at nSampMod2 GL samples over space2
-    fCoef2,fMean2,fVar2,q2,fVal2=pce2pce_GaussLeg(fVal1,q1,space1,nSampMod2,space2,'','GL')
+    fCoef2,kSet2,fMean2,fVar2,q2,fVal2=pce2pce_GaussLeg(fVal1,q1,space1,nSampMod2,space2,'','GL')
 
     #(3) Make predictions by PCE1 and PCE2 over their admissible spaces
     qTest1=np.linspace(space1[0][0],space1[0][1],nTest)  #test points in param space
@@ -194,16 +201,22 @@ def pce2pce_GaussLeg_2d_test():
     #(1) Construct PCE1
     #GL points for param1,2
     qM1=[];
+    xiM1=[]
     for i in range(2):
-       [xi,wXI]=gpce.GaussLeg_ptswts(nSampM1[i])   #Gauss sample pts in [-1,1]
-       qM1.append(gpce.mapFromUnit(xi,spaceM1[i]))    #map Gauss points to param space
+       [xi_,wXI]=gpce.GaussLeg_ptswts(nSampM1[i])   #Gauss sample pts in [-1,1]
+       qM1.append(gpce.mapFromUnit(xi_,spaceM1[i]))    #map Gauss points to param space
+       xiM1.append(xi_)
+  
     #Response values at the GL points
     fValM1=analyticTestFuncs.fEx2D(qM1[0],qM1[1],'type1','tensorProd') 
     #Construct the PCE
-    fCoefM1,fMeanM1,fVarM1=gpce.pce_LegUnif_2d_cnstrct(fValM1,nSampM1[0],nSampM1[1])  
+    pceDict={'sampleType':'GQ','pceSolveMethod':'Regression','truncMethod':'TO','LMax':10}
+    pceDict=gpce.pceDict_corrector(pceDict)
+    xiGridM1=reshaper.vecs2grid(xiM1[0],xiM1[1])
+    fCoefM1,kSetM1,fMeanM1,fVarM1=gpce.pce_LegUnif_2d_cnstrct(fValM1,[nSampM1[0],nSampM1[1]],xiGridM1,pceDict)  
 
     #(2) Construct PCE2 given values predicted by PCE1 at GL samples over spaceM2
-    fCoefM2,fMeanM2,fVarM2,qM2,fVal2Interp=pce2pce_GaussLeg(fValM1,qM1,spaceM1,nSampM2,spaceM2,'tensorProd','GL')
+    fCoefM2,kSetM2,fMeanM2,fVarM2,qM2,fVal2Interp=pce2pce_GaussLeg(fValM1,qM1,spaceM1,nSampM2,spaceM2,'tensorProd','GL')
 
     #(3) Make predictions by PCE1 and PCE2 over their admissible spaces
     #Predictions by PCE1 over spaceM1
@@ -217,7 +230,7 @@ def pce2pce_GaussLeg_2d_test():
     for i in range(2):
         xiTestM1_=gpce.mapToUnit(qTestM1[i],spaceM1[i])
         xiTestM1.append(xiTestM1_)
-    fPCETestM1=gpce.pce_LegUnif_2d_eval(fCoefM1,nSampM1[0],nSampM1[1],xiTestM1[0],xiTestM1[1])
+    fPCETestM1=gpce.pce_LegUnif_2d_eval(fCoefM1,kSetM1,xiTestM1[0],xiTestM1[1])
 
     #Predictions by PCE2 in spaceM2
     qTestM2=[]
@@ -228,7 +241,7 @@ def pce2pce_GaussLeg_2d_test():
         xiTestM2_=gpce.mapToUnit(qTestM2[i],spaceM2[i])
         xiTestM2.append(xiTestM2_)
     fTestM2=analyticTestFuncs.fEx2D(qTestM2[0],qTestM2[1],'type1','tensorProd')   #exact response at test points of model2
-    fPCETestM2=gpce.pce_LegUnif_2d_eval(fCoefM2,nSampM2[0],nSampM2[0],xiTestM2[0],xiTestM2[1])
+    fPCETestM2=gpce.pce_LegUnif_2d_eval(fCoefM2,kSetM2,xiTestM2[0],xiTestM2[1])
 
     #(4) 2d contour plots
     plt.figure(figsize=(20,8))

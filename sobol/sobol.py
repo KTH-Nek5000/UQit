@@ -10,8 +10,10 @@ from scipy.integrate import simps
 
 sys.path.append('../analyticFuncs/')
 sys.path.append('../gPCE/')
+sys.path.append('../general/')
 import analyticTestFuncs
 import gpce
+import reshaper
 
 #/////////////////////////////
 def doubleInteg(g,x1,x2):
@@ -212,10 +214,11 @@ def sobol_2par_unif_test():
       Test for sobol_unif() when we have 2 uncertain parameters q1, q2. 
       Sobol indices are computed for f(q1,q2)=q1**2.+q1*q2 that is analyticTestFuncs.fEx2D('type3'). 
       Indices are computed from the following methods:
-      Method1: The Simpson numerical integration is used for the integrals in the definition of the indices (method of choise in myUQtoolbox). 
-      Method2: First a PCE is constructed and then its predicitons at test points are used in Simpson integral of the Sobol indices. 
-      Method3: Analytical expressions (see my notes)      
+       * Method1: The Simpson numerical integration is used for the integrals in the definition of the indices (method of choise in myUQtoolbox). 
+       * Method2: First a PCE is constructed and then its predicitons at test points are used in Simpson integral of the Sobol indices. 
+       * Method3: Analytical expressions (see my notes)      
     """
+    print('... Test: sobol_2par_unif_test(): Sobol Sensitivity Indices for fEx2D("type3")')
     def D1_Ex(a,b,q1):
         """
           Analytical function for variance D1 for for analyticalTestFuncs.fEx2D('type3')
@@ -300,13 +303,16 @@ def sobol_2par_unif_test():
     q2pce=gpce.mapFromUnit(xi2,qBound[1])    
     fVal_pceCnstrct=analyticTestFuncs.fEx2D(q1pce,q2pce,'type3','tensorProd') 
     #construct the gPCE
-    fCoefs,fMean,fVar=gpce.pce_LegUnif_2d_cnstrct(fVal_pceCnstrct,nQ1pce,nQ2pce)
+    xiGrid=reshaper.vecs2grid(xi1,xi2)
+    pceDict={'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection'}
+    pceDict=gpce.pceDict_corrector(pceDict)
+    fCoefs,kSet,fMean,fVar=gpce.pce_LegUnif_2d_cnstrct(fVal_pceCnstrct,[nQ1pce,nQ2pce],xiGrid,pceDict)
     #use gPCE to predict at test samples from parameter space
     q1pceTest =np.linspace(qBound[0][0],qBound[0][1],n[0])  
     xi1Test   =gpce.mapToUnit(q1pceTest,qBound[0])
     q2pceTest =np.linspace(qBound[1][0],qBound[1][1],n[1])  
     xi2Test   =gpce.mapToUnit(q2pceTest,qBound[1])
-    fPCETest  =gpce.pce_LegUnif_2d_eval(fCoefs,nQ1pce,nQ2pce,xi1Test,xi2Test)
+    fPCETest  =gpce.pce_LegUnif_2d_eval(fCoefs,kSet,xi1Test,xi2Test)
     #compute Sobol indices 
     Si_pce,Sij_pce=sobol_unif([q1pceTest,q2pceTest],fPCETest)
 
@@ -314,10 +320,9 @@ def sobol_2par_unif_test():
     Si_ex,Sij_ex=analyticalSobol_2par(qBound)
     
     #(6) Write results on screen
-    print('sobol_2par_unif_test(): Sobol Sensitivity Indices for fEx2D("type3")')
-    print(' > Direct Numerical Integration: S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
-    print(' > gPCE+Numerical Integration: S1=%g, S2=%g, S12=%g' %(Si_pce[0],Si_pce[1],Sij_pce[0]))
-    print(' > Analytical Expression: S1=%g, S2=%g, S12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
+    print(' > Direct Numerical Integration:\n\t S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
+    print(' > gPCE+Numerical Integration:\n\t S1=%g, S2=%g, S12=%g' %(Si_pce[0],Si_pce[1],Sij_pce[0]))
+    print(' > Analytical Expression:\n\t S1=%g, S2=%g, S12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
 
 
 #//////////////////////////
