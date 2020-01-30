@@ -117,11 +117,14 @@ def PCE_coef_conv_plot(fCoef,kSet,distType):
                print('NOW only uniform distribution is considered!')
         termNorm.append(abs(fCoef[ik])*PsiNorm)
     termNorm0=termNorm[0]
+    #plot
+    plt.figure(figsize=(10,5))
     plt.semilogy(kMag,termNorm/termNorm0,'ob',fillstyle='none')
     plt.xlabel(r'$|\mathbf{k}|$',fontsize=18)
     plt.ylabel(r'$||\hat{f}_\mathbf{k}\Psi_{\mathbf{k}(\mathbf{\xi})}||_2/||\hat{f}_0||_2$',fontsize=18)
+    plt.xticks(ticks=kMag,fontsize=17)
+    plt.yticks(fontsize=17)
     plt.grid()
-    #plt.ylim([1e-40,1.1])
     plt.show()
 
 #//////////////////////////////
@@ -328,8 +331,8 @@ def pce_LegUnif_2d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict):
        N1=LMax+1  #loops' upper bound
        N2=LMax+1
     elif truncMethod=='TP':   #'TP' needs nQList 
-       N1=nqList[0]
-       N2=nqList[1]
+       N1=nQList[0]
+       N2=nQList[1]
        K=N1*N2           
     print('...... Number of terms in PCE, K= ',K)
     nData=len(fVal)   #number of observations
@@ -714,7 +717,7 @@ def gpce_test_2d():
     truncMethod='TO'  #'TP'=Tensor Product
                       #'TO'=Total Order  
     sampleType=''     #'GQ'=Gauss Quadrature nodes
-                      #''= any other sample => only 'TO' can be selected
+                      #''= any other sample => only 'Regression' can be selected
     pceSolveMethod='Regression' #'Regression': for any combination of sample points and truncation methods
                                 #'Projection': only for GQ+Tensor Product
     #NOTE: for 'TO' only 'Regression can be used'. pceSolveMethod will be overwritten
@@ -806,7 +809,7 @@ def gpce_test_3d():
     truncMethod='TO'  #'TP'=Tensor Product
                       #'TO'=Total Order  
     sampleType='GQ'   #'GQ'=Gauss Quadrature nodes
-                      #''= any other sample => only 'TO' can be selected
+                      #''= any other sample => only 'Regression' can be selected
     pceSolveMethod='Regression' #'Regression': for any combination of sample points and truncation methods
                                 #'Projection': only for GQ+Tensor Product
     #NOTE: for 'TO' only 'Regression can be used'. pceSolveMethod will be overwritten

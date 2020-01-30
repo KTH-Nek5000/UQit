@@ -23,17 +23,23 @@ def myLinearRegress(A,R,L_=1):
         """
            Linear Regression
         """
+        n=A.shape[0]   #number of data
         K=A.shape[1]   #number of unknowns
-        f = cvx.Variable(K)
-        objective = cvx.Minimize(cvx.norm(f, L_))   #L1/L2-regularization
-        M=np.dot(A.T,A)    #Normal equation
+        #make the system normal
+        M=np.dot(A.T,A)   
         R=np.dot(A.T,R)
-        constraints = [M*f == R]
-        prob = cvx.Problem(objective, constraints)
-        object_value = prob.solve(verbose=True)
-        print('...... Compressed sensing (regularization) is done to compute PCE coeffcients, fHat.')
-        print('       Min objective value=||fHat||= %g in L%d-sense.'%(object_value,L_))
-        fHat=f.value
+#        if (K>n): #only under-determined system => use compressed sensing
+        if (0==0): #always use compressed sensing
+           f = cvx.Variable(K)
+           objective = cvx.Minimize(cvx.norm(f, L_))   #L1/L2-regularization
+           constraints = [M*f == R]
+           prob = cvx.Problem(objective, constraints)
+           object_value = prob.solve(verbose=True)
+           print('...... Compressed sensing (regularization) is done to compute PCE coeffcients, fHat.')
+           print('       Min objective value=||fHat||= %g in L%d-sense.'%(object_value,L_))
+           fHat=f.value
+        else:
+           fHat=np.linalg.solve(M,R) 
         return fHat
     f=linearSysSolver(A,R,1)
     return f
