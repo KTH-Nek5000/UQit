@@ -39,20 +39,24 @@ def vecs2grid(x,y):
     return z
 
 #///////////////////
-def vecsGlue(x,y):
+def vecsGlue(*x):
     """
-       Glue two 1D vectors x and y of the same length together as they are two components of the same entity.
-          x: a numpy 1D array or a 1D list of length n
-          y: a numpy 1D array or a 1D list of length n
-          z: numpy 2D array (n,2) 
+       Glue p 1D vectors x0, x1, ...,xp of the same length (= n) together as they are p components of the same nxp numpy array.
+          xi: a numpy 1D array or a 1D list of length n, i=1,2,...,p
+          z: numpy 2D array (n,p) 
     """
-    n=lengthVector(x)
-    if (n!=lengthVector(y)):
-       print('ERROR in vecsGlue: x and y should have the same length')
-    z=np.zeros((n,2))
-    for i in range(n):
-        z[i,0]=x[i]
-        z[i,1]=y[i]
+    p=len(x)
+    if p<=1:
+       print("ERROR in vecsGlue(): more than one vector should be imported.")
+    n=lengthVector(x[0])
+    for i in range(1,p):
+        n_=len(x[i])
+        if n_!=n:
+           print('ERROR in vecsGlue(): input vectors should be of the same size.')
+    z=np.zeros((n,p))
+    for j in range(p):
+       for i in range(n):
+           z[i,j]=x[j][i]
     return z
 
 #///////////////////
