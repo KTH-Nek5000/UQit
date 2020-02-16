@@ -16,7 +16,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 #from numpy.polynomial import legendre
 
-
 sys.path.append('../analyticFuncs/')
 sys.path.append('../plot/')
 sys.path.append('../writeUQ/')
@@ -327,7 +326,7 @@ def pce_LegUnif_2d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict):
     #(1) Set variables
     #Number of terms in PCE
     if truncMethod=='TO':
-       K=int((LMax+2)*(LMax+1)/2)  
+       K=int((LMax+2)*(LMax+1)/2) 
        N1=LMax+1  #loops' upper bound
        N2=LMax+1
     elif truncMethod=='TP':   #'TP' needs nQList 
@@ -709,7 +708,7 @@ def gpce_test_2d():
     #settings------------
     q1Bound=[-1.0,2.0]   #range of param1
     q2Bound=[-3.0,3.0]     #range of param2
-    nQ1=6      #number of collocation smaples of param1
+    nQ1=7      #number of collocation smaples of param1
     nQ2=7      #number of collocation smaples of param2
     nTest1=100;   #number of test points in param1 space
     nTest2=101;   #number of test points in param2 space
@@ -722,7 +721,7 @@ def gpce_test_2d():
                                 #'Projection': only for GQ+Tensor Product
     #NOTE: for 'TO' only 'Regression can be used'. pceSolveMethod will be overwritten
     if truncMethod=='TO':
-       LMax=12   #max polynomial order in each parameter direction
+       LMax=8   #max polynomial order in each parameter direction
     #--------------------
 
     #generate observations   
@@ -738,6 +737,7 @@ def gpce_test_2d():
     pceDict=pceDict_corrector(pceDict)
     xiGrid=reshaper.vecs2grid(xi1,xi2)
     fCoefs,kSet,fMean,fVar=pce_LegUnif_2d_cnstrct(fVal,[nQ1,nQ2],xiGrid,pceDict)
+    print(len(fCoefs))
 
     #plot convergence of PCE terms
     PCE_coef_conv_plot(fCoefs,kSet,['Unif','Unif'])

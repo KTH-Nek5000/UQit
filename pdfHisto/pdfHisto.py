@@ -26,9 +26,11 @@ def pdfFit_uniVar(f,doPlot):
        plt.figure(figsize=(10,4));
        ax=plt.gca();
        plt.plot(kde.support,kde.density,'-r',lw=2)
-       plt.hist(f,bins='auto',density=True,color='steelblue',alpha=0.4,edgecolor='b')
+       binsNum=100#'auto'
+       plt.hist(f,bins=binsNum,density=True,color='steelblue',alpha=0.4,edgecolor='b')
        plt.xticks(fontsize=15)
        plt.yticks(fontsize=15)
+       plt.grid(alpha=0.4)
        plt.show()
     return kde
 
