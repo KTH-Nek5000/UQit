@@ -8,4 +8,6 @@
  - scipy
  - cvxpy (convex optimization used in /general/linAlg.py/myLinearRegress())
    see https://www.cvxpy.org/
+ - torch
+ - gpytorch
 
