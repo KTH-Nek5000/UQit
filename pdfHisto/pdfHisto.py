@@ -1,16 +1,23 @@
 #######################################################
 #      Fit PDF to data
 #######################################################
+import os
+import sys
 import numpy as np
 import statsmodels.api as sm
 import matplotlib
 import matplotlib.pyplot as plt
 
+sys.path.append('../writeUQ/')
+import writeUQ
+
 #////////////////////////////////
-def pdfFit_uniVar(f,doPlot):
+def pdfFit_uniVar(f,doPlot,pwOpts):
     """
         Fit a PDF to data f and plot both histogram and continuous PDF. 
         f: 1d(=uniVar) numpy array of size n 
+        doPlot=False or True
+        pwOpts: (optional) options for plotting and dumping the data
     """
     if f.ndim>1:
        print('Note: input f to pdfFit_uniVar(f) must be a 1D numpy array. We reshape f!')
@@ -26,12 +33,43 @@ def pdfFit_uniVar(f,doPlot):
        plt.figure(figsize=(10,4));
        ax=plt.gca();
        plt.plot(kde.support,kde.density,'-r',lw=2)
-       binsNum=100#'auto'
-       plt.hist(f,bins=binsNum,density=True,color='steelblue',alpha=0.4,edgecolor='b')
+       binsNum=70 #'auto'
+       BIN=plt.hist(f,bins=binsNum,density=True,color='steelblue',alpha=0.4,edgecolor='b')
        plt.xticks(fontsize=15)
        plt.yticks(fontsize=15)
        plt.grid(alpha=0.4)
-       plt.show()
+       if pwOpts:    #if not empty
+          #Dump the data of the PDf
+          if pwOpts['figDir']:
+             figDir=pwOpts['figDir']       
+             wrtDir=figDir+'/dumpData/'
+          if pwOpts['figName']:   
+             outName=pwOpts['figName']
+          if pwOpts['iLoc']:
+             outName+='_'+str(pwOpts['iLoc'])
+          if not os.path.exists(figDir):
+             os.makedirs(figDir)
+          if not os.path.exists(wrtDir):
+             os.makedirs(wrtDir)
+          F1=open(wrtDir+outName+'.dat','w')
+          if pwOpts['header']:
+             F1.write('#'+pwOpts['header']+'\n') 
+             F1.write('# kde.support \t\t kde.density \n')
+             F1.write(writeUQ.printRepeated('-',50)+'\n')
+             for i in range(len(kde.support)):
+                 F1.write('%g \t %g \n' %(kde.support[i],kde.density[i]))
+             F1.write(writeUQ.printRepeated('-',50)+'\n')
+             F1.write('# bin.support \t\t bin.density \n')
+             F1.write(writeUQ.printRepeated('-',50)+'\n')
+             for i in range(len(BIN[0])):
+                 F1.write('%g \t %g \n' %(BIN[1][i],BIN[0][i]))
+          #Save the figure of the PDF
+          fig = plt.gcf()
+          DPI = fig.get_dpi()
+          fig.set_size_inches(800/float(DPI),400/float(DPI))
+          plt.savefig(figDir+outName+'.pdf',bbox_inches='tight')       
+       else:
+          plt.show()
     return kde
 
 #///////////////////////////////
@@ -42,14 +80,17 @@ def pdfPredict_uniVar(f,fTest,doPlot):
        f0: 1D list
     """
     #Fit the PDF to f
-    kde=pdfFit_uniVar(f,doPlot)
+    kde=pdfFit_uniVar(f,doPlot,{})
     #Evaluate the PDF at f0
     pdfPred=[]
     for i in range(len(fTest)):
         pdfPred.append(kde.evaluate(fTest[i])[0])
     pdfPred=np.asarray(pdfPred)
     return pdfPred
-  
+ 
+##################
+# TEST
+##################
 #/////////////////////////
 from scipy import stats
 from statsmodels.distributions.mixture_rvs import mixture_rvs
