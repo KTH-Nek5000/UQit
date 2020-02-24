@@ -70,10 +70,6 @@ class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
-#################################
-# general functions
-#################################
-
 
 #################################
 # GP functions
@@ -499,20 +495,20 @@ def gprTorch_2d_singleTask_test():
           sdV=np.asarray(sdV)
        elif noiseType=='hetero':
           sdMin=5
-          sdMax=20.0
+          sdMax=10.0
           sdV=sdMin+(sdMax-sdMin)*np.linspace(0.0,1.0,n)
        return sdV  #vector of standard deviations
 
     #----- SETTINGS
     qBound=[[-2,2],[-2,2]]
     sampleType='grid'  #'random' or 'grid': type of samples
-    noiseType='homo'   #'homo'=homoscedastic, 'hetero'=heterscedastic
+    noiseType='hetero'   #'homo'=homoscedastic, 'hetero'=heterscedastic
     #------------------------------------------------
     #(1) Generate training data
     d=len(qBound)    #dimension of the input
     #  (a) xTrain 
     if sampleType=='grid':
-       n=[9,5]             #number of training observations in each input dimension
+       n=[9,11]             #number of training observations in each input dimension
        nSamp=n[0]*n[1]
        gridList=[];
        for i in range(d):
@@ -522,7 +518,7 @@ def gprTorch_2d_singleTask_test():
        xTrain=reshaper.vecs2grid(gridList[0],gridList[1])
 #       xTrain = gpytorch.utils.grid.create_data_from_grid(gridList)  #torch
     elif sampleType=='random': 
-       nSamp=40     #number of random samples   
+       nSamp=50     #number of random samples   
        xi_=sampling.LHS_sampling(nSamp,d)
        xTrain=np.zeros((nSamp,d))
        for i in range(d):
@@ -539,7 +535,7 @@ def gprTorch_2d_singleTask_test():
 
     #(2) Create test data
     testGrid=[];
-    nTest=[100,100]     #number of test points
+    nTest=[101,100]     #number of test points
     for i in range(d):
         #grid_=torch.linspace(qBound[i][0],qBound[i][1],20)    #torch
         grid_=np.linspace(qBound[i][0],qBound[i][1],nTest[i])
@@ -550,28 +546,27 @@ def gprTorch_2d_singleTask_test():
     post_f,post_obs=gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest)
 
     #(4) Plot 2d contours
-    #   (a) Make a test grid
-    x1TestGrid_,x2TestGrid_,xTestArr=test_2dGrid(qBound[0],qBound[1],nTest[i],nTest[i])
-    #   (b) Predicted mean and variance at the test grid
-    post_f_mean=post_f.mean.reshape(x1TestGrid_.shape).T
+    #   (a) Predicted mean and variance at the test grid    
+    post_f_mean_=post_f.mean.detach().numpy()    #torch->numpy
+    post_f_mean=post_f_mean_.reshape((nTest[0],nTest[1]),order='F')
     lower_f, upper_f = post_f.confidence_region()
-    lower_f=lower_f.reshape(x1TestGrid_.shape).T
+    lower_f=lower_f.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
     post_f_sdev = (post_f_mean-lower_f)/2.0   #posterior sdev of f(q)
     with torch.no_grad():
         fig = plt.figure(figsize=(15,5))
         ax = fig.add_subplot(131)        
-        fEx_test=analyticTestFuncs.fEx2D(xTestArr[:,0],xTestArr[:,1],'Rosenbrock','pair')
-        CS0=ax.contour(x1TestGrid_,x2TestGrid_,fEx_test.reshape(x1TestGrid_.shape,order='F'),levels=40)
+        fEx_test=analyticTestFuncs.fEx2D(xTest[:,0],xTest[:,1],'Rosenbrock','pair')
+        CS0=ax.contour(testGrid[0],testGrid[1],fEx_test.reshape((nTest[0],nTest[1]),order='F').T,levels=40)
         ax.clabel(CS0, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
         ax.plot(xTrain[:,0],xTrain[:,1],'or')
         ax.set_title(r'Exact $f(q)$')
         ax = fig.add_subplot(132)
-        CS1=ax.contour(x1TestGrid_,x2TestGrid_,post_f_mean.detach().numpy()+yTrain_mean,levels=40)
+        CS1=ax.contour(testGrid[0],testGrid[1],(post_f_mean+yTrain_mean).T,levels=40)
         ax.clabel(CS1, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
         ax.plot(xTrain[:,0],xTrain[:,1],'or')
         ax.set_title(r'Mean Posterior of $f(q)$')
         ax = fig.add_subplot(133)
-        CS2=ax.contour(x1TestGrid_,x2TestGrid_,post_f_sdev.detach().numpy(),levels=40)
+        CS2=ax.contour(testGrid[0],testGrid[1],post_f_sdev.T,levels=40)
         ax.clabel(CS2, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
         ax.plot(xTrain[:,0],xTrain[:,1],'or')
         ax.set_title(r'Sdev of Posterior of $f(q)$')
