@@ -301,8 +301,9 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest):
     model.train()
     likelihood.train()
     optimizer = torch.optim.Adam([
-                {'params': model.parameters()} # Includes GaussianLikelihood parameters
-                ], lr=0.0035)   #lr: learning rate
+                    {'params': model.parameters()},  # Includes Likelihood parameters
+                  ], 
+                  lr=.005)   #lr: learning rate
     # "Loss" for GPs - the marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
     for i in range(nIter):
@@ -322,6 +323,7 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest):
              ))
         optimizer.step()
         print('lr=',optimizer.param_groups[0]['lr'])
+        #print('pars',optimizer.param_groups[0]['params'])
     #(4) Posteriors of GPR model with optimized hyperparameters
     model.eval()
     likelihood.eval()
@@ -547,9 +549,9 @@ def gprTorch_2d_singleTask_test():
 
     #(4) Plot 2d contours
     #   (a) Predicted mean and variance at the test grid    
-    post_f_mean_=post_f.mean.detach().numpy()    #torch->numpy
+    post_f_mean_=post_f.mean.detach().numpy()    #posterior mean, torch->numpy
     post_f_mean=post_f_mean_.reshape((nTest[0],nTest[1]),order='F')
-    lower_f, upper_f = post_f.confidence_region()
+    lower_f, upper_f = post_f.confidence_region()  #\pm 2*sdev of posterior mean
     lower_f=lower_f.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
     post_f_sdev = (post_f_mean-lower_f)/2.0   #posterior sdev of f(q)
     with torch.no_grad():

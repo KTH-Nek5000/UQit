@@ -196,7 +196,7 @@ def pce2pce_GaussLeg_2d_test():
     spaceM2=[[-0.5,1],   #admissible space of PCEw (both parameters)
              [-2.,1.5]]
     #Test samples
-    nTest=[100,100]   #number of test samples of parameter 1,2
+    nTest=[100,101]   #number of test samples of parameter 1,2
     #---------------------------------------------------------------------
     #(1) Construct PCE1
     #GL points for param1,2
@@ -247,16 +247,16 @@ def pce2pce_GaussLeg_2d_test():
     plt.figure(figsize=(20,8))
     plt.subplot(1,3,1)
     ax=plt.gca()
-    q1Test_1_Grid,q2Test_2_Grid,fTest_Grid=plot2d.plot2D_gridVals(qTestM1[0],qTestM1[1],fTest)  #reformat for 2D contour plot
-    CS1 = plt.contour(q1Test_1_Grid,q2Test_2_Grid,fTest_Grid,35)#,cmap=plt.get_cmap('viridis'))
+    fTest_Grid=fTest.reshape((qTestM1[0].shape[0],qTestM1[1].shape[0]),order='F').T
+    CS1 = plt.contour(qTestM1[0],qTestM1[1],fTest_Grid,35)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS1, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     plt.xlabel('q1');plt.ylabel('q2');
     plt.title('Exact Response Surface')
 
     plt.subplot(1,3,2)
     ax=plt.gca()
-    q1TestM1_1_Grid,q2TestM1_2_Grid,fPCETestM1_Grid=plot2d.plot2D_gridVals(qTestM1[0],qTestM1[1],fPCETestM1)  #reformat for 2D contour plot
-    CS2 = plt.contour(q1TestM1_1_Grid,q2TestM1_2_Grid,fPCETestM1_Grid,35)#,cmap=plt.get_cmap('viridis'))
+    fPCETestM1_Grid=fPCETestM1.reshape((qTestM1[0].shape[0],qTestM1[1].shape[0]),order='F').T
+    CS2 = plt.contour(qTestM1[0],qTestM1[1],fPCETestM1_Grid,35)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS2, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     qM1Grid=reshaper.vecs2grid(qM1[0],qM1[1])
     plt.plot(qM1Grid[:,0],qM1Grid[:,1],'o',color='r',markersize=6)
@@ -266,8 +266,8 @@ def pce2pce_GaussLeg_2d_test():
 
     plt.subplot(1,3,3)
     ax=plt.gca()
-    q1TestM2_1_Grid,q2TestM2_2_Grid,fPCETestM2_Grid=plot2d.plot2D_gridVals(qTestM2[0],qTestM2[1],fPCETestM2)  #reformat for 2D contour plot
-    CS3 = plt.contour(q1TestM2_1_Grid,q2TestM2_2_Grid,fPCETestM2_Grid,20)#,cmap=plt.get_cmap('viridis'))
+    fPCETestM2_Grid=fPCETestM2.reshape((qTestM2[0].shape[0],qTestM2[1].shape[0]),order='F').T
+    CS3 = plt.contour(qTestM2[0],qTestM2[1],fPCETestM2_Grid,20)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS3, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     plt.plot(qM2[:,0],qM2[:,1],'s',color='b',markersize=6)
     plt.xlabel('q1');plt.ylabel('q2');

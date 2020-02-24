@@ -737,7 +737,6 @@ def gpce_test_2d():
     pceDict=pceDict_corrector(pceDict)
     xiGrid=reshaper.vecs2grid(xi1,xi2)
     fCoefs,kSet,fMean,fVar=pce_LegUnif_2d_cnstrct(fVal,[nQ1,nQ2],xiGrid,pceDict)
-    print(len(fCoefs))
 
     #plot convergence of PCE terms
     PCE_coef_conv_plot(fCoefs,kSet,['Unif','Unif'])
@@ -750,7 +749,7 @@ def gpce_test_2d():
     fTest=analyticTestFuncs.fEx2D(q1Test,q2Test,'type1','tensorProd')   #response value at the test points
     fPCE=pce_LegUnif_2d_eval(fCoefs,kSet,xi1Test,xi2Test)  #Prediction at test points by PCE
     #create 2D grid and response surface over it
-    x1TestGrid,x2TestGrid,fTestGrid=plot2d.plot2D_gridVals(q1Test,q2Test,fTest)
+    fTestGrid=fTest.reshape((nTest1,nTest2),order='F')
     fErrorGrid=np.zeros((nTest1,nTest2))
     for j in range(nTest2):
         for i in range(nTest1):
@@ -768,7 +767,7 @@ def gpce_test_2d():
     plt.figure(figsize=(21,8));
     plt.subplot(1,3,1)
     ax=plt.gca()
-    CS1 = plt.contour(x1TestGrid,x2TestGrid,fTestGrid,40)#,cmap=plt.get_cmap('viridis'))
+    CS1 = plt.contour(q1Test,q2Test,fTestGrid.T,40)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS1, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     plt.plot(q1Grid,q2Grid,'o',color='k',markersize=7)
     plt.xlabel('q1');plt.ylabel('q2');
@@ -776,7 +775,7 @@ def gpce_test_2d():
 
     plt.subplot(1,3,2)
     ax=plt.gca()
-    CS2 = plt.contour(x1TestGrid,x2TestGrid,fPCE,40)#,cmap=plt.get_cmap('viridis'))
+    CS2 = plt.contour(q1Test,q2Test,fPCE.T,40)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS2, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     plt.plot(q1Grid,q2Grid,'o',color='k',markersize=7)
     plt.xlabel('q1');plt.ylabel('q2');
@@ -784,7 +783,7 @@ def gpce_test_2d():
 
     plt.subplot(1,3,3)
     ax=plt.gca()
-    CS3 = plt.contour(x1TestGrid,x2TestGrid,fErrorGrid,40)#,cmap=plt.get_cmap('viridis'))
+    CS3 = plt.contour(q1Test,q2Test,fErrorGrid.T,40)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS3, inline=True, fontsize=13,colors='k',fmt='%0.0f',rightside_up=True,manual=False)
     plt.xlabel('q1');plt.ylabel('q2');
     plt.plot(q1Grid,q2Grid,'o',color='k',markersize=7)

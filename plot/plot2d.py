@@ -14,6 +14,12 @@ def plot2D_gridVals(x1,x2,f):
             xG2: n1xn2
              fG: n1xn2
        Note: in converting f->fG it is always assumed that param2 has the outer loop.
+       NOTE: Deprecated!
+            instead of,
+            xG1,xG2,fG= plot2D_gridVals(x1,x2,f) 
+            use:
+            fG=f.reshape((x1.shape[0],x2.shape[1]),order='F').T
+            contour(x1,x2,fG)
     """
     n1=x1.shape[0] 
     n2=x2.shape[0] 

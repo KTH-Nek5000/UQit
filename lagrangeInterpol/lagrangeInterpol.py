@@ -293,7 +293,7 @@ def lagrangeInterpol_multiVar_test2d():
     # Use nodal values in Lagrange interpolation to predict at test points
     qTest=reshaper.vecs2grid(qTestList[0],qTestList[1]) 
     fTest=lagrangeInterpol_multiVar(fNodes,qNodes,qTest,'tensorProd')    
-    x1TestGrid,x2TestGrid,fTestGrid=plot2d.plot2D_gridVals(qTestList[0],qTestList[1],fTest)  #reformat for 2D contour plot
+    fTestGrid=fTest.reshape((nTest[0],nTest[1]),order='F').T
 
     # (4) Evaluate the exact response over a 2D mesh which covers the whole space range1xrange2 (exact response surface)
     qTestFull=[]
@@ -302,13 +302,13 @@ def lagrangeInterpol_multiVar_test2d():
         qTestFull.append(qTestFull_)
 
     fTestFull=analyticTestFuncs.fEx2D(qTestFull[0],qTestFull[1],'type1','tensorProd')   #response value at the test points
-    x1TestFullGrid,x2TestFullGrid,fTestFullGrid=plot2d.plot2D_gridVals(qTestFull[0],qTestFull[1],fTestFull)  #reformat for 2D contour plot
+    fTestFullGrid=fTestFull.reshape((nTest[0],nTest[1]),order='F').T
 
     #(5) 2D Contour Plots
     plt.figure(figsize=(16,8));
     plt.subplot(1,2,1)
     ax=plt.gca()
-    CS1 = plt.contour(x1TestFullGrid,x2TestFullGrid,fTestFullGrid,35)#,cmap=plt.get_cmap('viridis'))
+    CS1 = plt.contour(qTestFull[0],qTestFull[1],fTestFullGrid,35)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS1, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     qNodesGrid=reshaper.vecs2grid(qNodes[0],qNodes[1])  #2d mesh 
     plt.plot(qNodesGrid[:,0],qNodesGrid[:,1],'o',color='r',markersize=6)
@@ -318,7 +318,7 @@ def lagrangeInterpol_multiVar_test2d():
     plt.title('Exact Response Surface')
     plt.subplot(1,2,2)
     ax=plt.gca()
-    CS2 = plt.contour(x1TestGrid,x2TestGrid,fTestGrid,20)#,cmap=plt.get_cmap('viridis'))
+    CS2 = plt.contour(qTestList[0],qTestList[1],fTestGrid,20)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS2, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     plt.plot(qNodesGrid[:,0],qNodesGrid[:,1],'o',color='r',markersize=6)
     plt.xlabel('q1',fontsize=20);plt.ylabel('q2',fontsize=20);
