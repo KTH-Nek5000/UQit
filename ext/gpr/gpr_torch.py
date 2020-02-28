@@ -1,10 +1,26 @@
-#############################################
+################################################################
 # Gaussian Process Regression (GPR)
 # Using gpytorch library
-#############################################
-#--------------------------------------------
+#################################################################
+#----------------------------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
-#--------------------------------------------
+#----------------------------------------------------------------
+"""
+   >>> Tricks I learned about GpyTorch by experience:
+    1. Number of learning data cannot exceed 128
+       If they do, make batches of max size 128.
+    2. If sdev of the observation noise is set to zero, it can
+       be problematic due to making Cholesky decomposition impossible.
+       Instead of zero, use a very small sdev.
+    3. In m-d parameter space, we need tode fine a length-scale     
+       per parameter in the kernel. I saw if the parameters range
+       are too different or too big,  the kernel's length scales
+       may not be optimized during the construction of the GPR.
+       To rectify this, original parameter space can be mapped to
+       hypercube [-1,1]^m, for instance.
+"""    
+#----------------------------------------------------------------
+
 import sys
 import numpy as np
 import math as mt
@@ -62,8 +78,9 @@ class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
         num_dims = train_x.size(-1)
         self.mean_module = gpytorch.means.ConstantMean()
         self.covar_module = gpytorch.kernels.ScaleKernel(
-            gpytorch.kernels.RBFKernel(ard_num_dims=num_dims)   #different length scales in different dimentions
-#            gpytorch.kernels.RBFKernel()
+#            gpytorch.kernels.RBFKernel(ard_num_dims=num_dims)   #different length scales in different dimentions, RBF
+            gpytorch.kernels.MaternKernel(nu=2.5,ard_num_dims=num_dims)   #different length scales in different dimentions, Matern
+#            gpytorch.kernels.RBFKernel()   #equal length scales in all input dimensions
         )
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -76,7 +93,7 @@ class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
 #################################
 
 #////////////////////////////////
-def gprTorch_1d(xTrain,yTrain,noiseSdev,xTest):
+def gprTorch_1d(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """
         GPR for one uncertain parameter, and single/multi-D response y, where y=f(x)+e, with Known noise
         - Observations (X_i,Y_i) are assumed to be independent but their noise variance can be either the same (iid= homoscedastic) or different (heteroscedastic).
@@ -86,20 +103,21 @@ def gprTorch_1d(xTrain,yTrain,noiseSdev,xTest):
                yTrain: Training model output, (Single Task): 1D numpy array of size n, (Multi Task) 2D numpy array of size nxm (m: dimensionality of Y)
                noiseSdev: A 1D numpy vecor of size n, standard deviation of the the Gaussian noise in each of the observations
                xTest: Test model inputs, 1d numpy array of size nTest
+               gprOpts: GPR options
         Outputs: 
                post_f: posterior gpr for f(q) at qTest
                post_obs: predictive posterior (likelihood) at qTest
     """ 
     nResp=len(yTrain)
     if nResp==1:   #single-task (=single-response)
-       post_f,post_obs=gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest)
+       post_f,post_obs=gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts)
     else:          #multi-task (=multi-response)
-       post_f,post_obs=gprTorch_1d_multiTask(xTrain,yTrain,noiseSdev,xTest)
+       post_f,post_obs=gprTorch_1d_multiTask(xTrain,yTrain,noiseSdev,xTest,gprOpts)
     return post_f,post_obs
        
     
 #////////////////////////////////
-def gprTorch_1d_multiTask(xTrain_,yTrain_,noiseSdev_,xTest):
+def gprTorch_1d_multiTask(xTrain_,yTrain_,noiseSdev_,xTest,gprOpts):
     """ 
         GPR for one uncertain parameter, and multi-D response y, where y=f(x)+e, with Known noise
         - Observations (X_i,Y_i) are assumed to be independent but their noise variance can be either the same (iid= homoscedastic) or different (heteroscedastic).
@@ -109,6 +127,7 @@ def gprTorch_1d_multiTask(xTrain_,yTrain_,noiseSdev_,xTest):
                yTrain: Training model output, 2D numpy array of size nxm (m: dimensionality of Y)
                noiseSdev: A 1D numpy vecor of size n, standard deviation of the the Gaussian noise in each of the observations
                xTest: Test model inputs, 1d numpy array of size nTest
+               gprOpts: GPR options
         Outputs: 
                post_f: posterior gpr for f(q) at qTest
                post_obs: predictive posterior (likelihood) at qTest
@@ -139,8 +158,6 @@ def gprTorch_1d_multiTask(xTrain_,yTrain_,noiseSdev_,xTest):
                 torch.cos(xTrain * (2 * mt.pi)) + sem_y2 * torch.randn(xTrain.size()),], -1)
        yLogVar = torch.stack([(s**2).log() for s in (sem_y1, sem_y2)], -1)
        print('***********torch training data are used')
-       print(yLogVar)
-       print(yLogVar.shape)
     #....
 
     #(2) assign number of tasks=number of outputs
@@ -184,7 +201,7 @@ def gprTorch_1d_multiTask(xTrain_,yTrain_,noiseSdev_,xTest):
 
 
 #////////////////////////////////////////////////////
-def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest):
+def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """ 
         GPR for one uncertain parameter, and 1-D response y, where y=f(x)+e, with Known noise
         - Observations (X_i,Y_i) are assumed to be independent but their noise variance can be either the same (iid= homoscedastic) or different (heteroscedastic).
@@ -194,27 +211,29 @@ def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest):
                yTrain: Training model output, 1D numpy array of size n
                noiseSdev: A 1D numpy vecor of size n, standard deviation of the the Gaussian noise in each of the observations
                xTest: Test model inputs, 1d numpy array of size nTest
+               gprOpts: GPR options
         Outputs: 
                post_f: posterior gpr for f(q) at qTest
                post_obs: predictive posterior (likelihood) at qTest
     """
-    #---------- SETTING
-    nIter=200   #number of iterations in optimization of GPR hyperparameters
-    #-------------------------------
+    #(0) Assignments
+    nIter=gprOpts['nIter']   #number of iterations in optimization of hyperparameters
+    lr_  =gprOpts['lr']      #learning rate for the optimizaer of the hyperparameters
+    torch.set_printoptions(precision=8)  #to avoid losing accuracy in print after converting to torch
     #(1) convert numpy arrays to torch tensors
     xTrain=torch.from_numpy(xTrain)
     yTrain=torch.from_numpy(yTrain[0])
     yLogVar=torch.from_numpy(np.log(noiseSdev**2.))
 
     #(TEST) Replacing numpy-training data with the torch data 
-    if 0==1:
-       xTrainT = torch.linspace(0, 1, 60)
-       sem_y1 = 0.05 + (0.55 - 0.05) * torch.linspace(0, 1, 60)
-       yTrainT =torch.sin(xTrainT * (2 * mt.pi)) + sem_y1 * torch.randn(xTrainT.size())
-       yLogVarT =(sem_y1**2).log() 
-       xTrain=xTrainT
-       yTrain=yTrainT
-       yLogVar=yLogVarT
+    #if 0==1:
+    #   xTrainT = torch.linspace(0, 1, 60)
+    #   sem_y1 = 0.05 + (0.55 - 0.05) * torch.linspace(0, 1, 60)
+    #   yTrainT =torch.sin(xTrainT * (2 * mt.pi)) + sem_y1 * torch.randn(xTrainT.size())
+    #   yLogVarT =(sem_y1**2).log() 
+    #   xTrain=xTrainT
+    #   yTrain=yTrainT
+    #   yLogVar=yLogVarT
     #(2) Construct GPR for noise
     log_noise_model = SingletaskGPModel(
                       xTrain,
@@ -234,17 +253,37 @@ def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest):
     #(5) Optimize the model hyperparameters
     optimizer = torch.optim.Adam([  #Adam optimizaer: https://arxiv.org/abs/1412.6980
                 {'params': model.parameters()},  # Includes GaussianLikelihood parameters
-                ], lr=0.01)
+                ], lr=lr_)
     #   "Loss" for GPs - mll: marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+    losses=[]
+    lengthSc=[]
     for i in range(nIter):
         optimizer.zero_grad()
         output = model(xTrain)
         loss = -mll(output, yTrain, xTrain)
         loss.backward()
-        if (i+1) % 10 == 0:
-           print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f' % (i + 1, nIter, loss.item()))
         optimizer.step()
+        losses.append(loss.item())
+        lengthSc.append(model.covar_module.base_kernel.lengthscale.item())
+        if (i+1) % 10 == 0:
+            print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f - lengthsc: %.3f' % (i + 1, nIter, losses[-1],lengthSc[-1]))
+    # Plot convergence of hyperparameters optimization
+    plt.figure(figsize=(12,3))
+    plt.subplot(121)
+    plt.plot(losses,'-r')   
+    plt.ylabel('Loss',fontsize=16)
+    plt.xlabel('Iteration',fontsize=16)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
+    plt.subplot(122)
+    plt.plot(lengthSc,'-b')
+    plt.ylabel('Lengthscale',fontsize=16)
+    plt.xlabel('Iteration',fontsize=16)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
+    plt.show()
+
     #(6) Posteriors of GPR model with optimized hyperparameters
     model.eval()
     likelihood.eval()  
@@ -255,10 +294,8 @@ def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest):
          post_obs = likelihood(post_f, xTest)
     return post_f,post_obs
 
-
-
 #////////////////////////////////////////////////////
-def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest):
+def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """ 
         GPR for two uncertain parameter, and 1-D response y, where y=f(x)+e, with Known noise
         - Observations (X_i,Y_i) are assumed to be independent but their noise variance can be either the same (iid= homoscedastic) or different (heteroscedastic).
@@ -269,13 +306,15 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest):
                yTrain: Training model output, 1D numpy array of size n
                noiseSdev: A 1D numpy vecor of size n, standard deviation of the the Gaussian noise in each of the observations
                xTest: Test model input, 2D numpy array of size nTestx2
+               gprOpts: GPR options
         Outputs: 
                post_f: posterior gpr for f(q) at qTest
                post_obs: predictive posterior (likelihood) at qTest
     """
-    #---------- SETTING
-    nIter=500   #number of iterations in optimization of GPR hyperparameters
-    #-------------------------------
+    #(0) Assignments
+    nIter=gprOpts['nIter']   #number of iterations in optimization of hyperparameters
+    lr_  =gprOpts['lr']      #learning rate for the optimizaer of the hyperparameters
+    torch.set_printoptions(precision=8)  #to avoid losing accuracy in print after converting to torch
     #(1) convert numpy arrays to torch tensors
     xTrain=torch.from_numpy(xTrain)
     yTrain=torch.from_numpy(yTrain)
@@ -292,7 +331,7 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest):
     likelihood = _GaussianLikelihoodBase(
                  noise_covar=HeteroskedasticNoise(log_noise_model),
                )
-    #likelihood = GaussianLikelihood(noise=noiseSdev**2.)   #common Gaussian likelihood with no inference for noise levels
+   # likelihood = GaussianLikelihood(noise=noiseSdev**2.)   #common Gaussian likelihood with no inference for noise levels
 
     #  (b) prior GPR model
     model = SingletaskGPModel_mIn(xTrain, yTrain, likelihood)
@@ -302,10 +341,14 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest):
     likelihood.train()
     optimizer = torch.optim.Adam([
                     {'params': model.parameters()},  # Includes Likelihood parameters
+#                    {'params': list(model.parameters()) + list(likelihood.parameters())},
                   ], 
-                  lr=.005)   #lr: learning rate
+                  lr=lr_)   #lr: learning rate
     # "Loss" for GPs - the marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+    losses=[]
+    lengthSc1=[]
+    lengthSc2=[]
     for i in range(nIter):
         # Zero gradients from previous iteration
         optimizer.zero_grad()
@@ -313,25 +356,50 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest):
         output = model(xTrain)
         # Calc loss and backprop gradients
         loss = -mll(output, yTrain, xTrain)
-        #loss = -mll(output, yTrain)
         loss.backward()
+        # optimize
+        optimizer.step()
+        # info on optimization
+        loss_=loss.item()
+        lengthSc1_=model.covar_module.base_kernel.lengthscale.squeeze()[0].item()
+        lengthSc2_=model.covar_module.base_kernel.lengthscale.squeeze()[1].item()
         print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f lengthscale=%.3f %.3f' % (
              i + 1, nIter, loss.item(),
 #             model.covar_module.base_kernel.lengthscale.item()   #if all lengthscales are the same (see the definition of self.covar_module, above)
-             model.covar_module.base_kernel.lengthscale.squeeze()[0].item(), #different length scales in each dimension
-             model.covar_module.base_kernel.lengthscale.squeeze()[1].item(),
+             lengthSc1_, #different length scales in each dimension
+             lengthSc2_,
              ))
-        optimizer.step()
-        print('lr=',optimizer.param_groups[0]['lr'])
+        losses.append(loss_)
+        lengthSc1.append(lengthSc1_)
+        lengthSc2.append(lengthSc2_)
+        #print('lr=',optimizer.param_groups[0]['lr'])
         #print('pars',optimizer.param_groups[0]['params'])
+    # Plot convergence of hyperparameters optimization
+    plt.figure(figsize=(12,3))
+    plt.subplot(121)
+    plt.plot(losses,'-r')   
+    plt.ylabel('Loss',fontsize=16)
+    plt.xlabel('Iteration',fontsize=16)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
+    plt.subplot(122)
+    plt.plot(lengthSc1,'-b',label='Lengthscale, param1')
+    plt.plot(lengthSc2,'-r',label='Lengthscale, param2')
+    plt.ylabel('Lengthscale',fontsize=16)
+    plt.xlabel('Iteration',fontsize=16)
+    plt.legend(loc='best',fontsize=14)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
+    plt.suptitle('Convergence of GPR hyperparam optimization')
+    plt.show()
     #(4) Posteriors of GPR model with optimized hyperparameters
     model.eval()
     likelihood.eval()
     #(3) Prediction at test inputs
-    #xTest = gpytorch.utils.grid.create_data_from_grid(testGrid)    #torch
-    xTest=torch.from_numpy(xTest)
-    post_f = model(xTest)
-    post_obs = likelihood(post_f, xTest)
+    with torch.no_grad():
+         xTest=torch.from_numpy(xTest)
+         post_f = model(xTest)
+         post_obs = likelihood(post_f, xTest)
     return post_f,post_obs
 
 ##############################
@@ -386,10 +454,14 @@ def gprTorch_1d_multiTask_test():
     n=30   #number of training data
     xBound=[0.,3]   #range of input
     noiseType='hetero'   #'homo'=homoscedastic, 'hetero'=heterscedastic
-    #-------------------------------
+    nIter_=800      #number of iterations in optimization of hyperparameters
+    lr_   =0.1      #learning rate for the optimizaer of the hyperparameters
+    #------------------------------------------------
+    #(0) Assigning settings to the gprOpts dict
+    gprOpts={'nIter':nIter_,'lr':lr_}
     #generate training data
     xTrain,yTrain,noiseSdev=trainData(xBound,n,noiseType)
-    gprTorch_1d(xTrain,yTrain,noiseSdev)
+    gprTorch_1d(xTrain,yTrain,noiseSdev,gprOpts)
 
 #//////////////////////////////////
 def gprTorch_1d_singleTask_test():
@@ -428,19 +500,23 @@ def gprTorch_1d_singleTask_test():
       
     print("... gprTorch_1d_test()")
     #----- SETTINGS ----------------
-    n=128   #number of training data
+    n=127   #number of training data
     nTest=100   #number of test data
     xBound=[0.,1]   #range of input
     #type of the noise in the data
     noiseType='hetero'   #'homo'=homoscedastic, 'hetero'=heterscedastic
-    #-------------------------------
+    nIter_=800      #number of iterations in optimization of hyperparameters
+    lr_   =0.1      #learning rate for the optimizaer of the hyperparameters
+    #------------------------------------------------
+    #(0) Assigning settings to the gprOpts dict
+    gprOpts={'nIter':nIter_,'lr':lr_}
     #(1) Generate training and test data
     xTrain,yTrain,noiseSdev=trainData(xBound,n,noiseType)
     xTest = np.linspace(xBound[0]-0.2, xBound[1]+.2, nTest) #if numpy is used for training
     #xTest = torch.linspace(xBound[0], xBound[1], nTest)   #if torch is used for training
      
     #(2) Construct the GPR using the training data
-    post_f,post_obs=gprTorch_1d(xTrain,[yTrain],noiseSdev,xTest)
+    post_f,post_obs=gprTorch_1d(xTrain,[yTrain],noiseSdev,xTest,gprOpts)
 
     #(3) Plots
     with torch.no_grad():
@@ -450,9 +526,10 @@ def gprTorch_1d_singleTask_test():
          plt.plot(xTest,fEx(xTest),'--b')
          plt.plot(xTrain, yTrain, 'ok',markersize=4)
          plt.plot(xTest, post_f.mean[:].numpy(), '-r',lw=2)
+         plt.plot(xTest, post_obs.mean[:].numpy(), ':m',lw=2)
          plt.fill_between(xTest, lower_f.numpy(), upper_f.numpy(), alpha=0.3)
          plt.fill_between(xTest, lower_obs.numpy(), upper_obs.numpy(), alpha=0.15, color='r')
-         plt.legend(['Exact Reponse','Observed Data', 'Mean Prediction', 'Confidence (f)', 'Confidence (obs)'],loc='best',fontsize=15)
+         plt.legend(['Exact Reponse','Observed Data', 'Mean Model','Mean Posterior Prediction', 'Confidence (f)', 'Confidence (obs)'],loc='best',fontsize=15)
          #NOTE: confidence = 2* sdev, see 
 #         https://github.com/cornellius-gp/gpytorch/blob/4a1ba02d2367e4e9dd03eb1ccbfa4707da02dd08/gpytorch/distributions/multivariate_normal.py
          plt.title('Single-Task GP + Heteroscedastic Noise')
@@ -463,54 +540,95 @@ def gprTorch_1d_singleTask_test():
          plt.show()
 
 #//////////////////////////////////
+from mpl_toolkits.mplot3d import Axes3D    #for 3d plot
 def gprTorch_2d_singleTask_test():
     """
         Test for GPR for 2d input
     """
-    def test_2dGrid(bounds1,bounds2,nTest1,nTest2):
+    ##
+    def plot_trainData(n,fSamples,noiseSdev,yTrain):
         """
-           Construct a 2D mesh for test inputs defined on ranges bounds1,bounds2 as equi-spaced points.
-           The mesh is to be used for plot the contours in 2D plane. 
+           Plot noisy data which are used in GPR. 
+           NOTE: The GPR is fitted to yTrain data.
         """
-        nTest=nTest1*nTest2
-        x1Test=np.linspace(bounds1[0],bounds1[1],nTest1)
-        x2Test=np.linspace(bounds2[0],bounds2[1],nTest2)
-        x1TestGrid=np.zeros((nTest1,nTest2))
-        x2TestGrid=np.zeros((nTest1,nTest2))
-        xTestArr=np.zeros((nTest,2));
-        for i in range(nTest1):
-            for j in range(nTest2):
-               k=i+j*nTest1
-               xTestArr[k,0]=x1Test[i]
-               xTestArr[k,1]=x2Test[j]
-               x1TestGrid[i,j]=x1Test[i]
-               x2TestGrid[i,j]=x2Test[j]
-        xTestArr=np.asarray(xTestArr)   #n* x p=2
-        return x1TestGrid,x2TestGrid,xTestArr
-    def noiseGen(n,noiseType):
+        plt.figure(figsize=(10,5))
+        x_=np.zeros(n)
+        for i in range(n):
+            x_[i]=i+1
+        for i in range(500):  #only for plottig possible realizations
+            noise_=noiseSdev*np.random.randn(n)
+            plt.plot(x_,fSamples+noise_,'.',color='steelblue',alpha=0.4,markersize=1)
+        plt.errorbar(x_,fSamples,yerr=1.96*abs(noiseSdev),ls='none',capsize=5,ecolor='k',elinewidth=4,label=r'Observations $95\%$ CI')
+        plt.plot(x_,fSamples,'o' ,markersize=6,markerfacecolor='lime',markeredgecolor='salmon',label='Mean Observation')
+        plt.plot(x_,yTrain ,'xr' ,markersize=6,label='Sample Observation')
+        plt.legend(loc='best',fontsize=15)
+        plt.ylabel('QoI',fontsize=17)
+        plt.xlabel('Simulation Index',fontsize=17)
+        plt.xticks(fontsize=15)
+        plt.yticks(fontsize=15)    
+        plt.title('Training data with associated confidence')
+        plt.show()
+    ##
+    def gpr_3dsurf_plot(xTrain,yTrain,testGrid,post_obs_mean,upper_obs,lower_obs,upper_f,lower_f):
+        """
+           3D plot of the GPR surface (mean+CI)
+        """
+        xTestGrid1,xTestGrid2=np.meshgrid(testGrid[0],testGrid[1], sparse=False, indexing='ij')
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        mean_surf = ax.plot_surface(xTestGrid1, xTestGrid2, post_obs_mean,cmap='jet', antialiased=True,rstride=1,cstride=1,linewidth=0,alpha=0.4)
+        upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_obs, linewidth=1,alpha=0.25,color='r')
+        lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_obs, linewidth=1,alpha=0.25,color='b')
+        #upper_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_f, linewidth=1,alpha=0.5,color='r')
+        #lower_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_f, linewidth=1,alpha=0.5,color='b')
+        plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok')
+        plt.show()
+    ##    
+    def noiseGen(n,noiseType,xTrain,fExName):
        """
           Generate a 1D numpy array of standard deviations of independent Gaussian noises
        """
        if noiseType=='homo':
-          sd=5   #standard deviation (NOTE: cannot be zero)
-          sdV=[sd]*n
-          sdV=np.asarray(sdV)
+          sd=0.2   #standard deviation (NOTE: cannot be zero)
+          sdV=sd*np.ones(n)
        elif noiseType=='hetero':
-          sdMin=5
-          sdMax=10.0
-          sdV=sdMin+(sdMax-sdMin)*np.linspace(0.0,1.0,n)
+          #sdMin=0.01
+          #sdMax=0.5
+          #sdV=sdMin+(sdMax-sdMin)*np.linspace(0.0,1.0,n)
+          #sdV=0.15*np.ones(n)
+          sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')+0.001)
        return sdV  #vector of standard deviations
+    ##
+    def gpr_torch_postProc(post_,nTest):
+        """
+           Convert the outputs of gpr-torch to numpy format suitable for contourplot
+        """
+        with torch.no_grad():
+            post_mean_=post_.mean.detach().numpy()
+            post_mean =post_mean_.reshape((nTest[0],nTest[1]),order='F')   #posterior mean
+            lower_, upper_ = post_.confidence_region()     #\pm 2*sdev of posterior mean
+            lower_=lower_.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
+            upper_=upper_.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
+            post_sdev = (post_mean-lower_)/2.0   #sdev of the posterior mean of f(q)
+        return post_mean,post_sdev,lower_,upper_
 
     #----- SETTINGS
     qBound=[[-2,2],[-2,2]]
+    fExName='type2'    #Name of Exact function to generate synthetic data
+                  #This is typ in fEx2D() in ../../analyticFuncs/analyticFuncs.py
     sampleType='grid'  #'random' or 'grid': type of samples
     noiseType='hetero'   #'homo'=homoscedastic, 'hetero'=heterscedastic
+    nIter_=1000      #number of iterations in optimization of hyperparameters
+    lr_   =0.05      #learning rate for the optimizaer of the hyperparameters
     #------------------------------------------------
+    #(0) Assigning settings to the gprOpts dict
+    gprOpts={'nIter':nIter_,'lr':lr_}
+
     #(1) Generate training data
     d=len(qBound)    #dimension of the input
     #  (a) xTrain 
     if sampleType=='grid':
-       n=[9,11]             #number of training observations in each input dimension
+       n=[9,9]             #number of training observations in each input dimension
        nSamp=n[0]*n[1]
        gridList=[];
        for i in range(d):
@@ -520,24 +638,25 @@ def gprTorch_2d_singleTask_test():
        xTrain=reshaper.vecs2grid(gridList[0],gridList[1])
 #       xTrain = gpytorch.utils.grid.create_data_from_grid(gridList)  #torch
     elif sampleType=='random': 
-       nSamp=50     #number of random samples   
+       nSamp=127     #number of random samples   
        xi_=sampling.LHS_sampling(nSamp,d)
        xTrain=np.zeros((nSamp,d))
        for i in range(d):
            xTrain[:,i]=(qBound[i][1]-qBound[i][0])*xi_[:,i]+qBound[i][0]
     #   (b) set the sdev of the observation noise   
 #    noiseSdev=torch.ones(nTot).mul(0.1)    #torch
-    noiseSdev=noiseGen(nSamp,noiseType)
+    noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
 #    yTrain = torch.sin(mt.pi*xTrain[:,0])*torch.cos(.25*mt.pi*xTrain[:,1])+torch.randn_like(xTrain[:,0]).mul(0.1)   #torch
     #   (c) Training data
-    yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],'Rosenbrock','pair')
+    yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')
     yTrain_mean=0.0#np.mean(yTrain)    #to centeralize the yTrain data
-    yTrain=yTrain-yTrain_mean
-    yTrain=yTrain+noiseSdev*np.random.randn(nSamp)
+    yTrain_noiseFree=yTrain-yTrain_mean
+    yTrain=yTrain_noiseFree+noiseSdev*np.random.randn(nSamp)
+    plot_trainData(nSamp,yTrain_noiseFree,noiseSdev,yTrain)
 
     #(2) Create test data
     testGrid=[];
-    nTest=[101,100]     #number of test points
+    nTest=[21,20]     #number of test points
     for i in range(d):
         #grid_=torch.linspace(qBound[i][0],qBound[i][1],20)    #torch
         grid_=np.linspace(qBound[i][0],qBound[i][1],nTest[i])
@@ -545,31 +664,39 @@ def gprTorch_2d_singleTask_test():
     xTest=reshaper.vecs2grid(testGrid[0],testGrid[1])
 
     #(3) construct the GPR based on the training data and make predictions at test inputs
-    post_f,post_obs=gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest)
+    post_f,post_obs=gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts)
 
     #(4) Plot 2d contours
     #   (a) Predicted mean and variance at the test grid    
-    post_f_mean_=post_f.mean.detach().numpy()    #posterior mean, torch->numpy
-    post_f_mean=post_f_mean_.reshape((nTest[0],nTest[1]),order='F')
-    lower_f, upper_f = post_f.confidence_region()  #\pm 2*sdev of posterior mean
-    lower_f=lower_f.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
-    post_f_sdev = (post_f_mean-lower_f)/2.0   #posterior sdev of f(q)
+    post_f_mean,post_f_sdev,lower_f,upper_f=gpr_torch_postProc(post_f,nTest)
+    post_obs_mean,post_obs_sdev,lower_obs,upper_obs=gpr_torch_postProc(post_obs,nTest)
+    #   (b) Plots
     with torch.no_grad():
-        fig = plt.figure(figsize=(15,5))
-        ax = fig.add_subplot(131)        
-        fEx_test=analyticTestFuncs.fEx2D(xTest[:,0],xTest[:,1],'Rosenbrock','pair')
+        fig = plt.figure(figsize=(16,4))
+        ax = fig.add_subplot(141)        
+        fEx_test=analyticTestFuncs.fEx2D(xTest[:,0],xTest[:,1],fExName,'pair')
         CS0=ax.contour(testGrid[0],testGrid[1],fEx_test.reshape((nTest[0],nTest[1]),order='F').T,levels=40)
         ax.clabel(CS0, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
         ax.plot(xTrain[:,0],xTrain[:,1],'or')
         ax.set_title(r'Exact $f(q)$')
-        ax = fig.add_subplot(132)
+        ax = fig.add_subplot(142)
         CS1=ax.contour(testGrid[0],testGrid[1],(post_f_mean+yTrain_mean).T,levels=40)
         ax.clabel(CS1, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
         ax.plot(xTrain[:,0],xTrain[:,1],'or')
         ax.set_title(r'Mean Posterior of $f(q)$')
-        ax = fig.add_subplot(133)
-        CS2=ax.contour(testGrid[0],testGrid[1],post_f_sdev.T,levels=40)
+        ax = fig.add_subplot(143)
+        CS2=ax.contour(testGrid[0],testGrid[1],upper_obs.T,levels=40)
         ax.clabel(CS2, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
         ax.plot(xTrain[:,0],xTrain[:,1],'or')
-        ax.set_title(r'Sdev of Posterior of $f(q)$')
+        ax.set_title(r'Upper Confidence for Observations')
+        ax = fig.add_subplot(144)
+        CS2=ax.contour(testGrid[0],testGrid[1],lower_obs.T,levels=40)
+        ax.clabel(CS2, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
+        ax.plot(xTrain[:,0],xTrain[:,1],'or')
+        ax.set_title(r'Lower Confidence for Observations')
         plt.show()
+
+        #3d plot
+        gpr_3dsurf_plot(xTrain,yTrain,testGrid,post_obs_mean,upper_obs,lower_obs,upper_f,lower_f)
+
+

@@ -47,9 +47,9 @@ def fEx2D(z1,z2,typ,method):
            tmp3=mt.exp(-(z1_**2.+z2_**2.))*(10.*z1_**3.-2.*z1_+10.*z2_**5.)
            tmp=tmp1+tmp2+tmp3
         elif typ=='type2':
-           tmp1=3.*mt.exp(-(z2_+2)**2.-z1_**2) * (z1_-1.0)**2.
-           tmp2=3.*mt.exp(-(z2_-1.5)**2.-z1_**2) * (z1_-1.)**2.
-           tmp=tmp1+tmp2
+           tmp1=3.*mt.exp(-(z2_+1)**2.-z1_**2) * (z1_-1.0)**2.
+           tmp2=-1.*mt.exp(-(z2_-1.)**2.-z1_**2) * (z1_-1.)**2.
+           tmp=tmp1+tmp2+0.001
         elif typ=='type3':   #simple enough for analytical derivation of Sobol indices
            tmp=z1_**2.+z1_*z2_
         elif typ=='Rosenbrock':
