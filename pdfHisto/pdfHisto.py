@@ -39,7 +39,7 @@ def pdfFit_uniVar(f,doPlot,pwOpts):
        plt.yticks(fontsize=15)
        plt.grid(alpha=0.4)
        if pwOpts:    #if not empty
-          #Dump the data of the PDf
+          #Dump the data of the PDf          
           if pwOpts['figDir']:
              figDir=pwOpts['figDir']       
              wrtDir=figDir+'/dumpData/'
@@ -53,14 +53,14 @@ def pdfFit_uniVar(f,doPlot,pwOpts):
              os.makedirs(wrtDir)
           F1=open(wrtDir+outName+'.dat','w')
           if pwOpts['header']:
-             F1.write('#'+pwOpts['header']+'\n') 
+             F1.write('# '+pwOpts['header']+'\n') 
              F1.write('# kde.support \t\t kde.density \n')
-             F1.write(writeUQ.printRepeated('-',50)+'\n')
+             F1.write('# '+writeUQ.printRepeated('-',50)+'\n')
              for i in range(len(kde.support)):
                  F1.write('%g \t %g \n' %(kde.support[i],kde.density[i]))
-             F1.write(writeUQ.printRepeated('-',50)+'\n')
+             F1.write('# '+writeUQ.printRepeated('-',50)+'\n')
              F1.write('# bin.support \t\t bin.density \n')
-             F1.write(writeUQ.printRepeated('-',50)+'\n')
+             F1.write('# '+writeUQ.printRepeated('-',50)+'\n')
              for i in range(len(BIN[0])):
                  F1.write('%g \t %g \n' %(BIN[1][i],BIN[0][i]))
           #Save the figure of the PDF
