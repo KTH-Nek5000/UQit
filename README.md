@@ -2,6 +2,9 @@
 # Modules of Python scripts for UQ
 # Saleh Rezaeiravesh, salehr@kth.se
 
+# Add path to ~/.bashrc
+  myUQtoolboxPATH=<path-on-the-disk/>
+  source ~/.bashrc
 
 # Required Libraries:
  - numpy

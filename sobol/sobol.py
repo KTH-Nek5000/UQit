@@ -3,14 +3,14 @@
 #################################################################
 # Saleh Rezaeiravesh, salehr@kth.se
 #----------------------------------------------------------------
-
+import os
 import sys
 import numpy as np
 from scipy.integrate import simps
-
-sys.path.append('../analyticFuncs/')
-sys.path.append('../gPCE/')
-sys.path.append('../general/')
+myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
+sys.path.append(myUQtoolboxPATH+'/analyticFuncs/')
+sys.path.append(myUQtoolboxPATH+'/gPCE/')
+sys.path.append(myUQtoolboxPATH+'/general/')
 import analyticTestFuncs
 import gpce
 import reshaper

@@ -9,6 +9,7 @@
 #--------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
 #--------------------------------------------
+import os
 import sys
 import numpy as np
 import math as mt
@@ -16,10 +17,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 #from numpy.polynomial import legendre
 
-sys.path.append('../analyticFuncs/')
-sys.path.append('../plot/')
-sys.path.append('../writeUQ/')
-sys.path.append('../general/')
+myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
+sys.path.append(myUQtoolboxPATH+'/analyticFuncs/')
+sys.path.append(myUQtoolboxPATH+'/plot/')
+sys.path.append(myUQtoolboxPATH+'/writeUQ/')
+sys.path.append(myUQtoolboxPATH+'/general/')
 import analyticTestFuncs
 import plot2d
 import writeUQ

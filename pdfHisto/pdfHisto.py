@@ -7,8 +7,8 @@ import numpy as np
 import statsmodels.api as sm
 import matplotlib
 import matplotlib.pyplot as plt
-
-sys.path.append('../writeUQ/')
+myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
+sys.path.append(myUQtoolboxPATH+'/writeUQ/')
 import writeUQ
 
 #////////////////////////////////

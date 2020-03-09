@@ -9,15 +9,17 @@
 ###########################################################
 # Saleh Rezaeiravesh, salehr@kth.se
 #----------------------------------------------------------
+import os
 import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-sys.path.append('../analyticFuncs/')
-sys.path.append('../plot/')
-sys.path.append('../gPCE/')
-sys.path.append('../general/')
-sys.path.append('../nodes/')
+myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
+sys.path.append(myUQtoolboxPATH+'/analyticFuncs/')
+sys.path.append(myUQtoolboxPATH+'/plot/')
+sys.path.append(myUQtoolboxPATH+'/gPCE/')
+sys.path.append(myUQtoolboxPATH+'/general/')
+sys.path.append(myUQtoolboxPATH+'/nodes/')
 import analyticTestFuncs
 import plot2d
 import gpce

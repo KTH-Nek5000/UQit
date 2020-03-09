@@ -20,7 +20,7 @@
        hypercube [-1,1]^m, for instance.
 """    
 #----------------------------------------------------------------
-
+import os
 import sys
 import numpy as np
 import math as mt
@@ -35,9 +35,11 @@ from gpytorch.likelihoods import (
      FixedNoiseGaussianLikelihood,
      HeteroskedasticNoise,
      )
-sys.path.append('../../analyticFuncs/')
-sys.path.append('../../general/')
-sys.path.append('../../stats/')
+
+myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
+sys.path.append(myUQtoolboxPATH+'analyticFuncs/')
+sys.path.append(myUQtoolboxPATH+'general/')
+sys.path.append(myUQtoolboxPATH+'stats/')
 import analyticTestFuncs
 import reshaper
 import sampling
