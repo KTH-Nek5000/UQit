@@ -296,6 +296,32 @@ def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
          post_obs = likelihood(post_f, xTest)
     return post_f,post_obs
 
+#///////////////////////////////////////////////////////
+def gprTorch_2d(xTrain,yTrain,noiseSdev,xTest,gprOpts):
+    """ 
+        GPR for two uncertain parameter, and single/multi-D response y, where y=f(x)+e, with Known noise
+        - Observations (X_i,Y_i) are assumed to be independent but their noise variance can be either the same (iid= homoscedastic) or different (heteroscedastic).
+        - Supports both homo- and hetero-scedastic noise models
+
+        Inputs:          
+               xTrain: Training model input, 2D numpy array of size nx2
+               yTrain: Training model output: multitask: 2D numpy array of size nxm (m: dimensionality of Y)
+               yTrain: Training model output, singletask: 1D numpy array of size n
+               noiseSdev: A 1D numpy vecor of size n, standard deviation of the the Gaussian noise in each of the observations
+               xTest: Test model input, 2D numpy array of size nTestx2
+               gprOpts: GPR options
+        Outputs: 
+               post_f: posterior gpr for f(q) at qTest
+               post_obs: predictive posterior (likelihood) at qTest
+    """
+    nResp=len(yTrain)
+    if nResp==1:   #single-task (=single-response)
+       post_f,post_obs = gprTorch_2d_singleTask(xTrain,yTrain[0],noiseSdev,xTest,gprOpts)
+    else:          #multi-task (=multi-response)
+       print('ERROR in gprTorch_2d(): multitask version is not available yet') 
+    return post_f,post_obs
+
+
 #////////////////////////////////////////////////////
 def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """ 
@@ -666,7 +692,7 @@ def gprTorch_2d_singleTask_test():
     xTest=reshaper.vecs2grid(testGrid[0],testGrid[1])
 
     #(3) construct the GPR based on the training data and make predictions at test inputs
-    post_f,post_obs=gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts)
+    post_f,post_obs=gprTorch_2d(xTrain,[yTrain],noiseSdev,xTest,gprOpts)
 
     #(4) Plot 2d contours
     #   (a) Predicted mean and variance at the test grid    
