@@ -33,7 +33,7 @@ def pdfFit_uniVar(f,doPlot,pwOpts):
        plt.figure(figsize=(10,4));
        ax=plt.gca();
        plt.plot(kde.support,kde.density,'-r',lw=2)
-       binsNum=70 #'auto'
+       binsNum='auto' #70
        BIN=plt.hist(f,bins=binsNum,density=True,color='steelblue',alpha=0.4,edgecolor='b')
        plt.xticks(fontsize=15)
        plt.yticks(fontsize=15)

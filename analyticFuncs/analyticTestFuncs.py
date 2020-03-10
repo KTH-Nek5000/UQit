@@ -17,7 +17,7 @@ def fEx1D(z):
 
 #/////////////////////////
 def fEx1D_moments(qBound):
-    """ Mean and Variance of fEx1D(z) when z~U[qBound] """
+    """ Mean and Variance of fEx1D(z) when z~U[qBound], U=uniform distribution """
     def mean_(q_):
         return (10.*q_-0.7*mt.cos(5.*q_)/5.0+3.*mt.sin(q_))
     def var_(q_):
