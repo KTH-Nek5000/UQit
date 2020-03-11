@@ -610,7 +610,7 @@ def gprTorch_2d_singleTask_test():
         plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok')
         plt.show()
     ##
-    def trainDataGen(p,sampleType,n,qBound,fExName):
+    def trainDataGen(p,sampleType,n,qBound,fExName,noiseType):
         """
            Generate Training Data
         """
@@ -690,7 +690,7 @@ def gprTorch_2d_singleTask_test():
 
     #(1) Generate training data
     p=len(qBound)    #dimension of the input
-    xTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,sampleType,n,qBound,fExName)
+    xTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,sampleType,n,qBound,fExName,noiseType)
     nSamp=yTrain.shape[0]
     plot_trainData(nSamp,yTrain_noiseFree,noiseSdev,yTrain)
 

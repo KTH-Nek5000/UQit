@@ -35,12 +35,14 @@ sys.path.append(myUQtoolboxPATH+'/pdfHisto/')
 sys.path.append(myUQtoolboxPATH+'/analyticFuncs/')
 sys.path.append(myUQtoolboxPATH+'/writeUQ/')
 sys.path.append(myUQtoolboxPATH+'/general/')
+sys.path.append(myUQtoolboxPATH+'/stats/')
 import gpce
 import gpr_torch
 import pdfHisto
 import analyticTestFuncs
 import writeUQ
 import reshaper
+import sampling
 #
 #/////////////////////////////////////////////////////////////
 def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
@@ -61,6 +63,7 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
            fVar_list : PCE estimates for the var of f(q) , 1d numpy array
            optOut: optional outputs for plotting
     """
+    print('... Probabilistic PCE for 1D input parameter.')
     #(0) assignments
     nGQ=PpceDict['nGQtest']       #number of GQ test points
     qBound=PpceDict['qBound'] #admissible range of inputs parameter
@@ -88,6 +91,8 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         fCoef_,fMean_,fVar_=gpce.pce_LegUnif_1d_cnstrct(f_)
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
+        if (j%50==0):
+           print("...... Ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
     #(4) Convert lists to numpy arrays    
     # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
@@ -117,6 +122,7 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
            fVar_list : PCE estimates for the var of f(q) , 1d numpy array
            optOut: optional outputs for plotting
     """
+    print('... Probabilistic PCE for 2D input parameter.')
     #(0) Assignments
     p=2    #dimension of input parameter q
     nGQ=PpceDict['nGQtest']       #list of number of GQ test points in each of p dimensions
@@ -133,11 +139,11 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
              }
 
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
-    qTest_=[]
+    qTestGrid=[]
     for i in range(p):
         xiGQ_,wGQ_=gpce.GaussLeg_ptswts(nGQ[i])  #xiGQ\in[-1,1]
-        qTest_.append(gpce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
-    qTest=reshaper.vecs2grid(qTest_[0],qTest_[1])
+        qTestGrid.append(gpce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
+    qTest=reshaper.vecs2grid(qTestGrid[0],qTestGrid[1])
 
     #(2) Construct GPR surrogate based on training data
     post_f,post_obs=gpr_torch.gprTorch_pd(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
@@ -153,6 +159,8 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         fCoef_,kSet_,fMean_,fVar_=gpce.pce_LegUnif_2d_cnstrct(f_,nGQ,[],pceDict)
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
+        if (j%50==0):
+           print("...... Ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
     #(4) Convert lists to numpy arrays    
     # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
@@ -160,7 +168,7 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
     fVar_list=np.asarray(fVar_list)
     #optional outputs: only used for plot in the test below
     #in general we do not need them
-    optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest}
+    optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest,'qTestGrid':qTestGrid}
     return fMean_list,fVar_list,optOut
 
 ###############################
@@ -268,4 +276,123 @@ def Ppce_LegUnif_1d_cnstrct_test():
 def Ppce_LegUnif_2d_cnstrct_test():
     """
         Test for Ppce_LegUnif_2d_cnstrct()
+        Note: some functions are taken from /gpr_torch.py/gprTorch_2d_singleTask_test()
     """
+    ##
+    def trainDataGen(p,sampleType,n,qBound,fExName,noiseType):
+        """
+           Generate Training Data
+        """
+        #  (a) xTrain
+        if sampleType=='grid':
+          nSamp=n[0]*n[1]
+          gridList=[];
+          for i in range(p):
+              grid_=np.linspace(qBound[i][0],qBound[i][1],n[i])
+              gridList.append(grid_)
+          xTrain=reshaper.vecs2grid(gridList[0],gridList[1])
+        elif sampleType=='random':
+             nSamp=n     #number of random samples
+             xi_=sampling.LHS_sampling(nSamp,p)
+             xTrain=np.zeros((nSamp,p))
+             for i in range(p):
+                 xTrain[:,i]=(qBound[i][1]-qBound[i][0])*xi_[:,i]+qBound[i][0]
+        #  (b) set the sdev of the observation noise
+        noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
+        #  (c) Training data
+        yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')
+        yTrain_noiseFree=yTrain
+        yTrain=yTrain_noiseFree+noiseSdev*np.random.randn(nSamp)
+        return xTrain,yTrain,noiseSdev,yTrain_noiseFree
+    ##
+    def noiseGen(n,noiseType,xTrain,fExName):
+       """
+          Generate a 1D numpy array of standard deviations of independent Gaussian noises
+       """
+       if noiseType=='homo':
+          sd=0.2   #standard deviation (NOTE: cannot be zero)
+          sdV=sd*np.ones(n)
+       elif noiseType=='hetero':
+          sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')+0.001)
+       return sdV  #vector of standard deviations
+    ##
+    def gpr_torch_postProc(post_,nTest):
+        """
+           Convert the outputs of gpr-torch to numpy format suitable for contourplot
+        """
+        with torch.no_grad():
+            post_mean_=post_.mean.detach().numpy()
+            post_mean =post_mean_.reshape((nTest[0],nTest[1]),order='F')   #posterior mean
+            lower_, upper_ = post_.confidence_region()     #\pm 2*sdev of posterior mean
+            lower_=lower_.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
+            upper_=upper_.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
+            post_sdev = (post_mean-lower_)/2.0   #sdev of the posterior mean of f(q)
+        return post_mean,post_sdev,lower_,upper_
+    ##
+    def gpr_3dsurf_plot(xTrain,yTrain,testGrid,nTest,post_obs,post_f):
+        """
+           3D plot of the GPR surface (mean+CI)
+        """
+        #Predicted mean and variance at the test grid
+        post_f_mean,post_f_sdev,lower_f,upper_f=gpr_torch_postProc(post_f,nTest)
+        post_obs_mean,post_obs_sdev,lower_obs,upper_obs=gpr_torch_postProc(post_obs,nTest)
+
+        xTestGrid1,xTestGrid2=np.meshgrid(testGrid[0],testGrid[1], sparse=False, indexing='ij')
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        mean_surf = ax.plot_surface(xTestGrid1, xTestGrid2, post_obs_mean,cmap='jet', antialiased=True,rstride=1,cstride=1,linewidth=0,alpha=0.4)
+        upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_obs, linewidth=1,alpha=0.25,color='r')
+        lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_obs, linewidth=1,alpha=0.25,color='b')
+        #upper_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_f, linewidth=1,alpha=0.5,color='r')
+        #lower_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_f, linewidth=1,alpha=0.5,color='b')
+        plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok')
+        plt.show()
+    ##
+    #
+    #----- SETTINGS -------------------------------------------
+    qBound=[[-2,2],[-2,2]]   #Admissible range of parameters
+    #options for training data
+    fExName='type2'          #Name of Exact function to generate synthetic data
+                             #This is typ in fEx2D() in ../../analyticFuncs/analyticFuncs.py
+    trainSampleType='grid'        #'random' or 'grid': type of samples
+    if trainSampleType=='grid':
+       n=[10,10]               #number of training observations in each input dimension
+    elif trainSampleType=='random':
+       n=100               #total number of training samples drawn randomly
+    #NOTE: there might be limitation for n*nGQtest because of torch, since we are not using batch   
+    noiseType='homo'       #'homo'=homoscedastic, 'hetero'=heterscedastic
+    #options for GPR
+    nIter_gpr=1000      #number of iterations in optimization of hyperparameters
+    lr_gpr   =0.1      #learning rate for the optimizaer of the hyperparameters
+    #options for Gauss Quadrature test points
+    nGQtest=[18,18]     #number of test points in each param dimension
+    #number of samples drawn from GPR surrogate to construct estimates for moments of f(q)
+    nMC=200
+    #---------------------------------------------------------
+    p=2  #dimension of the input parameter q
+    #(1) Generate synthetic training data
+    qTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,trainSampleType,n,qBound,fExName,noiseType)
+    #(2) Probabilistic gPCE 
+    #   (a) make the dictionary
+    PpceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'nMC':nMC}
+    #   (b) call the method
+    fMean_samples,fVar_samples,optOut=Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict)
+    #(3) postprocess
+    #   (a) plot the GPR surrogate along with response from the exact simulator    
+    gpr_3dsurf_plot(qTrain,yTrain,optOut['qTestGrid'],nGQtest,optOut['post_obs'],optOut['post_f'])
+    #   (b) plot histogram and pdf of the mean and variance distribution 
+    pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
+    pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
+    #   (c) compare the exact moments with estimated values by Ppce
+    #fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qBound)
+    fMean_mean=fMean_samples.mean()
+    fMean_sdev=fMean_samples.std()
+    fVar_mean=fVar_samples.mean()
+    fVar_sdev=fVar_samples.std()
+    print(writeUQ.printRepeated('-', 80))
+    #print('>> Exact mean(f) = %g' %fMean_ex)
+    print('   Ppce estimated: E[mean(f)] = %g , sdev[mean(f)] = %g' %(fMean_mean,fMean_sdev))
+    #print('>> Exact Var(f) = %g' %fVar_ex)
+    print('   Ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
+
+
