@@ -609,6 +609,36 @@ def gprTorch_2d_singleTask_test():
         #lower_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_f, linewidth=1,alpha=0.5,color='b')
         plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok')
         plt.show()
+    ##
+    def trainDataGen(p,sampleType,n,qBound,fExName):
+        """
+           Generate Training Data
+        """
+        #  (a) xTrain 
+        if sampleType=='grid': 
+          nSamp=n[0]*n[1]
+          gridList=[];
+          for i in range(p):
+              #grid_=torch.linspace(qBound[i][0],qBound[i][1],n[i])   #torch
+              grid_=np.linspace(qBound[i][0],qBound[i][1],n[i])
+              gridList.append(grid_)
+          xTrain=reshaper.vecs2grid(gridList[0],gridList[1])
+#       xTrain = gpytorch.utils.grid.create_data_from_grid(gridList)  #torch
+        elif sampleType=='random': 
+             nSamp=n     #number of random samples   
+             xi_=sampling.LHS_sampling(nSamp,p)
+             xTrain=np.zeros((nSamp,p))
+             for i in range(p):
+                 xTrain[:,i]=(qBound[i][1]-qBound[i][0])*xi_[:,i]+qBound[i][0]
+        #  (b) set the sdev of the observation noise   
+        #noiseSdev=torch.ones(nTot).mul(0.1)    #torch
+        noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
+        #yTrain = torch.sin(mt.pi*xTrain[:,0])*torch.cos(.25*mt.pi*xTrain[:,1])+torch.randn_like(xTrain[:,0]).mul(0.1)   #torch
+        #   (c) Training data
+        yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')
+        yTrain_noiseFree=yTrain
+        yTrain=yTrain_noiseFree+noiseSdev*np.random.randn(nSamp)
+        return xTrain,yTrain,noiseSdev,yTrain_noiseFree
     ##    
     def noiseGen(n,noiseType,xTrain,fExName):
        """
@@ -639,51 +669,34 @@ def gprTorch_2d_singleTask_test():
         return post_mean,post_sdev,lower_,upper_
 
     #----- SETTINGS
-    qBound=[[-2,2],[-2,2]]
-    fExName='type2'    #Name of Exact function to generate synthetic data
-                  #This is typ in fEx2D() in ../../analyticFuncs/analyticFuncs.py
-    sampleType='grid'  #'random' or 'grid': type of samples
-    noiseType='hetero'   #'homo'=homoscedastic, 'hetero'=heterscedastic
+    qBound=[[-2,2],[-2,2]]   #Admissible range of parameters
+    #options for training data
+    fExName='type2'          #Name of Exact function to generate synthetic data
+                             #This is typ in fEx2D() in ../../analyticFuncs/analyticFuncs.py
+    sampleType='grid'        #'random' or 'grid': type of samples
+    if sampleType=='grid':
+       n=[9,9]               #number of training observations in each input dimension
+    elif sampleType=='random':
+       n=100                 #total number of training samples drawn randomly
+    noiseType='hetero'       #'homo'=homoscedastic, 'hetero'=heterscedastic
+    #options for GPR
     nIter_=1000      #number of iterations in optimization of hyperparameters
     lr_   =0.05      #learning rate for the optimizaer of the hyperparameters
+    #options for test points
+    nTest=[21,20]     #number of test points in each param dimension
     #------------------------------------------------
     #(0) Assigning settings to the gprOpts dict
     gprOpts={'nIter':nIter_,'lr':lr_}
 
     #(1) Generate training data
-    d=len(qBound)    #dimension of the input
-    #  (a) xTrain 
-    if sampleType=='grid':
-       n=[9,9]             #number of training observations in each input dimension
-       nSamp=n[0]*n[1]
-       gridList=[];
-       for i in range(d):
-           #grid_=torch.linspace(qBound[i][0],qBound[i][1],n[i])   #torch
-           grid_=np.linspace(qBound[i][0],qBound[i][1],n[i])
-           gridList.append(grid_)
-       xTrain=reshaper.vecs2grid(gridList[0],gridList[1])
-#       xTrain = gpytorch.utils.grid.create_data_from_grid(gridList)  #torch
-    elif sampleType=='random': 
-       nSamp=127     #number of random samples   
-       xi_=sampling.LHS_sampling(nSamp,d)
-       xTrain=np.zeros((nSamp,d))
-       for i in range(d):
-           xTrain[:,i]=(qBound[i][1]-qBound[i][0])*xi_[:,i]+qBound[i][0]
-    #   (b) set the sdev of the observation noise   
-#    noiseSdev=torch.ones(nTot).mul(0.1)    #torch
-    noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
-#    yTrain = torch.sin(mt.pi*xTrain[:,0])*torch.cos(.25*mt.pi*xTrain[:,1])+torch.randn_like(xTrain[:,0]).mul(0.1)   #torch
-    #   (c) Training data
-    yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')
-    yTrain_mean=0.0#np.mean(yTrain)    #to centeralize the yTrain data
-    yTrain_noiseFree=yTrain-yTrain_mean
-    yTrain=yTrain_noiseFree+noiseSdev*np.random.randn(nSamp)
+    p=len(qBound)    #dimension of the input
+    xTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,sampleType,n,qBound,fExName)
+    nSamp=yTrain.shape[0]
     plot_trainData(nSamp,yTrain_noiseFree,noiseSdev,yTrain)
 
     #(2) Create test data
     testGrid=[];
-    nTest=[21,20]     #number of test points
-    for i in range(d):
+    for i in range(p):
         #grid_=torch.linspace(qBound[i][0],qBound[i][1],20)    #torch
         grid_=np.linspace(qBound[i][0],qBound[i][1],nTest[i])
         testGrid.append(grid_)
@@ -706,7 +719,7 @@ def gprTorch_2d_singleTask_test():
         ax.plot(xTrain[:,0],xTrain[:,1],'or')
         ax.set_title(r'Exact $f(q)$')
         ax = fig.add_subplot(142)
-        CS1=ax.contour(testGrid[0],testGrid[1],(post_f_mean+yTrain_mean).T,levels=40)
+        CS1=ax.contour(testGrid[0],testGrid[1],(post_f_mean).T,levels=40)
         ax.clabel(CS1, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
         ax.plot(xTrain[:,0],xTrain[:,1],'or')
         ax.set_title(r'Mean Posterior of $f(q)$')

@@ -70,7 +70,7 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
              'lr':PpceDict['lr_gpr']           #learning rate in opimization of hyperparameters
             }
 
-    #(1) generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
+    #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
     xiGQ,wGQ=gpce.GaussLeg_ptswts(nGQ)  #xiGQ\in[-1,1]
     qTest=gpce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
 
@@ -89,7 +89,7 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
 
-    #(4) convert lists to numpy arrays    
+    #(4) Convert lists to numpy arrays    
     # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
     fMean_list=np.asarray(fMean_list)
     fVar_list=np.asarray(fVar_list)
@@ -117,8 +117,8 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
            fVar_list : PCE estimates for the var of f(q) , 1d numpy array
            optOut: optional outputs for plotting
     """
-    #(0) assignments
-    p=2    #dimension of q
+    #(0) Assignments
+    p=2    #dimension of input parameter q
     nGQ=PpceDict['nGQtest']       #list of number of GQ test points in each of p dimensions
     qBound=PpceDict['qBound']     #admissible range of inputs parameter
     nMC=PpceDict['nMC']           #number of samples taken from GPR
@@ -132,7 +132,7 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
              'pceSolveMethod':'Projection'
              }
 
-    #(1) generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
+    #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
     qTest_=[]
     for i in range(p):
         xiGQ_,wGQ_=gpce.GaussLeg_ptswts(nGQ[i])  #xiGQ\in[-1,1]
@@ -154,7 +154,7 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
 
-    #(4) convert lists to numpy arrays    
+    #(4) Convert lists to numpy arrays    
     # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
     fMean_list=np.asarray(fMean_list)
     fVar_list=np.asarray(fVar_list)
@@ -228,7 +228,7 @@ def Ppce_LegUnif_1d_cnstrct_test():
     #
     #
     #-------SETTINGS------------------------------
-    n=127       #number of training data
+    n=12       #number of training data
     nGQtest=50   #number of test points (=Gauss Quadrature points)
     qBound=[0,1]   #range of input
     #type of the noise in the data
@@ -263,4 +263,9 @@ def Ppce_LegUnif_1d_cnstrct_test():
     print('   Ppce estimated: E[mean(f)] = %g , sdev[mean(f)] = %g' %(fMean_mean,fMean_sdev))
     print('>> Exact Var(f) = %g' %fVar_ex)
     print('   Ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
-	
+#	
+#//////////////////////////////////
+def Ppce_LegUnif_2d_cnstrct_test():
+    """
+        Test for Ppce_LegUnif_2d_cnstrct()
+    """
