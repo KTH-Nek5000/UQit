@@ -20,6 +20,7 @@
        hypercube [-1,1]^m, for instance.
 """    
 #----------------------------------------------------------------
+#
 import os
 import sys
 import numpy as np
@@ -35,7 +36,6 @@ from gpytorch.likelihoods import (
      FixedNoiseGaussianLikelihood,
      HeteroskedasticNoise,
      )
-
 myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
 sys.path.append(myUQtoolboxPATH+'analyticFuncs/')
 sys.path.append(myUQtoolboxPATH+'general/')
@@ -43,7 +43,7 @@ sys.path.append(myUQtoolboxPATH+'stats/')
 import analyticTestFuncs
 import reshaper
 import sampling
-
+#
 #//
 #Multitask output, 1D input: y=f(x) \in R^m, m>1, x\in R
 class MultitaskGPModel(gpytorch.models.ExactGP):
@@ -73,7 +73,7 @@ class SingletaskGPModel(gpytorch.models.ExactGP):
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
-#Singletask output, multi-D input: y=f(x) \in R, x\in R^d, d>1
+#Singletask output, multi-D input: y=f(x) \in R, x\in R^p, p>1
 class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
         super(SingletaskGPModel_mIn, self).__init__(train_x, train_y, likelihood)
@@ -81,7 +81,7 @@ class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
         self.mean_module = gpytorch.means.ConstantMean()
         self.covar_module = gpytorch.kernels.ScaleKernel(
 #            gpytorch.kernels.RBFKernel(ard_num_dims=num_dims)   #different length scales in different dimentions, RBF
-            gpytorch.kernels.MaternKernel(nu=2.5,ard_num_dims=num_dims)   #different length scales in different dimentions, Matern
+            gpytorch.kernels.MaternKernel(nu=2.5,ard_num_dims=num_dims)   #different length scales in different dimentions, Matern nu
 #            gpytorch.kernels.RBFKernel()   #equal length scales in all input dimensions
         )
     def forward(self, x):
@@ -201,7 +201,7 @@ def gprTorch_1d_multiTask(xTrain_,yTrain_,noiseSdev_,xTest,gprOpts):
     likelihood.eval()  
     return model,likelihood
 
-
+#
 #////////////////////////////////////////////////////
 def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """ 
@@ -297,7 +297,7 @@ def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     return post_f,post_obs
 
 #///////////////////////////////////////////////////////
-def gprTorch_2d(xTrain,yTrain,noiseSdev,xTest,gprOpts):
+def gprTorch_pd(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """ 
         GPR for two uncertain parameter, and single/multi-D response y, where y=f(x)+e, with Known noise
         - Observations (X_i,Y_i) are assumed to be independent but their noise variance can be either the same (iid= homoscedastic) or different (heteroscedastic).
@@ -316,24 +316,23 @@ def gprTorch_2d(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """
     nResp=len(yTrain)
     if nResp==1:   #single-task (=single-response)
-       post_f,post_obs = gprTorch_2d_singleTask(xTrain,yTrain[0],noiseSdev,xTest,gprOpts)
+       post_f,post_obs = gprTorch_pd_singleTask(xTrain,yTrain[0],noiseSdev,xTest,gprOpts)
     else:          #multi-task (=multi-response)
-       print('ERROR in gprTorch_2d(): multitask version is not available yet') 
+       print('ERROR in gprTorch_pd(): multitask version is not available yet') 
     return post_f,post_obs
 
-
 #////////////////////////////////////////////////////
-def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
+def gprTorch_pd_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """ 
-        GPR for two uncertain parameter, and 1-D response y, where y=f(x)+e, with Known noise
+        GPR for p>1 uncertain parameter, and 1-D response y, where y=f(x)+e, with Known noise
         - Observations (X_i,Y_i) are assumed to be independent but their noise variance can be either the same (iid= homoscedastic) or different (heteroscedastic).
         - Supports both homo- and hetero-scedastic noise models
 
         Inputs:          
-               xTrain: Training model input, 2D numpy array of size nx2
+               xTrain: Training model input, 2D numpy array of size nxp
                yTrain: Training model output, 1D numpy array of size n
                noiseSdev: A 1D numpy vecor of size n, standard deviation of the the Gaussian noise in each of the observations
-               xTest: Test model input, 2D numpy array of size nTestx2
+               xTest: Test model input, 2D numpy array of size nTestxp
                gprOpts: GPR options
         Outputs: 
                post_f: posterior gpr for f(q) at qTest
@@ -343,6 +342,7 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     nIter=gprOpts['nIter']   #number of iterations in optimization of hyperparameters
     lr_  =gprOpts['lr']      #learning rate for the optimizaer of the hyperparameters
     torch.set_printoptions(precision=8)  #to avoid losing accuracy in print after converting to torch
+    p=xTrain.shape[-1]       #dimension of the parameter
     #(1) convert numpy arrays to torch tensors
     xTrain=torch.from_numpy(xTrain)
     yTrain=torch.from_numpy(yTrain)
@@ -359,7 +359,7 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     likelihood = _GaussianLikelihoodBase(
                  noise_covar=HeteroskedasticNoise(log_noise_model),
                )
-   # likelihood = GaussianLikelihood(noise=noiseSdev**2.)   #common Gaussian likelihood with no inference for noise levels
+   # likelihood = GaussianLikelihood(noise=noiseSdev**2.)   #common Gaussian likelihood with no inference for heteroscedastic noise levels
 
     #  (b) prior GPR model
     model = SingletaskGPModel_mIn(xTrain, yTrain, likelihood)
@@ -375,8 +375,7 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     # "Loss" for GPs - the marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
     losses=[]
-    lengthSc1=[]
-    lengthSc2=[]
+    lengthSc=[[] for _ in range(p)]
     for i in range(nIter):
         # Zero gradients from previous iteration
         optimizer.zero_grad()
@@ -389,17 +388,16 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
         optimizer.step()
         # info on optimization
         loss_=loss.item()
-        lengthSc1_=model.covar_module.base_kernel.lengthscale.squeeze()[0].item()
-        lengthSc2_=model.covar_module.base_kernel.lengthscale.squeeze()[1].item()
-        print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f lengthscale=%.3f %.3f' % (
-             i + 1, nIter, loss.item(),
-#             model.covar_module.base_kernel.lengthscale.item()   #if all lengthscales are the same (see the definition of self.covar_module, above)
-             lengthSc1_, #different length scales in each dimension
-             lengthSc2_,
-             ))
+        lengthSc_=[]
+        for j in range(p):
+            lengthSc_.append(model.covar_module.base_kernel.lengthscale.squeeze()[j].item())
+#           lengthSC_.append(model.covar_module.base_kernel.lengthscale.item())   #if all lengthscales are the same (see the definition of self.covar_module, above)
+        print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f' %((i + 1), nIter, loss_),end="  ")
+        print('lengthscales='+'%.3f '*p %(tuple(lengthSc_)))
+
         losses.append(loss_)
-        lengthSc1.append(lengthSc1_)
-        lengthSc2.append(lengthSc2_)
+        for j in range(p):
+            lengthSc[j].append(lengthSc_[j])
         #print('lr=',optimizer.param_groups[0]['lr'])
         #print('pars',optimizer.param_groups[0]['params'])
     # Plot convergence of hyperparameters optimization
@@ -411,8 +409,8 @@ def gprTorch_2d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     plt.xticks(fontsize=13)
     plt.yticks(fontsize=13)
     plt.subplot(122)
-    plt.plot(lengthSc1,'-b',label='Lengthscale, param1')
-    plt.plot(lengthSc2,'-r',label='Lengthscale, param2')
+    for j in range(p):
+        plt.plot(lengthSc[j],'-',label='Lengthscale, param%d'%(j+1))
     plt.ylabel('Lengthscale',fontsize=16)
     plt.xlabel('Iteration',fontsize=16)
     plt.legend(loc='best',fontsize=14)
@@ -692,7 +690,7 @@ def gprTorch_2d_singleTask_test():
     xTest=reshaper.vecs2grid(testGrid[0],testGrid[1])
 
     #(3) construct the GPR based on the training data and make predictions at test inputs
-    post_f,post_obs=gprTorch_2d(xTrain,[yTrain],noiseSdev,xTest,gprOpts)
+    post_f,post_obs=gprTorch_pd(xTrain,[yTrain],noiseSdev,xTest,gprOpts)
 
     #(4) Plot 2d contours
     #   (a) Predicted mean and variance at the test grid    
@@ -726,5 +724,4 @@ def gprTorch_2d_singleTask_test():
 
         #3d plot
         gpr_3dsurf_plot(xTrain,yTrain,testGrid,post_obs_mean,upper_obs,lower_obs,upper_f,lower_f)
-
 

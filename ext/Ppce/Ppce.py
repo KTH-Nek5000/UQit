@@ -34,11 +34,13 @@ sys.path.append(myUQtoolboxPATH+'/ext/gpr/')
 sys.path.append(myUQtoolboxPATH+'/pdfHisto/')
 sys.path.append(myUQtoolboxPATH+'/analyticFuncs/')
 sys.path.append(myUQtoolboxPATH+'/writeUQ/')
+sys.path.append(myUQtoolboxPATH+'/general/')
 import gpce
 import gpr_torch
 import pdfHisto
 import analyticTestFuncs
 import writeUQ
+import reshaper
 #
 #/////////////////////////////////////////////////////////////
 def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
@@ -46,7 +48,7 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
        Probabistric PCE (gPCE+GPR) for 1d-input parameter, y=f(q)+e
        Inputs:
            qTrain: training input parameters q, 1d numpy array of size n
-           yTrain: training mean observation y, 1d numpy array of size n
+           yTrain: training observed output y, 1d numpy array of size n
            noiseSdev: noise sdev of training observations: e~N(0,noiseSdev), 1d numpy array of size n
            PpceDict: dictionary containing controllers for PPCE, including:
                 nGQ: number of GQ test points 
@@ -54,6 +56,10 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
                 nMC: number of independent samples drawn from GPR to construct PCE 
                 nIter_gpr: number of iterations for optimization of GPR hyper-parameters
                 lr_gpr: learning rate for optimization of GPT hyper-parameters
+       Outputs:
+           fMean_list: PCE estimates for the mean of f(q), 1d numpy array
+           fVar_list : PCE estimates for the var of f(q) , 1d numpy array
+           optOut: optional outputs for plotting
     """
     #(0) assignments
     nGQ=PpceDict['nGQtest']       #number of GQ test points
@@ -91,8 +97,71 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
     #in general we do not need them
     optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest}
     return fMean_list,fVar_list,optOut
+#
+#/////////////////////////////////////////////////////////////
+def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
+    """
+       Probabistric PCE (gPCE+GPR) for 2d-input parameter, y=f(q)+e
+       Inputs:
+           qTrain: training input parameters q, 2d numpy array of size nx2
+           yTrain: training observed output y, 1d numpy array of size n
+           noiseSdev: noise sdev of training observations: e~N(0,noiseSdev), 1d numpy array of size n
+           PpceDict: dictionary containing controllers for PPCE, including:
+                nGQ: list of number of GQ test points in each direction 
+                qBound: admissible range of q, list of length p
+                nMC: number of independent samples drawn from GPR to construct PCE 
+                nIter_gpr: number of iterations for optimization of GPR hyper-parameters
+                lr_gpr: learning rate for optimization of GPT hyper-parameters
+       Outputs:
+           fMean_list: PCE estimates for the mean of f(q), 1d numpy array
+           fVar_list : PCE estimates for the var of f(q) , 1d numpy array
+           optOut: optional outputs for plotting
+    """
+    #(0) assignments
+    p=2    #dimension of q
+    nGQ=PpceDict['nGQtest']       #list of number of GQ test points in each of p dimensions
+    qBound=PpceDict['qBound']     #admissible range of inputs parameter
+    nMC=PpceDict['nMC']           #number of samples taken from GPR
+    #make a dict for gpr (do NOT change)
+    gprOpts={'nIter':PpceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters
+             'lr':PpceDict['lr_gpr']           #learning rate in opimization of hyperparameters
+            }
+    #make a dict for PCE (do NOT change)
+    pceDict={'truncMethod':'TP',  #always use TP truncation with GQ sampling with Projection (GQ rule)
+             'sampleType':'GQ', 
+             'pceSolveMethod':'Projection'
+             }
 
+    #(1) generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
+    qTest_=[]
+    for i in range(p):
+        xiGQ_,wGQ_=gpce.GaussLeg_ptswts(nGQ[i])  #xiGQ\in[-1,1]
+        qTest_.append(gpce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
+    qTest=reshaper.vecs2grid(qTest_[0],qTest_[1])
 
+    #(2) Construct GPR surrogate based on training data
+    post_f,post_obs=gpr_torch.gprTorch_pd(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
+
+    #(3) Use samples of GPR tested at GQ nodes to construct a PCE
+    #    nMC independent samples are drawn from the GPR surrogate
+    fMean_list=[]      #list of estimates for E[f(q)] 
+    fVar_list =[]      #list of estimates for V[f(q)]
+    for j in range(nMC):
+        # draw a sample for f(q) from GPR surrogate
+        f_=post_obs.sample().numpy()
+        # construct PCE for the drawn sample
+        fCoef_,kSet_,fMean_,fVar_=gpce.pce_LegUnif_2d_cnstrct(f_,nGQ,[],pceDict)
+        fMean_list.append(fMean_)
+        fVar_list.append(fVar_)
+
+    #(4) convert lists to numpy arrays    
+    # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
+    fMean_list=np.asarray(fMean_list)
+    fVar_list=np.asarray(fVar_list)
+    #optional outputs: only used for plot in the test below
+    #in general we do not need them
+    optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest}
+    return fMean_list,fVar_list,optOut
 
 ###############################
 # External Functions for Test
