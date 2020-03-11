@@ -299,16 +299,16 @@ def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
 #///////////////////////////////////////////////////////
 def gprTorch_pd(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """ 
-        GPR for two uncertain parameter, and single/multi-D response y, where y=f(x)+e, with Known noise
+        GPR for p>1 uncertain parameter, and single/multi-D response y, where y=f(x)+e, with Known noise
         - Observations (X_i,Y_i) are assumed to be independent but their noise variance can be either the same (iid= homoscedastic) or different (heteroscedastic).
         - Supports both homo- and hetero-scedastic noise models
 
         Inputs:          
-               xTrain: Training model input, 2D numpy array of size nx2
+               xTrain: Training model input, 2D numpy array of size nxp
                yTrain: Training model output: multitask: 2D numpy array of size nxm (m: dimensionality of Y)
                yTrain: Training model output, singletask: 1D numpy array of size n
                noiseSdev: A 1D numpy vecor of size n, standard deviation of the the Gaussian noise in each of the observations
-               xTest: Test model input, 2D numpy array of size nTestx2
+               xTest: Test model input, 2D numpy array of size nTestxp
                gprOpts: GPR options
         Outputs: 
                post_f: posterior gpr for f(q) at qTest
