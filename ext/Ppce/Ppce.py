@@ -65,12 +65,13 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
     """
     print('... Probabilistic PCE for 1D input parameter.')
     #(0) assignments
-    nGQ=PpceDict['nGQtest']       #number of GQ test points
-    qBound=PpceDict['qBound'] #admissible range of inputs parameter
-    nMC=PpceDict['nMC']       #number of samples taken from GPR
+    nGQ=PpceDict['nGQtest']       #number of GQ test points in the parameter space
+    qBound=PpceDict['qBound'] #admissible range of the input parameter q
+    nMC=PpceDict['nMC']       #number of samples taken from GPR to estimate PCE coefs
     #make a dict for gpr
-    gprOpts={'nIter':PpceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters
-             'lr':PpceDict['lr_gpr']           #learning rate in opimization of hyperparameters
+    gprOpts={'nIter':PpceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of the GPR
+             'lr':PpceDict['lr_gpr'],           #learning rate in opimization of hyperparameters of the GPR
+             'convPlot':PpceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
             }
 
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
@@ -125,12 +126,13 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
     print('... Probabilistic PCE for 2D input parameter.')
     #(0) Assignments
     p=2    #dimension of input parameter q
-    nGQ=PpceDict['nGQtest']       #list of number of GQ test points in each of p dimensions
+    nGQ=PpceDict['nGQtest']       #list of number of GQ test points in each of p dimensions of the parameter q
     qBound=PpceDict['qBound']     #admissible range of inputs parameter
-    nMC=PpceDict['nMC']           #number of samples taken from GPR
+    nMC=PpceDict['nMC']           #number of samples taken from GPR for estimating PCE coefs
     #make a dict for gpr (do NOT change)
-    gprOpts={'nIter':PpceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters
-             'lr':PpceDict['lr_gpr']           #learning rate in opimization of hyperparameters
+    gprOpts={'nIter':PpceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of GPR
+             'lr':PpceDict['lr_gpr'],          #learning rate in opimization of hyperparameters of GPR
+             'convPlot':PpceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
             }
     #make a dict for PCE (do NOT change)
     pceDict={'truncMethod':'TP',  #always use TP truncation with GQ sampling with Projection (GQ rule)
@@ -244,6 +246,7 @@ def Ppce_LegUnif_1d_cnstrct_test():
     #GPR options
     nIter_gpr=800      #number of iterations in optimization of hyperparameters
     lr_gpr   =0.1      #learning rate for the optimizaer of the hyperparameters    
+    convPlot_gpr=True  #plot convergence of optimization of GPR hyperparameters
     #number of samples drawn from GPR surrogate to construct estimates for moments of f(q)
     nMC=1000
     #---------------------------------------------    
@@ -251,7 +254,7 @@ def Ppce_LegUnif_1d_cnstrct_test():
     qTrain,yTrain,noiseSdev=trainData(qBound,n,noiseType)
     #(2) Probabilistic gPCE 
     #   (a) make the dictionary
-    PpceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'nMC':nMC}
+    PpceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     #   (b) call the method
     fMean_samples,fVar_samples,optOut=Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict)
     #(3) postprocess
@@ -364,6 +367,7 @@ def Ppce_LegUnif_2d_cnstrct_test():
     #options for GPR
     nIter_gpr=1000      #number of iterations in optimization of hyperparameters
     lr_gpr   =0.1      #learning rate for the optimizaer of the hyperparameters
+    convPlot_gpr=True  #plot convergence of optimization of GPR hyperparameters
     #options for Gauss Quadrature test points
     nGQtest=[18,18]     #number of test points in each param dimension
     #number of samples drawn from GPR surrogate to construct estimates for moments of f(q)
@@ -374,7 +378,7 @@ def Ppce_LegUnif_2d_cnstrct_test():
     qTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,trainSampleType,n,qBound,fExName,noiseType)
     #(2) Probabilistic gPCE 
     #   (a) make the dictionary
-    PpceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'nMC':nMC}
+    PpceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     #   (b) call the method
     fMean_samples,fVar_samples,optOut=Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict)
     #(3) postprocess

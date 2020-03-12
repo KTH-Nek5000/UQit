@@ -271,20 +271,21 @@ def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
         if (i+1) % 10 == 0:
             print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f - lengthsc: %.3f' % (i + 1, nIter, losses[-1],lengthSc[-1]))
     # Plot convergence of hyperparameters optimization
-    plt.figure(figsize=(12,3))
-    plt.subplot(121)
-    plt.plot(losses,'-r')   
-    plt.ylabel('Loss',fontsize=16)
-    plt.xlabel('Iteration',fontsize=16)
-    plt.xticks(fontsize=13)
-    plt.yticks(fontsize=13)
-    plt.subplot(122)
-    plt.plot(lengthSc,'-b')
-    plt.ylabel('Lengthscale',fontsize=16)
-    plt.xlabel('Iteration',fontsize=16)
-    plt.xticks(fontsize=13)
-    plt.yticks(fontsize=13)
-    plt.show()
+    if gprOpts['convPlot']:
+       plt.figure(figsize=(12,3))
+       plt.subplot(121)
+       plt.plot(losses,'-r')   
+       plt.ylabel('Loss',fontsize=16)
+       plt.xlabel('Iteration',fontsize=16)
+       plt.xticks(fontsize=13)
+       plt.yticks(fontsize=13)
+       plt.subplot(122)
+       plt.plot(lengthSc,'-b')
+       plt.ylabel('Lengthscale',fontsize=16)
+       plt.xlabel('Iteration',fontsize=16)
+       plt.xticks(fontsize=13)
+       plt.yticks(fontsize=13)
+       plt.show()
 
     #(6) Posteriors of GPR model with optimized hyperparameters
     model.eval()
@@ -401,23 +402,24 @@ def gprTorch_pd_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
         #print('lr=',optimizer.param_groups[0]['lr'])
         #print('pars',optimizer.param_groups[0]['params'])
     # Plot convergence of hyperparameters optimization
-    plt.figure(figsize=(12,3))
-    plt.subplot(121)
-    plt.plot(losses,'-r')   
-    plt.ylabel('Loss',fontsize=16)
-    plt.xlabel('Iteration',fontsize=16)
-    plt.xticks(fontsize=13)
-    plt.yticks(fontsize=13)
-    plt.subplot(122)
-    for j in range(p):
-        plt.plot(lengthSc[j],'-',label='Lengthscale, param%d'%(j+1))
-    plt.ylabel('Lengthscale',fontsize=16)
-    plt.xlabel('Iteration',fontsize=16)
-    plt.legend(loc='best',fontsize=14)
-    plt.xticks(fontsize=13)
-    plt.yticks(fontsize=13)
-    plt.suptitle('Convergence of GPR hyperparam optimization')
-    plt.show()
+    if gprOpts['convPlot']:
+       plt.figure(figsize=(12,3))
+       plt.subplot(121)
+       plt.plot(losses,'-r')   
+       plt.ylabel('Loss',fontsize=16)
+       plt.xlabel('Iteration',fontsize=16)
+       plt.xticks(fontsize=13)
+       plt.yticks(fontsize=13)
+       plt.subplot(122)
+       for j in range(p):
+           plt.plot(lengthSc[j],'-',label='Lengthscale, param%d'%(j+1))
+       plt.ylabel('Lengthscale',fontsize=16)
+       plt.xlabel('Iteration',fontsize=16)
+       plt.legend(loc='best',fontsize=14)
+       plt.xticks(fontsize=13)
+       plt.yticks(fontsize=13)
+       plt.suptitle('Convergence of GPR hyperparam optimization')
+       plt.show()
     #(4) Posteriors of GPR model with optimized hyperparameters
     model.eval()
     likelihood.eval()
@@ -482,9 +484,10 @@ def gprTorch_1d_multiTask_test():
     noiseType='hetero'   #'homo'=homoscedastic, 'hetero'=heterscedastic
     nIter_=800      #number of iterations in optimization of hyperparameters
     lr_   =0.1      #learning rate for the optimizaer of the hyperparameters
+    convPlot_=True  #plot convergence of optimization of GPR hyperparameters
     #------------------------------------------------
     #(0) Assigning settings to the gprOpts dict
-    gprOpts={'nIter':nIter_,'lr':lr_}
+    gprOpts={'nIter':nIter_,'lr':lr_,'convPlot':convPlot_}
     #generate training data
     xTrain,yTrain,noiseSdev=trainData(xBound,n,noiseType)
     gprTorch_1d(xTrain,yTrain,noiseSdev,gprOpts)
@@ -533,9 +536,10 @@ def gprTorch_1d_singleTask_test():
     noiseType='hetero'   #'homo'=homoscedastic, 'hetero'=heterscedastic
     nIter_=800      #number of iterations in optimization of hyperparameters
     lr_   =0.1      #learning rate for the optimizaer of the hyperparameters
+    convPlot_=True  #plot convergence of optimization of GPR hyperparameters
     #------------------------------------------------
     #(0) Assigning settings to the gprOpts dict
-    gprOpts={'nIter':nIter_,'lr':lr_}
+    gprOpts={'nIter':nIter_,'lr':lr_,'convPlot':convPlot_}
     #(1) Generate training and test data
     xTrain,yTrain,noiseSdev=trainData(xBound,n,noiseType)
     xTest = np.linspace(xBound[0]-0.2, xBound[1]+.2, nTest) #if numpy is used for training
@@ -682,11 +686,12 @@ def gprTorch_2d_singleTask_test():
     #options for GPR
     nIter_=1000      #number of iterations in optimization of hyperparameters
     lr_   =0.05      #learning rate for the optimizaer of the hyperparameters
+    convPlot_=True  #plot convergence of optimization of GPR hyperparameters
     #options for test points
     nTest=[21,20]     #number of test points in each param dimension
     #------------------------------------------------
     #(0) Assigning settings to the gprOpts dict
-    gprOpts={'nIter':nIter_,'lr':lr_}
+    gprOpts={'nIter':nIter_,'lr':lr_,'convPlot':convPlot_}
 
     #(1) Generate training data
     p=len(qBound)    #dimension of the input
