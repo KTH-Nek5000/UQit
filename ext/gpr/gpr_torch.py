@@ -268,7 +268,7 @@ def gprTorch_1d_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
         optimizer.step()
         losses.append(loss.item())
         lengthSc.append(model.covar_module.base_kernel.lengthscale.item())
-        if (i+1) % 10 == 0:
+        if (i+1) % 100 == 0:
             print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f - lengthsc: %.3f' % (i + 1, nIter, losses[-1],lengthSc[-1]))
     # Plot convergence of hyperparameters optimization
     if gprOpts['convPlot']:
@@ -393,9 +393,9 @@ def gprTorch_pd_singleTask(xTrain,yTrain,noiseSdev,xTest,gprOpts):
         for j in range(p):
             lengthSc_.append(model.covar_module.base_kernel.lengthscale.squeeze()[j].item())
 #           lengthSC_.append(model.covar_module.base_kernel.lengthscale.item())   #if all lengthscales are the same (see the definition of self.covar_module, above)
-        print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f' %((i + 1), nIter, loss_),end="  ")
-        print('lengthscales='+'%.3f '*p %(tuple(lengthSc_)))
-
+        if (i+1) % 100 == 0:
+           print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f' %((i + 1), nIter, loss_),end="  ")
+           print('lengthscales='+'%.3f '*p %(tuple(lengthSc_)))
         losses.append(loss_)
         for j in range(p):
             lengthSc[j].append(lengthSc_[j])
