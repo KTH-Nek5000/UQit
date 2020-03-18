@@ -92,7 +92,7 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         fCoef_,fMean_,fVar_=gpce.pce_LegUnif_1d_cnstrct(f_)
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
-        if (j%50==0):
+        if ((j+1)%50==0):
            print("...... Ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
     #(4) Convert lists to numpy arrays    
@@ -161,7 +161,7 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         fCoef_,kSet_,fMean_,fVar_=gpce.pce_LegUnif_2d_cnstrct(f_,nGQ,[],pceDict)
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
-        if (j%50==0):
+        if ((j+1)%50==0):
            print("...... Ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
     #(4) Convert lists to numpy arrays    
