@@ -85,11 +85,12 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
     #    nMC independent samples are drawn from the GPR surrogate
     fMean_list=[]      #list of estimates for E[f(q)] 
     fVar_list =[]      #list of estimates for V[f(q)]
+    pceDict={'sampleType':'GQ','pceSolveMethod':'Projection'}
     for j in range(nMC):
         # draw a sample for f(q) from GPR surrogate
         f_=post_obs.sample().numpy()
         # construct PCE for the drawn sample
-        fCoef_,fMean_,fVar_=gpce.pce_LegUnif_1d_cnstrct(f_)
+        fCoef_,fMean_,fVar_=gpce.pce_LegUnif_1d_cnstrct(f_,[],pceDict)
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
         if ((j+1)%50==0):

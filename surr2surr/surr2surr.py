@@ -118,7 +118,9 @@ def pce2pce_GaussLeg(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType):
     qM2,xiGridM2,fVal2Interp=lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType)
     #(3) Construct PCE2 over spaceM2
     if ndim==1:
-       fCoef2,fMean2,fVar2=gpce.pce_LegUnif_1d_cnstrct(fVal2Interp)  
+       pceDict={'sampleType':'GQ','pceSolveMethod':'Projection'} 
+       fCoef2,fMean2,fVar2=gpce.pce_LegUnif_1d_cnstrct(fVal2Interp,[],pceDict)  
+       kSet2=[]
     else: #multi-dimensional param space
        pceDict={'sampleType':'GQ','pceSolveMethod':'Projection','truncMethod':'TO'}
        pceDict=gpce.pceDict_corrector(pceDict)
@@ -129,8 +131,8 @@ def pce2pce_GaussLeg(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType):
        else:
           print('ERROR in pce2pce_GaussLeg: currently up to 3D parameter space can be handled')
     return fCoef2,kSet2,fMean2,fVar2,qM2,fVal2Interp
-
-
+#
+#
 ############################
 # External Funcs: Tests
 ############################
@@ -152,7 +154,8 @@ def pce2pce_GaussLeg_1d_test():
     q1_=gpce.mapFromUnit(xi1,space1[0])    #map Gauss points to param space
     q1.append(q1_)
     fVal1=analyticTestFuncs.fEx1D(q1[0])  #function value at the parameter samples (Gauss quads)
-    fCoef1,fMean1,fVar1=gpce.pce_LegUnif_1d_cnstrct(fVal1)  #find PCE coefficients
+    pceDict={'sampleType':'GQ','pceSolveMethod':'Projection'} 
+    fCoef1,fMean1,fVar1=gpce.pce_LegUnif_1d_cnstrct(fVal1,[],pceDict)  #find PCE coefficients
 
     #(2) Construct PCE2 given values predicted by PCE1 at nSampMod2 GL samples over space2
     fCoef2,kSet2,fMean2,fVar2,q2,fVal2=pce2pce_GaussLeg(fVal1,q1,space1,nSampMod2,space2,'','GL')
