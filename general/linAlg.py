@@ -7,7 +7,7 @@ import numpy as np
 import cvxpy as cvx
 
 #/////////////////////////////
-def myLinearRegress(A,R,L_=1):
+def myLinearRegress(A,R,L_=1,max_iter_=100000):
     """
        Solve a linear system of equations.
        This solver works for uniquely-, over-, and under-determined linear system. 
@@ -16,6 +16,7 @@ def myLinearRegress(A,R,L_=1):
              Af=R => At*A f = At*R (normal system)
              A:nxK (n:no of data, K: no of PCE terms), f: unknown coefs:Kx1, R: Responses nx1
              L_: =1 or 2: Regularization Order
+             max_iter_: maximum number of iterations to find the optimum
           Output:
              set of coeffcients f: 1d array of length K
     """
@@ -34,7 +35,7 @@ def myLinearRegress(A,R,L_=1):
            objective = cvx.Minimize(cvx.norm(f, L_))   #L1/L2-regularization
            constraints = [M*f == R]
            prob = cvx.Problem(objective, constraints)
-           object_value = prob.solve(verbose=True)
+           object_value = prob.solve(verbose=True,max_iter=max_iter_)
            print('...... Compressed sensing (regularization) is done to compute PCE coeffcients, fHat.')
            print('       Min objective value=||fHat||= %g in L%d-sense.'%(object_value,L_))
            fHat=f.value

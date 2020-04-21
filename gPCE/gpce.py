@@ -768,7 +768,7 @@ def gpce_test_1d():
               #NOTE: LMAX>=nSamples
     #--------------------------------------
     #(0) make the pceDict
-    pceDict={'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,'LMax':LMax}
+    pceDict={'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,'LMax':LMax_}
     pceDict=pceDict_corrector(pceDict)
     #
     #(1) generate training data
