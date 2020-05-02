@@ -1,6 +1,7 @@
-# >>>> myUQtoolbox <<<<
-# Modules of Python scripts for UQ
-# Saleh Rezaeiravesh, salehr@kth.se
+# UQit 
+## A Python toolbox for Uncertainty Quantification 
+#
+## Saleh Rezaeiravesh, salehr@kth.se
 
 # Add path to ~/.bashrc
   myUQtoolboxPATH=<path-on-the-disk/>
