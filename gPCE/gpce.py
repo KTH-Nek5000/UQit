@@ -96,7 +96,7 @@ def pceDict_corrector(pceDict):
     return pceDict
 #
 #////////////////////////////////////
-def PCE_coef_conv_plot(fCoef,kSet,distType):
+def PCE_coef_conv_plot(fCoef,kSet,distType,pwOpts):
     """
        Plot convergence of PCE terms
        ||fk*Psi_k||/||f0*Psi_0|| is plotted versus |k|=sum(k_i)
@@ -104,6 +104,7 @@ def PCE_coef_conv_plot(fCoef,kSet,distType):
           fCoef: 1D array of length K containing a PCE coefficients
           kSet: Index set of PCE, kSet=[[k1,k2,...,kp],...], if empty: 1d param space
           distType: A list containing distribution type of RVs, distType=[dist1,dist2,...,distp]      
+          pwOpts: (optional) options to save the figure, keys: 'figDir', 'figName' 
     """
     K=len(fCoef)   #no of terms in PCE
     if not kSet:   #1d parameter space
@@ -135,11 +136,22 @@ def PCE_coef_conv_plot(fCoef,kSet,distType):
     plt.figure(figsize=(10,5))
     plt.semilogy(kMag,termNorm/termNorm0,'ob',fillstyle='none')
     plt.xlabel(r'$|\mathbf{k}|$',fontsize=18)
-    plt.ylabel(r'$||\hat{f}_\mathbf{k}\Psi_{\mathbf{k}(\mathbf{\xi})}||_2/||\hat{f}_0||_2$',fontsize=18)
+    plt.ylabel(r'$|\hat{f}_\mathbf{k}|\, ||\Psi_{\mathbf{k}(\mathbf{\xi})}||_2/|\hat{f}_0|$',fontsize=18)
     plt.xticks(ticks=kMag,fontsize=17)
     plt.yticks(fontsize=17)
-    plt.grid()
-    plt.show()
+    plt.grid(alpha=0.3)
+    if pwOpts:
+       if 'ylim' in pwOpts: 
+           plt.ylim(pwOpts['ylim']) 
+       fig = plt.gcf()
+       DPI = fig.get_dpi()
+       fig.set_size_inches(800/float(DPI),400/float(DPI))
+       figDir=pwOpts['figDir']
+       outName=pwOpts['figName']
+       plt.savefig(figDir+outName+'.pdf',bbox_inches='tight')   
+       plt.show()
+    else:   
+       plt.show()
 #
 #//////////////////////////////
 def pce_LegUnif_1d_cnstrct(fVal,xi,pceDict):
@@ -794,7 +806,7 @@ def gpce_test_1d():
     print(writeUQ.printRepeated('-',70))
     #
     #(5) plot convergence of PCE
-    PCE_coef_conv_plot(fCoef,[],['Unif'])
+    PCE_coef_conv_plot(fCoef,[],['Unif'],{})
     #
     #(6) plot
     qTest=np.linspace(qBound[0],qBound[1],nTest)  #test points in param space
@@ -858,7 +870,7 @@ def gpce_test_2d():
     fCoefs,kSet,fMean,fVar=pce_LegUnif_2d_cnstrct(fVal,[nQ1,nQ2],xiGrid,pceDict)
 
     #plot convergence of PCE terms
-    PCE_coef_conv_plot(fCoefs,kSet,['Unif','Unif'])
+    PCE_coef_conv_plot(fCoefs,kSet,['Unif','Unif'],{})
 
     #make predictions at test points in the parameter space
     q1Test =np.linspace(q1Bound[0],q1Bound[1],nTest1)  #test points in param1 space
@@ -950,7 +962,7 @@ def gpce_test_3d():
     xiGrid=reshaper.vecs2grid3d(xi1,xi2,xi3)
     fCoefs,kSet,fMean,fVar=pce_LegUnif_3d_cnstrct(fVal,[nQ1,nQ2,nQ3],xiGrid,pceDict)
     #plot convergence of PCE terms
-    PCE_coef_conv_plot(fCoefs,kSet,['Unif','Unif','Unif'])
+    PCE_coef_conv_plot(fCoefs,kSet,['Unif','Unif','Unif'],{})
     #exact moments of Ishigami function
     m,v=analyticTestFuncs.ishigami_exactMoments(q1Bound,q2Bound,q3Bound,funOpt)
     #print the results
