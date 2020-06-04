@@ -147,6 +147,8 @@ def PCE_coef_conv_plot(fCoef,kSet,distType,pwOpts):
        DPI = fig.get_dpi()
        fig.set_size_inches(800/float(DPI),400/float(DPI))
        figDir=pwOpts['figDir']
+       if not os.path.exists(figDir):
+          os.makedirs(figDir)
        outName=pwOpts['figName']
        plt.savefig(figDir+outName+'.pdf',bbox_inches='tight')   
        plt.show()
