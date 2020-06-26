@@ -1,13 +1,14 @@
 ![`UQit`](UQit.png?raw=true "UQit, a Python toolbox for UQ in CFD")
-## A Python toolbox for Uncertainty Quantification 
+## `UQit`, A Python toolbox for Uncertainty Quantification 
 #
-## Saleh Rezaeiravesh, salehr@kth.se
+### Saleh Rezaeiravesh, salehr@kth.se
+### SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden
 
-# Add path to ~/.bashrc
+### Add path to ~/.bashrc
   myUQtoolboxPATH=<path-on-the-disk/>
   source ~/.bashrc
 
-# Required Libraries:
+### Required libraries:
  - numpy
  - scipy
  - cvxpy (convex optimization used in /general/linAlg.py/myLinearRegress())
@@ -20,7 +21,7 @@
 
 # Overview to the `UQit` modules:
 * **Data extraction**: 
-  UQit is designed to be non-intrusively linked to any CFD solver provided having appropriate interfaces. 
+  `UQit` is designed to be non-intrusively linked to any CFD solver provided having appropriate interfaces. 
   The interface can be either coded or be based on VTK, for instance. 
 
 * **Uncertainty propagation or UQ forward problem**: 
@@ -43,7 +44,7 @@
   Samples from the flow fields are highly correlated in both space and time. 
   This makes the problem of analyzing them very challenging. 
   In particular, we are interested in computing the uncertainty in the sample mean (time-average) of the time samples of the flow quantities taken at some user-defined spatial locations inside the domain. 
-  For this purpose there are several methods (estimators) implemented in module UQit-ts. 
+  For this purpose there are several methods (estimators) implemented in module `UQit-ts`. 
   These include batch-based methods, autocorrelation-based methods, and autoregressive models. 
   We have been studying the computational cost and accuracy of these different estimators. 
   Furthermore, we have succeeded to use Uqit-ts with VTK interface by which samples from a running Nek5000 case are extracted. 
