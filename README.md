@@ -1,6 +1,6 @@
 ![`UQit`](UQit.png?raw=true "UQit, a Python toolbox for UQ in CFD")
 ## `UQit`, A Python Toolbox for Uncertainty Quantification in CFD
-Saleh Rezaeiravesh, salehr@kth.se <\br>
+Saleh Rezaeiravesh, salehr@kth.se <br/>
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden
 #
 #
@@ -9,15 +9,15 @@ SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm,
   source ~/.bashrc
 
 ### Required libraries:
- - numpy
- - scipy
- - cvxpy (convex optimization used in /general/linAlg.py/myLinearRegress())
-   see https://www.cvxpy.org/
-   Install via pip inside conda:
-   conda install pip
-   pip install cvxpy 
- - torch
- - gpytorch
+ - [`numpy`](https://numpy.org/)
+ - [`scipy`](https://www.scipy.org/)
+ - [`matplotlib`](https://matplotlib.org/)
+ - [`cvxpy`](https://www.cvxpy.org/) (convex optimization used in /general/linAlg.py/myLinearRegress()) <>
+   * Install via `pip` inside `conda`:
+   * `conda install pip`
+   * `pip install cvxpy`
+ - [`PyTorch`](https://pytorch.org/)
+ - [`GPyTorch`](https://gpytorch.ai/)
 
 # Overview to the `UQit` modules:
 * **Data extraction**: 
