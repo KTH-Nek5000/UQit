@@ -1,4 +1,4 @@
-![`UQit`](?raw=true "UQit, a Python toolbox for UQ in CFD")
+![`UQit`](UQit.png?raw=true "UQit, a Python toolbox for UQ in CFD")
 ## A Python toolbox for Uncertainty Quantification 
 #
 ## Saleh Rezaeiravesh, salehr@kth.se
