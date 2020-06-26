@@ -1,4 +1,4 @@
-# [`UQit`](https://gitr.sys.kth.se/salehr/UQit/UQit.png)
+![`UQit`](?raw=true "UQit, a Python toolbox for UQ in CFD")
 ## A Python toolbox for Uncertainty Quantification 
 #
 ## Saleh Rezaeiravesh, salehr@kth.se
