@@ -93,7 +93,7 @@ class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
 #################################
 # GP functions
 #################################
-
+#
 #////////////////////////////////
 def gprTorch_1d(xTrain,yTrain,noiseSdev,xTest,gprOpts):
     """
