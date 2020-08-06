@@ -28,15 +28,9 @@ import numpy as np
 import math as mt
 import matplotlib
 import matplotlib.pyplot as plt
-myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
-sys.path.append(myUQtoolboxPATH+'/gPCE/')
-sys.path.append(myUQtoolboxPATH+'/ext/gpr/')
-sys.path.append(myUQtoolboxPATH+'/pdfHisto/')
-sys.path.append(myUQtoolboxPATH+'/analyticFuncs/')
-sys.path.append(myUQtoolboxPATH+'/writeUQ/')
-sys.path.append(myUQtoolboxPATH+'/general/')
-sys.path.append(myUQtoolboxPATH+'/stats/')
-import gpce
+UQit=os.getenv("UQit")
+sys.path.append(UQit)
+import pce
 import gpr_torch
 import pdfHisto
 import analyticTestFuncs
@@ -75,8 +69,8 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
             }
 
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
-    xiGQ,wGQ=gpce.GaussLeg_ptswts(nGQ)  #xiGQ\in[-1,1]
-    qTest=gpce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
+    xiGQ,wGQ=pce.GaussLeg_ptswts(nGQ)  #xiGQ\in[-1,1]
+    qTest=pce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
 
     #(2) Construct GPR surrogate based on training data
     post_f,post_obs=gpr_torch.gprTorch_1d(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
@@ -90,7 +84,7 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         # draw a sample for f(q) from GPR surrogate
         f_=post_obs.sample().numpy()
         # construct PCE for the drawn sample
-        fCoef_,fMean_,fVar_=gpce.pce_LegUnif_1d_cnstrct(f_,[],pceDict)
+        fCoef_,fMean_,fVar_=pce.pce_LegUnif_1d_cnstrct(f_,[],pceDict)
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
         if ((j+1)%50==0):
@@ -144,8 +138,8 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
     qTestGrid=[]
     for i in range(p):
-        xiGQ_,wGQ_=gpce.GaussLeg_ptswts(nGQ[i])  #xiGQ\in[-1,1]
-        qTestGrid.append(gpce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
+        xiGQ_,wGQ_=pce.GaussLeg_ptswts(nGQ[i])  #xiGQ\in[-1,1]
+        qTestGrid.append(pce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
     qTest=reshaper.vecs2grid(qTestGrid[0],qTestGrid[1])
 
     #(2) Construct GPR surrogate based on training data
@@ -159,7 +153,7 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         # draw a sample for f(q) from GPR surrogate
         f_=post_obs.sample().numpy()
         # construct PCE for the drawn sample
-        fCoef_,kSet_,fMean_,fVar_=gpce.pce_LegUnif_2d_cnstrct(f_,nGQ,[],pceDict)
+        fCoef_,kSet_,fMean_,fVar_=pce.pce_LegUnif_2d_cnstrct(f_,nGQ,[],pceDict)
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
         if ((j+1)%50==0):
@@ -178,7 +172,7 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
 # External Functions for Test
 ###############################
 import torch   #for plot
-def Ppce_LegUnif_1d_cnstrct_test():
+def ppce_LegUnif_1d_cnstrct_test():
     """
         Test for Ppce_LegUnif_1d_cnstrct()
     """
@@ -277,7 +271,7 @@ def Ppce_LegUnif_1d_cnstrct_test():
     print('   Ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
 #	
 #//////////////////////////////////
-def Ppce_LegUnif_2d_cnstrct_test():
+def ppce_LegUnif_2d_cnstrct_test():
     """
         Test for Ppce_LegUnif_2d_cnstrct()
         Note: some functions are taken from /gpr_torch.py/gprTorch_2d_singleTask_test()

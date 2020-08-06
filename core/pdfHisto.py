@@ -1,16 +1,17 @@
 #######################################################
 #      Fit PDF to data
 #######################################################
+#
 import os
 import sys
 import numpy as np
 import statsmodels.api as sm
 import matplotlib
 import matplotlib.pyplot as plt
-myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
-sys.path.append(myUQtoolboxPATH+'/writeUQ/')
+UQit=os.getenv("UQit")
 import writeUQ
-
+#
+#
 #////////////////////////////////
 def pdfFit_uniVar(f,doPlot,pwOpts):
     """

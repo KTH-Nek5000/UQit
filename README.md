@@ -1,4 +1,4 @@
-![`UQit`](UQit.png?raw=true "UQit, a Python toolbox for UQ in CFD")
+![`UQit`](./docs/source/_static/UQit.png?raw=true "UQit, a Python toolbox for UQ in CFD")
 ## `UQit`, A Python Toolbox for Uncertainty Quantification in CFD
 Saleh Rezaeiravesh, salehr@kth.se <br/>
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden

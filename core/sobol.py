@@ -7,12 +7,10 @@ import os
 import sys
 import numpy as np
 from scipy.integrate import simps
-myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
-sys.path.append(myUQtoolboxPATH+'/analyticFuncs/')
-sys.path.append(myUQtoolboxPATH+'/gPCE/')
-sys.path.append(myUQtoolboxPATH+'/general/')
+UQit=os.getenv("UQit")
+sys.path.append(UQit)
 import analyticTestFuncs
-import gpce
+import pce
 import reshaper
 
 #/////////////////////////////
@@ -297,22 +295,22 @@ def sobol_2par_unif_test():
     #generate observations at Gauss-Legendre points
     nQ1pce=5
     nQ2pce=6 
-    [xi1,w1]=gpce.GaussLeg_ptswts(nQ1pce)
-    [xi2,w2]=gpce.GaussLeg_ptswts(nQ2pce)
-    q1pce=gpce.mapFromUnit(xi1,qBound[0])   
-    q2pce=gpce.mapFromUnit(xi2,qBound[1])    
+    [xi1,w1]=pce.GaussLeg_ptswts(nQ1pce)
+    [xi2,w2]=pce.GaussLeg_ptswts(nQ2pce)
+    q1pce=pce.mapFromUnit(xi1,qBound[0])   
+    q2pce=pce.mapFromUnit(xi2,qBound[1])    
     fVal_pceCnstrct=analyticTestFuncs.fEx2D(q1pce,q2pce,'type3','tensorProd') 
     #construct the gPCE
     xiGrid=reshaper.vecs2grid(xi1,xi2)
     pceDict={'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection'}
-    pceDict=gpce.pceDict_corrector(pceDict)
-    fCoefs,kSet,fMean,fVar=gpce.pce_LegUnif_2d_cnstrct(fVal_pceCnstrct,[nQ1pce,nQ2pce],xiGrid,pceDict)
+    pceDict=pce.pceDict_corrector(pceDict)
+    fCoefs,kSet,fMean,fVar=pce.pce_LegUnif_2d_cnstrct(fVal_pceCnstrct,[nQ1pce,nQ2pce],xiGrid,pceDict)
     #use gPCE to predict at test samples from parameter space
     q1pceTest =np.linspace(qBound[0][0],qBound[0][1],n[0])  
-    xi1Test   =gpce.mapToUnit(q1pceTest,qBound[0])
+    xi1Test   =pce.mapToUnit(q1pceTest,qBound[0])
     q2pceTest =np.linspace(qBound[1][0],qBound[1][1],n[1])  
-    xi2Test   =gpce.mapToUnit(q2pceTest,qBound[1])
-    fPCETest  =gpce.pce_LegUnif_2d_eval(fCoefs,kSet,xi1Test,xi2Test)
+    xi2Test   =pce.mapToUnit(q2pceTest,qBound[1])
+    fPCETest  =pce.pce_LegUnif_2d_eval(fCoefs,kSet,xi1Test,xi2Test)
     #compute Sobol indices 
     Si_pce,Sij_pce=sobol_unif([q1pceTest,q2pceTest],fPCETest)
 

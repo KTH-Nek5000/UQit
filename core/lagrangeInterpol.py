@@ -14,15 +14,11 @@ import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
-sys.path.append(myUQtoolboxPATH+'/analyticFuncs/')
-sys.path.append(myUQtoolboxPATH+'/plot/')
-sys.path.append(myUQtoolboxPATH+'/gPCE/')
-sys.path.append(myUQtoolboxPATH+'/general/')
-sys.path.append(myUQtoolboxPATH+'/nodes/')
+UQit=os.getenv("UQit")
+sys.path.append(UQit)
 import analyticTestFuncs
 import plot2d
-import gpce
+import pce
 import reshaper
 import nodes
 
@@ -224,11 +220,11 @@ def lagrangeInterpol_singleVar_test():
     elif how =='uniform':
        xi=np.linspace(0,1,nNodes)
     elif how =='GL':
-       xi,wXI=gpce.GaussLeg_ptswts(nNodes)  #on [-1,1]
+       xi,wXI=pce.GaussLeg_ptswts(nNodes)  #on [-1,1]
     elif how=='Clenshaw':
        xi=nodes.Clenshaw_pts(nNodes)
  
-    xi=gpce.mapFromUnit(xi,[0,1])    #map to [0,1]
+    xi=pce.mapFromUnit(xi,[0,1])    #map to [0,1]
     qNodes=(qBound[1]-qBound[0])*xi+qBound[0]
     fNodes=analyticTestFuncs.fEx1D(qNodes)
 
@@ -281,8 +277,8 @@ def lagrangeInterpol_multiVar_test2d():
     # Generate Gauss-Legendre points over qBounds[0] and qBounds[1]
     qNodes=[]
     for i in range(2):
-        xi,wXI=gpce.GaussLeg_ptswts(nNodes[i])
-        qNodes_=gpce.mapFromUnit(xi,qBound[i]) 
+        xi,wXI=pce.GaussLeg_ptswts(nNodes[i])
+        qNodes_=pce.mapFromUnit(xi,qBound[i]) 
         qNodes.append(qNodes_)
     # Response at the GL samples
     fNodes=analyticTestFuncs.fEx2D(qNodes[0],qNodes[1],'type1','tensorProd')
@@ -411,8 +407,8 @@ def lagrangeInterpol_Quads2Line_test():
     # Generate Gauss-Legendre points over qBounds[0] and qBounds[1]
     qNodes=[]
     for i in range(2):
-        xi,wXI=gpce.GaussLeg_ptswts(nNodes[i])
-        qNodes_=gpce.mapFromUnit(xi,qBound[i]) 
+        xi,wXI=pce.GaussLeg_ptswts(nNodes[i])
+        qNodes_=pce.mapFromUnit(xi,qBound[i]) 
         qNodes.append(qNodes_)
     # Response at the GL samples
     fNodes=analyticTestFuncs.fEx2D(qNodes[0],qNodes[1],'type1','tensorProd')

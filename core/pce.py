@@ -15,13 +15,8 @@ import numpy as np
 import math as mt
 import matplotlib
 import matplotlib.pyplot as plt
-#from numpy.polynomial import legendre
-
-myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
-sys.path.append(myUQtoolboxPATH+'/analyticFuncs/')
-sys.path.append(myUQtoolboxPATH+'/plot/')
-sys.path.append(myUQtoolboxPATH+'/writeUQ/')
-sys.path.append(myUQtoolboxPATH+'/general/')
+UQit=os.getenv("UQit")
+sys.path.append(UQit)
 import analyticTestFuncs
 import plot2d
 import writeUQ
@@ -759,12 +754,12 @@ def pce_LegUnif_3d_eval(fk,kSet,xi1,xi2,xi3):
 ################################ 
 #--------------------------------------------------
 #To run a test:
-#python -c 'import gpce as X;X.gpce_test_1d()'
+#python -c 'import pce as X;X.pce_test_1d()'
 #--------------------------------------------------
 
 #A set of tests for gPCE methods
 #/////////////////
-def gpce_test_1d():
+def pce_test_1d():
     """
     Test PCE for 1 uncertain parameter uniformly distributed over [a1,b1] using Legendre polynomial bases
     """
@@ -833,7 +828,7 @@ def gpce_test_1d():
 
 
 #/////////////////
-def gpce_test_2d():
+def pce_test_2d():
     """
     Test PCE for 2 uncertain parameters uniformly distributed over [a1,b1]x[a2,b2] using Legendre polynomial bases
     """
@@ -924,7 +919,7 @@ def gpce_test_2d():
     plt.show()
      
 #/////////////////
-def gpce_test_3d():
+def pce_test_3d():
     """
     Test PCE for 3 uncertain parameters uniformly distributed over [a1,b1]x[a2,b2]x[a3,b3] using Legendre polynomial bases
     """

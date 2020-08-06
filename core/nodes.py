@@ -3,9 +3,11 @@
 #######################################################################
 # Saleh Rezaeiravesh, salehr@kth.se
 #----------------------------------------------------------------------
+#
 import numpy as np
 import math as mt
-
+#
+#
 def Clenshaw_pts(n):
     """ 
        Returns n Clenshaw points over [-1,1]

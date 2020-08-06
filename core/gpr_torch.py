@@ -36,10 +36,8 @@ from gpytorch.likelihoods import (
      FixedNoiseGaussianLikelihood,
      HeteroskedasticNoise,
      )
-myUQtoolboxPATH=os.getenv("myUQtoolboxPATH")
-sys.path.append(myUQtoolboxPATH+'analyticFuncs/')
-sys.path.append(myUQtoolboxPATH+'general/')
-sys.path.append(myUQtoolboxPATH+'stats/')
+UQit=os.getenv("UQit")
+sys.path.append(UQit)
 import analyticTestFuncs
 import reshaper
 import sampling
