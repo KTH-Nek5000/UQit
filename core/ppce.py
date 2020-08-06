@@ -39,14 +39,14 @@ import reshaper
 import sampling
 #
 #/////////////////////////////////////////////////////////////
-def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
+def ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     """
        Probabistric PCE (gPCE+GPR) for 1d-input parameter, y=f(q)+e
        Inputs:
            qTrain: training input parameters q, 1d numpy array of size n
            yTrain: training observed output y, 1d numpy array of size n
            noiseSdev: noise sdev of training observations: e~N(0,noiseSdev), 1d numpy array of size n
-           PpceDict: dictionary containing controllers for PPCE, including:
+           ppceDict: dictionary containing controllers for PPCE, including:
                 nGQ: number of GQ test points 
                 qBound: admissible range of q
                 nMC: number of independent samples drawn from GPR to construct PCE 
@@ -59,13 +59,13 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
     """
     print('... Probabilistic PCE for 1D input parameter.')
     #(0) assignments
-    nGQ=PpceDict['nGQtest']       #number of GQ test points in the parameter space
-    qBound=PpceDict['qBound'] #admissible range of the input parameter q
-    nMC=PpceDict['nMC']       #number of samples taken from GPR to estimate PCE coefs
+    nGQ=ppceDict['nGQtest']       #number of GQ test points in the parameter space
+    qBound=ppceDict['qBound'] #admissible range of the input parameter q
+    nMC=ppceDict['nMC']       #number of samples taken from GPR to estimate PCE coefs
     #make a dict for gpr
-    gprOpts={'nIter':PpceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of the GPR
-             'lr':PpceDict['lr_gpr'],           #learning rate in opimization of hyperparameters of the GPR
-             'convPlot':PpceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
+    gprOpts={'nIter':ppceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of the GPR
+             'lr':ppceDict['lr_gpr'],           #learning rate in opimization of hyperparameters of the GPR
+             'convPlot':ppceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
             }
 
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
@@ -88,7 +88,7 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
         if ((j+1)%50==0):
-           print("...... Ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
+           print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
     #(4) Convert lists to numpy arrays    
     # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
@@ -100,14 +100,14 @@ def Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
     return fMean_list,fVar_list,optOut
 #
 #/////////////////////////////////////////////////////////////
-def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
+def ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     """
        Probabistric PCE (gPCE+GPR) for 2d-input parameter, y=f(q)+e
        Inputs:
            qTrain: training input parameters q, 2d numpy array of size nx2
            yTrain: training observed output y, 1d numpy array of size n
            noiseSdev: noise sdev of training observations: e~N(0,noiseSdev), 1d numpy array of size n
-           PpceDict: dictionary containing controllers for PPCE, including:
+           ppceDict: dictionary containing controllers for PPCE, including:
                 nGQ: list of number of GQ test points in each direction 
                 qBound: admissible range of q, list of length p
                 nMC: number of independent samples drawn from GPR to construct PCE 
@@ -121,13 +121,13 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
     print('... Probabilistic PCE for 2D input parameter.')
     #(0) Assignments
     p=2    #dimension of input parameter q
-    nGQ=PpceDict['nGQtest']       #list of number of GQ test points in each of p dimensions of the parameter q
-    qBound=PpceDict['qBound']     #admissible range of inputs parameter
-    nMC=PpceDict['nMC']           #number of samples taken from GPR for estimating PCE coefs
+    nGQ=ppceDict['nGQtest']       #list of number of GQ test points in each of p dimensions of the parameter q
+    qBound=ppceDict['qBound']     #admissible range of inputs parameter
+    nMC=ppceDict['nMC']           #number of samples taken from GPR for estimating PCE coefs
     #make a dict for gpr (do NOT change)
-    gprOpts={'nIter':PpceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of GPR
-             'lr':PpceDict['lr_gpr'],          #learning rate in opimization of hyperparameters of GPR
-             'convPlot':PpceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
+    gprOpts={'nIter':ppceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of GPR
+             'lr':ppceDict['lr_gpr'],          #learning rate in opimization of hyperparameters of GPR
+             'convPlot':ppceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
             }
     #make a dict for PCE (do NOT change)
     pceDict={'truncMethod':'TP',  #always use TP truncation with GQ sampling with Projection (GQ rule)
@@ -157,7 +157,7 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
         if ((j+1)%50==0):
-           print("...... Ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
+           print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
     #(4) Convert lists to numpy arrays    
     # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
@@ -174,7 +174,7 @@ def Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict):
 import torch   #for plot
 def ppce_LegUnif_1d_cnstrct_test():
     """
-        Test for Ppce_LegUnif_1d_cnstrct()
+        Test for ppce_LegUnif_1d_cnstrct()
     """
     def fEx(x):
         """
@@ -249,16 +249,16 @@ def ppce_LegUnif_1d_cnstrct_test():
     qTrain,yTrain,noiseSdev=trainData(qBound,n,noiseType)
     #(2) Probabilistic gPCE 
     #   (a) make the dictionary
-    PpceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
+    ppceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     #   (b) call the method
-    fMean_samples,fVar_samples,optOut=Ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict)
+    fMean_samples,fVar_samples,optOut=ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
     #(3) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator    
     gpr1D_plotter(optOut['post_f'],optOut['post_obs'],qTrain,yTrain,optOut['qTest'],fEx(optOut['qTest']))
     #   (b) plot histogram and pdf of the mean and variance distribution 
     pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
     pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
-    #   (c) compare the exact moments with estimated values by Ppce
+    #   (c) compare the exact moments with estimated values by ppce
     fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qBound)
     fMean_mean=fMean_samples.mean()
     fMean_sdev=fMean_samples.std()
@@ -266,14 +266,14 @@ def ppce_LegUnif_1d_cnstrct_test():
     fVar_sdev=fVar_samples.std()
     print(writeUQ.printRepeated('-', 80))
     print('>> Exact mean(f) = %g' %fMean_ex)
-    print('   Ppce estimated: E[mean(f)] = %g , sdev[mean(f)] = %g' %(fMean_mean,fMean_sdev))
+    print('   ppce estimated: E[mean(f)] = %g , sdev[mean(f)] = %g' %(fMean_mean,fMean_sdev))
     print('>> Exact Var(f) = %g' %fVar_ex)
-    print('   Ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
+    print('   ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
 #	
 #//////////////////////////////////
 def ppce_LegUnif_2d_cnstrct_test():
     """
-        Test for Ppce_LegUnif_2d_cnstrct()
+        Test for ppce_LegUnif_2d_cnstrct()
         Note: some functions are taken from /gpr_torch.py/gprTorch_2d_singleTask_test()
     """
     ##
@@ -373,16 +373,16 @@ def ppce_LegUnif_2d_cnstrct_test():
     qTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,trainSampleType,n,qBound,fExName,noiseType)
     #(2) Probabilistic gPCE 
     #   (a) make the dictionary
-    PpceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
+    ppceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     #   (b) call the method
-    fMean_samples,fVar_samples,optOut=Ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,PpceDict)
+    fMean_samples,fVar_samples,optOut=ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
     #(3) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator    
     gpr_3dsurf_plot(qTrain,yTrain,optOut['qTestGrid'],nGQtest,optOut['post_obs'],optOut['post_f'])
     #   (b) plot histogram and pdf of the mean and variance distribution 
     pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
     pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
-    #   (c) compare the exact moments with estimated values by Ppce
+    #   (c) compare the exact moments with estimated values by ppce
     #fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qBound)
     fMean_mean=fMean_samples.mean()
     fMean_sdev=fMean_samples.std()
@@ -390,8 +390,8 @@ def ppce_LegUnif_2d_cnstrct_test():
     fVar_sdev=fVar_samples.std()
     print(writeUQ.printRepeated('-', 80))
     #print('>> Exact mean(f) = %g' %fMean_ex)
-    print('   Ppce estimated: E[mean(f)] = %g , sdev[mean(f)] = %g' %(fMean_mean,fMean_sdev))
+    print('   ppce estimated: E[mean(f)] = %g , sdev[mean(f)] = %g' %(fMean_mean,fMean_sdev))
     #print('>> Exact Var(f) = %g' %fVar_ex)
-    print('   Ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
+    print('   ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
 
 
