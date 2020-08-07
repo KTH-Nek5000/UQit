@@ -14,8 +14,7 @@ import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-UQit=os.getenv("UQit")
-sys.path.append(UQit)
+sys.path.append(os.getenv("UQit"))
 import analyticTestFuncs
 import plot2d
 import pce
@@ -206,11 +205,11 @@ def lagrangeInterpol_singleVar_test():
        Take nNodes random samples from the 1D parameter space at which the value of function f is known. Use these in Lagrange interpolation to predict values of f at all q in the subset of the parameter space defined by min and max of the samples. 
     """
     #----- SETTINGS -------------------
-    nNodes=15     #number of nodes
-    qBound=[-1,3] #range over which nodes are randomly chosen
-    nTest=100     #number of test points for plot
+    nNodes=15       #number of nodes
+    qBound=[-1,3]   #range over which nodes are randomly chosen
+    nTest=100       #number of test points for plot
     how='Clenshaw'  #how to generate nodes
-              #'random', 'uniform', 'GL' (Gauss-Legendre), 'Clenshaw', 
+                    #'random', 'uniform', 'GL' (Gauss-Legendre), 'Clenshaw', 
     #---------------------------------- 
     # create nNodes random nodal points over qBound range and function value at the nodes
     qNodes=np.zeros(nNodes)
@@ -247,8 +246,6 @@ def lagrangeInterpol_singleVar_test():
     plt.grid()
     plt.xlabel(r'$q$',fontsize=26)
     plt.ylabel(r'$f(q)$',fontsize=26)
-    print('Rerun to change distribution of nodal points!')
-#    plt.title('Nodes are chosen randomly over [%g,%g]' %(qBound[0],qBound[1]))
     fig = plt.gcf()
     DPI = fig.get_dpi()
     fig.set_size_inches(1000/float(DPI),500/float(DPI))
