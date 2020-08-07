@@ -19,6 +19,11 @@ SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm,
  - [`PyTorch`](https://pytorch.org/)
  - [`GPyTorch`](https://gpytorch.ai/)
 
+## Release Notes
+### UQit-20.10.1
+
+
+
 # Overview to the `UQit` modules:
 * **Data extraction**: 
   `UQit` is designed to be non-intrusively linked to any CFD solver provided having appropriate interfaces. 

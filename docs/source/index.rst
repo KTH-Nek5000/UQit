@@ -6,8 +6,8 @@
 ====
 UQit 
 ====
-A Python Package for Uncertainty Quantification
------------------------------------------------
+A Python Toolbox for Uncertainty Quantification in CFD
+------------------------------------------------------
 
 :code:`UQit` is a Python package for uncertainty quantification (UQ) in computational physics, in general, and in computational fluid dynamics (CFD), in particular.
 Different techniques are included for various type of UQ analysis.
