@@ -7,8 +7,7 @@ import os
 import sys
 import numpy as np
 from scipy.integrate import simps
-UQit=os.getenv("UQit")
-sys.path.append(UQit)
+sys.path.append(os.getenv("UQit"))
 import analyticTestFuncs
 import pce
 import reshaper
@@ -149,63 +148,8 @@ def sobol_unif(Q,f):
 
 
 ##############
-# MAIN
+# Tests
 ##############
-
-
-
-
-#g=np.zeros((100,90))
-#x1=np.zeros(100)
-#x2=np.zeros(90)
-#for i2 in range(90):
-#    for i1 in range(100):
-#        x1[i1]=(i1/99.)
-#        x2[i2]=-1.0+2.0*(i2/89.)
-#        g[i1,i2]=x1[i1]**2.0+x2[i2]
-##\int_-2^1 \int_0^1 (x1^2+x2) dx1 dx2
-##axis=0: dx1
-##axis=-1 (default): dx2 
-#y_x1=simps(g,x1,axis=0)
-#print(y_x1)
-#y=simps(y_x1,x2)
-#print(y)
-
-#n1=50
-#n2=60
-#n3=40
-#g=np.zeros((n1,n2,n3))
-#x1=np.zeros(n1)
-#x2=np.zeros(n2)
-#x3=np.zeros(n3)
-#for i3 in range(n3):
-#    for i2 in range(n2):
-#        for i1 in range(n1):        
-#            x1[i1]=5.*(i1/float(n1-1))
-#            x2[i2]=-1.0+4.0*(i2/float(n2-1))
-#            x3[i3]=1.0+4.0*(i3/float(n3-1))
-#            g[i1,i2,i3]=x1[i1]*x2[i2]*x3[i3]
-
-#print(min(x1),max(x1))
-#print(min(x2),max(x2))
-#print(min(x3),max(x3))
-
-#\int^3 g dx1 dx2 dx3
-#T1=simps(g,x1,axis=0)
-#print(T1,T1.shape)
-#T2=simps(T1,x2,axis=0)
-#print(T2,T2.shape)
-#T3=simps(T2,x3,axis=0)
-#print(T3,T3.shape)
-
-#a=np.linspace(0,1,60)  
-#a=np.reshape(a,(5,4,3),'F')
-#print(a)
-#print(a.shape)
-#a1=np.compress([True,False,False],a,axis=0)
-#print(a1,a1.shape)
-
-
 #//////////////////////////
 def sobol_2par_unif_test():
     """
@@ -279,9 +223,10 @@ def sobol_2par_unif_test():
     qBound=[[-3,1],   #admissible range of parameters
             [-1,2]]
     #--------------------------
+    p=len(n)
     #(1) Samples from parameters space
     q=[]
-    for i in range(2):
+    for i in range(p):
         q.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
 
     #(2) Compute function value at the parameter samples
@@ -293,10 +238,9 @@ def sobol_2par_unif_test():
 
     #(4) Construct a gPCE and then use the predictions of the gPCE in numerical integration for computing Sobol indices.
     #generate observations at Gauss-Legendre points
-    nQ1pce=5
-    nQ2pce=6 
-    [xi1,w1]=pce.GaussLeg_ptswts(nQ1pce)
-    [xi2,w2]=pce.GaussLeg_ptswts(nQ2pce)
+    nQpce=[5,6]
+    [xi1,w1]=pce.GaussLeg_ptswts(nQpce[0])
+    [xi2,w2]=pce.GaussLeg_ptswts(nQpce[1])
     q1pce=pce.mapFromUnit(xi1,qBound[0])   
     q2pce=pce.mapFromUnit(xi2,qBound[1])    
     fVal_pceCnstrct=analyticTestFuncs.fEx2D(q1pce,q2pce,'type3','tensorProd') 
@@ -304,7 +248,7 @@ def sobol_2par_unif_test():
     xiGrid=reshaper.vecs2grid(xi1,xi2)
     pceDict={'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection'}
     pceDict=pce.pceDict_corrector(pceDict)
-    fCoefs,kSet,fMean,fVar=pce.pce_LegUnif_2d_cnstrct(fVal_pceCnstrct,[nQ1pce,nQ2pce],xiGrid,pceDict)
+    fCoefs,kSet,fMean,fVar=pce.pce_LegUnif_2d_cnstrct(fVal_pceCnstrct,nQpce,xiGrid,pceDict)
     #use gPCE to predict at test samples from parameter space
     q1pceTest =np.linspace(qBound[0][0],qBound[0][1],n[0])  
     xi1Test   =pce.mapToUnit(q1pceTest,qBound[0])
@@ -318,9 +262,9 @@ def sobol_2par_unif_test():
     Si_ex,Sij_ex=analyticalSobol_2par(qBound)
     
     #(6) Write results on screen
-    print(' > Direct Numerical Integration:\n\t S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
+    print(' > Indices by UQit:\n\t S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
     print(' > gPCE+Numerical Integration:\n\t S1=%g, S2=%g, S12=%g' %(Si_pce[0],Si_pce[1],Sij_pce[0]))
-    print(' > Analytical Expression:\n\t S1=%g, S2=%g, S12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
+    print(' > Analytical Reference:\n\t S1=%g, S2=%g, S12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
 
 
 #//////////////////////////
@@ -341,8 +285,9 @@ def sobol_3par_unif_test():
     b=0.1
     #--------------------------
     #(1) Samples from parameters space
+    p=len(n)
     q=[]
-    for i in range(3):
+    for i in range(p):
         q.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
 
     #(2) Compute function value at the parameter samples
@@ -357,7 +302,7 @@ def sobol_3par_unif_test():
     
     #(5) Write results on screen
     print('sobol_3par_unif_test(): Sobol Sensitivity Indices for fEx3D("Ishigami")')
-    print(' > Numerical Integration: S1=%g, S2=%g, S3=%g' %(Si[0],Si[1],Si[2]))
+    print(' > Indices by UQit : S1=%g, S2=%g, S3=%g' %(Si[0],Si[1],Si[2]))
     print(' >                        S12=%g, S13=%g, S23=%g' %(Sij[0],Sij[1],Sij[2]))
 
     D1=b*pi**4./5.+b**2.*pi**8./50. + 0.5
@@ -371,6 +316,6 @@ def sobol_3par_unif_test():
     D=D1+D2+D3+D12+D13+D23+D123
     Si_ex=[D1/D,D2/D,D3/D]
     Sij_ex=[D12/D,D13/D,D23/D]
-    print(' > Analytical Expression: S1=%g, S2=%g, S3=%g' %(Si_ex[0],Si_ex[1],Si_ex[2]))
+    print(' > Analytical Reference: S1=%g, S2=%g, S3=%g' %(Si_ex[0],Si_ex[1],Si_ex[2]))
     print(' >                        S12=%g, S13=%g, S23=%g' %(Sij_ex[0],Sij_ex[1],Sij_ex[2]))
 #    print(' > Analytical Expression: D1=%g, D2=%g, D12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
