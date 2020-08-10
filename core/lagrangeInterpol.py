@@ -225,7 +225,7 @@ def lagrangeInterpol_singleVar_test():
     fTestFull=analyticTestFuncs.fEx1D(qTestFull)
     plt.figure(figsize=(12,7))
     plt.plot(qTestFull,fTestFull,'--r',lw=2,label='Exact f(q)')
-    plt.plot(qTest,fInterpTest,'-b',lw=2,label='Interpolated f(q) by Lagrange Bases')
+    plt.plot(qTest,fInterpTest,'-b',lw=2,label='f(q) by Lagrange Interpolation')
     plt.plot(qNodes,fNodes,'oc',markersize='8',label='Nodes')
     plt.legend(loc='best',fontsize=17)
     plt.xticks(fontsize=15)
@@ -248,43 +248,46 @@ def lagrangeInterpol_multiVar_test2d():
     """
     #----- SETTINGS --------------------------------------------------------------
     # Settings of the discrete samples in space of param1 & param2
-    nNodes=[5,5]   #number of (non-uniform=Gauss-Legendre) nodes in 1d parameter spaces
+    nNodes=[5,4]   #number of nodes in space of parameters q1, q2
+    sampType=['GL',      #Method to draw samples for q1, q2
+              'uniform']
     qBound=[[-0.75,1.5],  #param_k-space <range_k
             [-0.5 ,2.5]]  
+
     # Settings of the exact response surface
     domRange=[[-2,2], #range in the k-th direction over which the analytical response is evaluated
-           [-3,3]]
+              [-3,3]]
     # Test points over range1,2 and qBound1,2
     nTest=[100,100] #number of test points for plot the exact response
     #-----------------------------------------------------------------------------
+    p=len(nNodes)
     # (1) Create nodal sets over the parameter space (each node=one joint sample)    
     # Generate Gauss-Legendre points over qBounds[0] and qBounds[1]
     qNodes=[]
-    for i in range(2):
-        xi,wXI=pce.GaussLeg_ptswts(nNodes[i])
-        qNodes_=pce.mapFromUnit(xi,qBound[i]) 
+    for i in range(p):
+        qNodes_=sampling.sampler_1d(qBound[i],nNodes[i],sampType[i])
         qNodes.append(qNodes_)
     # Response at the GL samples
     fNodes=analyticTestFuncs.fEx2D(qNodes[0],qNodes[1],'type1','tensorProd')
 
     # (3) Use response values at the sampled nodes and predict at test points.The test points are generated over q1Boundxq2Bound. These points make a uniform mesh that is used for contourplot
     qTestList=[]
-    for i in range(2):
+    for i in range(p):
         qTest_ =np.linspace(qBound[i][0],qBound[i][1],nTest[i])  #test points in param_i space
         qTestList.append(qTest_)
     # Use nodal values in Lagrange interpolation to predict at test points
     qTest=reshaper.vecs2grid(qTestList[0],qTestList[1]) 
     fTest=lagrangeInterpol_multiVar(fNodes,qNodes,qTest,'tensorProd')    
-    fTestGrid=fTest.reshape((nTest[0],nTest[1]),order='F').T
 
     # (4) Evaluate the exact response over a 2D mesh which covers the whole space range1xrange2 (exact response surface)
     qTestFull=[]
-    for i in range(2):
+    for i in range(p):
         qTestFull_=np.linspace(domRange[i][0],domRange[i][1],nTest[i])  #test points in param1 space
         qTestFull.append(qTestFull_)
 
     fTestFull=analyticTestFuncs.fEx2D(qTestFull[0],qTestFull[1],'type1','tensorProd')   #response value at the test points
     fTestFullGrid=fTestFull.reshape((nTest[0],nTest[1]),order='F').T
+    fTestGrid=fTest.reshape((nTest[0],nTest[1]),order='F').T
 
     #(5) 2D Contour Plots
     plt.figure(figsize=(16,8));
@@ -323,6 +326,9 @@ def lagrangeInterpol_multiVar_test3d():
     #----- SETTINGS -------------------
     # Settings of the discrete samples in space of param1 & param2
     nNodes=[7,8,7] #number of Gauss quadratures in each of the 3 parameter spaces
+    sampType=['GL',      #Method to draw samples for q1, q2
+              'uniform',
+              'Clenshaw']    
     qBound=[[-0.75,1.5], #1D parameter spaces
             [-0.5 ,2.5],
             [1,3]]
@@ -332,10 +338,11 @@ def lagrangeInterpol_multiVar_test3d():
     a=0.2
     b=0.1
     #---------------------------------- 
+    p=len(nNodes)
     # (1) Generate uniformly-spaced samples over each of the 1D parameter spaces
     qNodes=[]
-    for i in range(3):
-        qNodes_=np.linspace(qBound[i][0],qBound[i][1],nNodes[i])
+    for i in range(p):
+        qNodes_=sampling.sampler_1d(qBound[i],nNodes[i],sampType[i])        
         qNodes.append(qNodes_)
 
     # (2) Function values at the samples
@@ -343,7 +350,7 @@ def lagrangeInterpol_multiVar_test3d():
    
     # (3) Create the test points
     qTest=[]
-    for i in range(3):
+    for i in range(p):
         qTest_=np.linspace(qBound[i][0],qBound[i][1],nTest[i])
         qTest.append(qTest_)
     # (4) Compute exact and predicted-by-Lagrange inerpolation values of function
@@ -358,15 +365,15 @@ def lagrangeInterpol_multiVar_test3d():
     plt.subplot(2,1,1)
     plt.plot(fInterp,'-ob',label='Lagrange Interpolation from Nodal Values')
     plt.plot(fTestEx,'--xr',label='Analytical Value')
-    plt.ylabel(r'$f(q1,q2,q3)$')
-    plt.xlabel(r'Nodal set')
-    plt.legend(loc='best')
+    plt.ylabel(r'$f(q1,q2,q3)$',fontsize=18)
+    plt.xlabel(r'Test Parameters',fontsize=18)
+    plt.legend(loc='best',fontsize=18)
     plt.grid()
 
     plt.subplot(2,1,2)
-    plt.plot(abs(fInterp-fTestEx)/fTestEx,'-sk')
-    plt.ylabel(r'$|f_{interp}(q)-f_{Analytic}(q)|/f_{Analytic}(q)$')
-    plt.xlabel(r'Nodal set')
+    plt.plot(abs(fInterp-fTestEx)/(fTestEx)*100,'-sk')
+    plt.ylabel(r'$|f_{interp}(q)-f_{Analytic}(q)|/f_{Analytic}(q) \%$',fontsize=15)
+    plt.xlabel(r'Test Parameters',fontsize=18)
     plt.grid()
     plt.show()
 
@@ -379,6 +386,8 @@ def lagrangeInterpol_Quads2Line_test():
     #----- SETTINGS --------------------------------------------------------------
     # Settings of the discrete samples in space of param1 & param2
     nNodes=[9,9]   #number of (non-uniform=Gauss-Legendre) nodes in 1d parameter spaces
+    sampType=['GL',      #Method to draw samples for q1, q2
+              'uniform']
     qBound=[[-0.75,1.5],  #param_k-space <range_k
             [-0.8 ,2.5]]  #(line k: range for param k)
     # Define the line in qBound[0]xqBound[1] plane over which interpolation is to be done
@@ -387,12 +396,12 @@ def lagrangeInterpol_Quads2Line_test():
              'noPtsLine':100
             }
     #-----------------------------------------------------------------------------
+    p=len(nNodes)
     # (1) Create nodal sets over the parameter space (each node=one joint sample)    
     # Generate Gauss-Legendre points over qBounds[0] and qBounds[1]
     qNodes=[]
-    for i in range(2):
-        xi,wXI=pce.GaussLeg_ptswts(nNodes[i])
-        qNodes_=pce.mapFromUnit(xi,qBound[i]) 
+    for i in range(p):
+        qNodes_=sampling.sampler_1d(qBound[i],nNodes[i],sampType[i])        
         qNodes.append(qNodes_)
     # Response at the GL samples
     fNodes=analyticTestFuncs.fEx2D(qNodes[0],qNodes[1],'type1','tensorProd')
