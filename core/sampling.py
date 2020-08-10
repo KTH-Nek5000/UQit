@@ -60,6 +60,8 @@ def sampler_1d(range_,nSamp,sampType):
     elif sampType=='Clenshaw-Curtis':
        l_=1+int(mt.log(nSamp-1)/mt.log(2))
        xi=nodes.ClenshawCurtis_pts(l_)
+    else:
+       print('ERROR in sampler_1d(): Invalid sampType was chosen!')
     #map from reference range to actual range
     qNodes=(range_[1]-range_[0])*(xi-xi0)/xi_len+range_[0]
     return qNodes
