@@ -14,12 +14,11 @@ import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-sys.path.append(os.getenv("UQit"))
+#sys.path.append(os.getenv("UQit"))
 import analyticTestFuncs
-import plot2d
+import sampling
 import pce
 import reshaper
-import nodes
 
 #////////////////////////////////////////
 def lagrangeBasis_singleVar(qNodes,k,Q):
@@ -205,36 +204,24 @@ def lagrangeInterpol_singleVar_test():
        Take nNodes random samples from the 1D parameter space at which the value of function f is known. Use these in Lagrange interpolation to predict values of f at all q in the subset of the parameter space defined by min and max of the samples. 
     """
     #----- SETTINGS -------------------
-    nNodes=15       #number of nodes
-    qBound=[-1,3]   #range over which nodes are randomly chosen
-    nTest=100       #number of test points for plot
-    how='Clenshaw'  #how to generate nodes
-                    #'random', 'uniform', 'GL' (Gauss-Legendre), 'Clenshaw', 
+    nNodes=15         #number of nodes
+    qBound=[-1,3]     #range over which nodes are randomly chosen
+    nTest=100         #number of test points for plot
+    sampType='random' #how to generate nodes
+                      #'random', 'uniform', 'GL' (Gauss-Legendre), 'Clenshaw', 
     #---------------------------------- 
-    # create nNodes random nodal points over qBound range and function value at the nodes
-    qNodes=np.zeros(nNodes)
-    fNodes=np.zeros(nNodes)
-    if how=='random': 
-       xi=np.random.uniform(0,1,size=[nNodes])
-    elif how =='uniform':
-       xi=np.linspace(0,1,nNodes)
-    elif how =='GL':
-       xi,wXI=pce.GaussLeg_ptswts(nNodes)  #on [-1,1]
-    elif how=='Clenshaw':
-       xi=nodes.Clenshaw_pts(nNodes)
- 
-    xi=pce.mapFromUnit(xi,[0,1])    #map to [0,1]
-    qNodes=(qBound[1]-qBound[0])*xi+qBound[0]
+    # Create nNodes random nodal points over qBound range and function value at the nodes
+    qNodes=sampling.sampler_1d(qBound,nNodes,sampType)
     fNodes=analyticTestFuncs.fEx1D(qNodes)
 
-    #test points
+    # Generate test points
     qTestFull=np.linspace(qBound[0],qBound[1],nTest)
     qTest=np.linspace(min(qNodes),max(qNodes),nTest)
 
     # Use nodal values in Lagrange interpolation to predict at test points
     fInterpTest=lagrangeInterpol_singleVar(fNodes,qNodes,qTest)
 
-    #plot
+    # Plot
     fTestFull=analyticTestFuncs.fEx1D(qTestFull)
     plt.figure(figsize=(12,7))
     plt.plot(qTestFull,fTestFull,'--r',lw=2,label='Exact f(q)')
@@ -251,7 +238,7 @@ def lagrangeInterpol_singleVar_test():
     fig.set_size_inches(1000/float(DPI),500/float(DPI))
     plt.savefig('../testFigs/lag1d4'+'.png',bbox_inches='tight')
     plt.show()
-
+#
 #//////////////////////////////////////
 def lagrangeInterpol_multiVar_test2d():
     """
