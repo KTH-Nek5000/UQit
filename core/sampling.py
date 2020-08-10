@@ -7,6 +7,7 @@
 #
 import sys
 import numpy as np
+import nodes
 #
 #
 #//////////////////////////
@@ -24,5 +25,30 @@ def LHS_sampling(n=10,p=2):
     for i in range(0,p):
         x[:,i] = (np.argsort(x[:,i])+0.5)/float(n)
     return x
+#
+#
+#///////////////////////////////
+def sampler_1d(range_,nSamp,sampType):
+    """
+    Generating samples from a 1D parameter space
+    Inputs:
+       range_: list of length 2, admissible range of parameters
+       nSamp: Number of samples
+       sampType: The method to drawing the samples (nodes)
+                 'random', 'uniform', 'GL', 'Clenshaw'
+    """
+    p=len(range_)
+    if sampType=='random':
+       xi=np.random.uniform(0,1,size=[nSamp])
+    elif sampType =='uniform':
+       xi=np.linspace(range_[0],range_[1],nSamp)
+    elif sampType =='GL':
+       xi,wXI=pce.GaussLeg_ptswts(nSamp)  #on [-1,1]
+    elif sampType=='Clenshaw':
+       xi=nodes.Clenshaw_pts(nSamp)
+    #map from reference range to actual range
+    qNodes=(range_[1]-range_[0])*xi+range_[0]
+    return qNodes
+
 
 
