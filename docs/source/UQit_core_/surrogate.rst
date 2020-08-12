@@ -24,7 +24,7 @@ These samples are represented :math:`\{\mathbf{q}^{(i)}\}_{i=1}^n`.
 In practice, the trade-off between the accuaracy of the surrogate and the cost of running the simulator determines :math:`n`. 
 Running the simulator at the :math:`n` parameter samples, realizations for the model outputs or QoIs, :math:`\{r^{(n)}\}_{i=1}^n`, are obtained. 
 Note that, the siumulator is being seen as a blackbox.
-Therefore, the training data to construct the surrogate are :math:`\mathcal{D}=\{(\mathbf{q}^{(i)},r^{(i)})\}`. 
+Therefore, the training data to construct the surrogate are :math:`\mathcal{D}=\{(\mathbf{q}^{(i)},r^{(i)})\}_{i=1}^n`. 
 
 
 Non-intrusive Polynomial Chaos Expansion
