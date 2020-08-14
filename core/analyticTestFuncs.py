@@ -7,21 +7,22 @@ import math as mt
 #
 #
 #///////////////////
-def fEx1D(z,typ):  
+def fEx1D(z,*arg):  
     """ 
        Analytical test function for 1D parameter space
     """
+    typ=arg[0]
     z = np.array(z, copy=False, ndmin=1)
     if typ=='type1':
        val=(10.0+.7*np.sin(5.0*z)+3.*np.cos(z))
        val=np.array(val)
     elif typ=='type2':
-       a=[1.,-0.2,3.0]
-       val=a[0]+a[1]*z+a[2]*z**2.
+       m=arg[1][0]
+       val=np.cos(m*(z-m))
     return val  
-
+#
 #/////////////////////////
-def fEx1D_moments(Q,distType):
+def fEx1D_moments(Q,typ):
     """ Mean and Variance of fEx1D(z) when 
         1. z~U[qBound], U=uniform distribution, Q=qBound ('type1' in fEx1D)
         2. z~N(m,v^2), N=Normal distribution, Q=[m,v] ('type2' in fEx1D)
@@ -31,24 +32,21 @@ def fEx1D_moments(Q,distType):
     def var1_(q_):
         tmp=100*q_+0.245*(q_-0.1*mt.sin(10*q_))+4.5*(q_+0.5*mt.sin(2*q_))
         return (tmp-2.8*mt.cos(5*q_)+60*mt.sin(q_)-2.1*(mt.cos(6*q_)/6.+0.25*mt.cos(4*q_)))
-    def mean2_(q_,a,b,c):
+    def mean2_(q_):
         m=q_[0]
         v=q_[1]
-        return (a+b*m+c*m**2.+0.5*c*v**2.)
-    def var2_(q_,a,b,c):
+        return(mt.exp(-0.5*(m*v)**2))      
+    def var2_(q_):
         m=q_[0]
         v=q_[1]
-        s1=a**2.+2*a*b*m+m**2.*(b**2.+2*a*c)+2*b*c*(m**3.+2*m**2.*v)+c**2*m**4.
-        s2=b**2.+2*a*c+2*b*c*m*v**2+6*m**2*v**2
-        s3=c**2*v**4.
-        return(s1+0.5*s2+1.5*s3)
-    if distType=='Unif':
+        t_=(m*v)**2
+        return(0.5*(1+mt.exp(-2*t_))-mt.exp(-t_))
+    if typ=='type1':
        fMean=(mean1_(Q[1])-mean1_(Q[0]))/(Q[1]-Q[0])                 
        fVar =(var1_(Q[1])-var1_(Q[0]))/(Q[1]-Q[0])-fMean**2.
-    elif distType=='Norm':
-       a=[1.,-0.2,3.]
-       fMean=mean2_(Q,a[0],a[1],a[2])      
-       fVar=var2_(Q,a[0],a[1],a[2])      
+    elif typ=='type2':
+       fMean=mean2_(Q)      
+       fVar=var2_(Q)
     return fMean,fVar
 #
 #////////////////////
