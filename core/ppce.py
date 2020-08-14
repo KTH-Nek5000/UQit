@@ -69,7 +69,7 @@ def ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
             }
 
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
-    xiGQ,wGQ=pce.GaussLeg_ptswts(nGQ)  #xiGQ\in[-1,1]
+    xiGQ,wGQ=pce.gqPtsWts(nGQ,'Unif')  #xiGQ\in[-1,1]
     qTest=pce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
 
     #(2) Construct GPR surrogate based on training data
@@ -138,7 +138,7 @@ def ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
     qTestGrid=[]
     for i in range(p):
-        xiGQ_,wGQ_=pce.GaussLeg_ptswts(nGQ[i])  #xiGQ\in[-1,1]
+        xiGQ_,wGQ_=pce.gqPtsWts(nGQ[i],'Unif')  #xiGQ\in[-1,1]
         qTestGrid.append(pce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
     qTest=reshaper.vecs2grid(qTestGrid[0],qTestGrid[1])
 
