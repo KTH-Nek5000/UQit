@@ -239,8 +239,8 @@ def sobol_2par_unif_test():
     #(4) Construct a gPCE and then use the predictions of the gPCE in numerical integration for computing Sobol indices.
     #generate observations at Gauss-Legendre points
     nQpce=[5,6]
-    [xi1,w1]=pce.GaussLeg_ptswts(nQpce[0])
-    [xi2,w2]=pce.GaussLeg_ptswts(nQpce[1])
+    xi1,w1=pce.gqPtsWts(nQpce[0],'Unif')
+    xi2,w2=pce.gqPtsWts(nQpce[1],'Unif')
     q1pce=pce.mapFromUnit(xi1,qBound[0])   
     q2pce=pce.mapFromUnit(xi2,qBound[1])    
     fVal_pceCnstrct=analyticTestFuncs.fEx2D(q1pce,q2pce,'type3','tensorProd') 

@@ -50,7 +50,7 @@ def sampler_1d(range_,nSamp,sampType):
     elif sampType =='uniform':
        xi=np.linspace(0,1,nSamp)
     elif sampType =='GL':
-       xi,wXI=pce.GaussLeg_ptswts(nSamp)  #on [-1,1]
+       xi,wXI=pce.gqPtsWts(nSamp,'Unif')  #on [-1,1]
        xi_len=2.
        xi0=-1.
     elif sampType=='Clenshaw':

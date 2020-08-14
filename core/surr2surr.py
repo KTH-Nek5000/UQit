@@ -53,7 +53,7 @@ def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,GType):
     qM2=[]
     xiM2=[]
     for i in range(ndim):
-        [xi_,w]=pce.GaussLeg_ptswts(nM2[i])   #for i-th param
+        xi_,w=pce.gqPtsWts(nM2[i],'Unif')   #for i-th param
         qM2_=pce.mapFromUnit(xi_,spaceM2[i])
         qM2.append(qM2_)
         xiM2.append(xi_)
@@ -147,7 +147,7 @@ def pce2pce_GaussLeg_1d_test():
     #------------------------------------
     #(1) Construct PCE1
     q1=[]
-    [xi1,w1]=pce.GaussLeg_ptswts(nSampMod1[0])   #Gauss sample pts in [-1,1]
+    xi1,w1=pce.gqPtsWts(nSampMod1[0],'Unif')   #Gauss sample pts in [-1,1]
     q1_=pce.mapFromUnit(xi1,space1[0])    #map Gauss points to param space
     q1.append(q1_)
     fVal1=analyticTestFuncs.fEx1D(q1[0])  #function value at the parameter samples (Gauss quads)
@@ -204,7 +204,7 @@ def pce2pce_GaussLeg_2d_test():
     qM1=[];
     xiM1=[]
     for i in range(2):
-       [xi_,wXI]=pce.GaussLeg_ptswts(nSampM1[i])   #Gauss sample pts in [-1,1]
+       xi_,wXI=pce.gqPtsWts(nSampM1[i],'Unif')   #Gauss sample pts in [-1,1]
        qM1.append(pce.mapFromUnit(xi_,spaceM1[i]))    #map Gauss points to param space
        xiM1.append(xi_)
   
