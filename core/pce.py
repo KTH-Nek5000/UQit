@@ -3,7 +3,6 @@
 #############################################
 # There are tests as external functions
 # Note1: in multi-dim parameter space:
-#     - in the current version we only consider tensor product
 #     - always the last parameter is the outer loop when reading/writing
 #     - always the response is a vector with size nSample1*nSample2*...
 #--------------------------------------------
@@ -22,8 +21,7 @@ import plot2d
 import writeUQ
 import reshaper
 import linAlg
-
-#////////////////////////////
+#
 def mapToUnit(x,xBound):
     """
     Linearly map x\in[xBound] to xi\in[-1,1]
@@ -33,7 +31,6 @@ def mapToUnit(x,xBound):
     xi=(2.*(x[:]-xBound[0])/(xBound[1]-xBound[0])-1.)
     return xi
 #
-#////////////////////////////
 def mapFromUnit(xi,xBound):
     """
     Linearly map xi\in[-1,1] to x\in[xBound]
@@ -43,7 +40,6 @@ def mapFromUnit(xi,xBound):
     x=(0.5*(xi[:]+1.0)*(xBound[1]-xBound[0])+xBound[0])
     return x
 #
-#/////////////////////
 def gqPtsWts(n,type_):
     """
     Gauss quadrature points and weights of type type_    
@@ -57,7 +53,6 @@ def gqPtsWts(n,type_):
     weights=x[1]
     return quads,weights
 #
-#////////////////////////
 def map_xi2q(xi,xAux,distType):
     """
     Map xi\in\Gamma to q \in Q, where \Gamma is the space corresponding to standard gPCE
@@ -71,7 +66,6 @@ def map_xi2q(xi,xAux,distType):
        x=xAux[0]+xAux[1]*xi
     return x
 #
-#///////////////////////
 def pceBasis(n,xi,distType_):
     """
     Evaluate polynomial of order n at xi\in\Gamma
@@ -81,10 +75,8 @@ def pceBasis(n,xi,distType_):
        v=np.polynomial.legendre.legval(xi,[0]*n+[1])
     elif distType_=='Norm':
        v=np.polynomial.hermite_e.hermeval(xi,[0]*n+[1])
-#       v=np.polynomial.hermite.hermval(xi,[0]*n+[1])
     return v
 #
-#//////////////////////
 def pceDensity(xi,distType_):
     """
     Evaluate the PDF of the standard (in gPCE sense) random variable of distribution
@@ -94,10 +86,8 @@ def pceDensity(xi,distType_):
        pdf_=0.5*np.ones(xi.shape[-1]) 
     elif distType_=='Norm':
        pdf_=np.exp(-0.5*xi**2.)/mt.sqrt(2*mt.pi)
-#       pdf_=np.exp(-xi**2.)
     return pdf_   
 #
-#////////////////////////
 def gqInteg_fac(distType):
     """
     Multipliers for the GQ rule given the weights provided by numpy
@@ -108,7 +98,6 @@ def gqInteg_fac(distType):
        fac_=1./mt.sqrt(2*mt.pi) 
     return fac_   
 #
-#//////////////////////////////
 def pceDict_corrector(pceDict):
     """
        Correct pceDict for PCE to ensure consistency. 
@@ -138,7 +127,6 @@ def pceDict_corrector(pceDict):
              pceDict.update({'LMax':LMax_def})
     return pceDict
 #
-#////////////////////////////////////
 def PCE_coef_conv_plot(fCoef,kSet,distType,pwOpts):
     """
        Plot convergence of PCE terms
@@ -197,7 +185,6 @@ def PCE_coef_conv_plot(fCoef,kSet,distType,pwOpts):
     else:   
        plt.show()
 #
-#//////////////////////////////
 def pce_1d_cnstrct(fVal,xi,pceDict):
     """ 
        Construct a PCE over a 1D parameter space. 
@@ -233,7 +220,6 @@ def pce_1d_cnstrct(fVal,xi,pceDict):
        fCoef,fMean,fVar=pce_1d_nonGQ_cnstrct(fVal,xi,LMax,distType) 
     return fCoef,fMean,fVar
 #
-#//////////////////////////////
 def pce_1d_GQ_cnstrct(fVal,distType):
     """ 
        Construct a PCE over a 1D parameter space. 
@@ -260,7 +246,6 @@ def pce_1d_GQ_cnstrct(fVal,distType):
     fVar=np.sum(fCoef[1:]**2.*sum2[1:])
     return fCoef,fMean,fVar
 #
-#//////////////////////////////
 def pce_1d_nonGQ_cnstrct(fVal,xi,LMax,distType):
     """ 
        Construct a PCE over a 1D parameter space. 
@@ -295,7 +280,6 @@ def pce_1d_nonGQ_cnstrct(fVal,xi,LMax,distType):
     fVar=np.sum(fCoef[1:]**2.*sum2[1:])
     return fCoef,fMean,fVar
 #
-#//////////////////////////////
 def pce_1d_eval(fk,xi,distType):
     """ 
        Evaluate a 1D PCE at a set of test points xi\in[-1,1]
@@ -312,7 +296,6 @@ def pce_1d_eval(fk,xi,distType):
         fpce.append(sum1)
     return fpce
 #
-#///////////////////////////////////////////////////
 def pce_2d_cnstrct(fVal,nQList,xiGrid,pceDict):
     """ 
        Construct a PCE over a 2D parameter space. 
@@ -350,8 +333,7 @@ def pce_2d_cnstrct(fVal,nQList,xiGrid,pceDict):
     else:                  #Any other type of samples (structured/unstructured)+Regression method
        fCoef,kSet,fMean,fVar=pce_2d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict)
     return fCoef,kSet,fMean,fVar
-
-#//////////////////////////////////////////////////
+#
 def pce_2d_GQTP_cnstrct(fVal,nQList,pceDict):
     """ 
        Construct a PCE over a 2D parameter space 
@@ -407,6 +389,8 @@ def pce_2d_GQTP_cnstrct(fVal,nQList,pceDict):
                     sum2_+=         (psi_k1[j1]*psi_k2[j2])**2.*w1[j1]*w2[j2]
             fCoef[k]=sum1/sum2_
             sum2.append(sum2_)
+
+    print('here',fVal)        
     #(2b) Recompute fCoef via Regression, in case Regression is chosen
     if pceDict['pceSolveMethod']=='Regression':
        xiGrid=reshaper.vecs2grid(xi1,xi2)
@@ -425,8 +409,7 @@ def pce_2d_GQTP_cnstrct(fVal,nQList,pceDict):
     for k in range(1,K):
         fVar+=(0.5**2.)*fCoef[k]*fCoef[k]*sum2[k]   #0.5:PDF of Uniform on [-1,1]
     return fCoef,kSet,fMean,fVar
-
-#//////////////////////////////////////////////////
+#
 def pce_2d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict):
     """ 
        Construct a PCE over a 2D parameter space 
@@ -507,8 +490,7 @@ def pce_2d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict):
     for k in range(1,K):
         fVar+=(0.5**2.)*fCoef[k]*fCoef[k]*sum2[k]   #0.5:PDF of Uniform on [-1,1]
     return fCoef,kSet,fMean,fVar
-
-#//////////////////////////////
+#
 def pce_2d_eval(fk,kSet,xi1,xi2,distType):
     """ 
        Evaluate a PCE over a 2D param space at a set of test points xi1,xi2\in[-1,1] 
@@ -537,8 +519,7 @@ def pce_2d_eval(fk,kSet,xi1,xi2,distType):
                 sum1+=fk[k]*pceBasis(k1,xi1[i1],distType[0])*pceBasis(k2,xi2[i2],distType[1])
             fpce[i1,i2]=sum1
     return fpce
-
-#///////////////////////////////////////////////////
+#
 def pce_3d_cnstrct(fVal,nQList,xiGrid,pceDict):
     """ 
        Construct a PCE over a 3D parameter space. 
@@ -576,8 +557,7 @@ def pce_3d_cnstrct(fVal,nQList,xiGrid,pceDict):
     else:                  #Any other type of samples (structured/unstructured)+Regression method
        fCoef,kSet,fMean,fVar=pce_3d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict)
     return fCoef,kSet,fMean,fVar
-
-#//////////////////////////////
+#
 def pce_3d_GQTP_cnstrct(fVal,nQList,pceDict):
     """ 
        Construct a PCE over a 3D parameter space 
@@ -658,7 +638,6 @@ def pce_3d_GQTP_cnstrct(fVal,nQList,pceDict):
         fVar+=(0.5**3.)*fCoef[k]*fCoef[k]*sum2[k]    #0.5:PDF of U on [-1,1]
     return fCoef,kSet,fMean,fVar
 #
-#//////////////////////////////////////////////////
 def pce_3d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict):
     """ 
        Construct a PCE over a 3D parameter space 
@@ -745,8 +724,7 @@ def pce_3d_nonGQTP_cnstrct(fVal,nQList,xiGrid,pceDict):
     for k in range(1,K):
         fVar+=(0.5**3.)*fCoef[k]*fCoef[k]*sum2[k]   #0.5:PDF of Uniform on [-1,1]
     return fCoef,kSet,fMean,fVar
-
-#///////////////////////////////////////////
+#
 def pce_3d_eval(fk,kSet,xi1,xi2,xi3,distType):
     """ 
        Evaluate a PCE over a 3D param space at a set of test points xi1,xi2,xi3\in[-1,1] 
@@ -781,7 +759,6 @@ def pce_3d_eval(fk,kSet,xi1,xi2,xi3,distType):
                 fpce[i1,i2,i3]=sum1
     return fpce
 #    
-#
 ################################
 # Tests
 ################################ 
@@ -789,9 +766,6 @@ def pce_3d_eval(fk,kSet,xi1,xi2,xi3,distType):
 #To run a test:
 #python -c 'import pce as X;X.pce_test_1d()'
 #--------------------------------------------------
-
-#A set of tests for gPCE methods
-#/////////////////
 def pce_1d_test():
     """
     Test PCE for 1 uncertain parameter uniformly distributed over [a1,b1] using Legendre polynomial bases
@@ -808,7 +782,7 @@ def pce_1d_test():
     nTest=200   #number of test sample sin the parameter space
     #PCE Options
     sampleType='GQ'    #'GQ'=Gauss Quadrature nodes
-                        #''= any other sample => only 'Regression' can be selected
+                       #''= any other sample => only 'Regression' can be selected
     pceSolveMethod='Projection' #'Regression': for any combination of sample points 
                                 #'Projection': only for GQ
     LMax_=10   #(Only needed for Regresson method), =K: truncation (num of terms) in PCE                               #(LMax will be over written by nSamples if it is provided for 'GQ'+'Projection')
@@ -821,7 +795,7 @@ def pce_1d_test():
     #
     #(1) generate training data
     if sampleType=='GQ':
-       xi,w=gqPtsWts(n,distType)   #Gauss qudratures
+       xi,w=gqPtsWts(n,distType)   #Gauss quadratures
     else:         
        #xi=2.*np.random.rand(n)-1.0 #random samples in [-1,1]       
        xi=np.linspace(-1,1,n)      #uniformly-spaced samples over [-1,1]
@@ -882,7 +856,6 @@ def pce_1d_test():
     plt.legend(loc='best',fontsize=17)
     plt.show()
 #
-#/////////////////
 def pce_2d_test():
     """
     Test PCE for 2 uncertain parameters uniformly distributed over [a1,b1]x[a2,b2] using Legendre polynomial bases
@@ -892,7 +865,7 @@ def pce_2d_test():
     distType=['Unif','Unif']   #distribution type of the parameters
     qBound=[[-1,2],   #parameter range 
             [-3,3]] 
-    nQ=[7,7]   #number of collocation smaples of param1
+    nQ=[7,5]   #number of collocation smaples of param1
     nTest=[100,101]   #number of test points in parameter spaces
     #PCE Options
     truncMethod='TO'  #'TP'=Tensor Product
@@ -907,35 +880,36 @@ def pce_2d_test():
     #--------------------
 
     #generate observations   
-    xi1,w1=gqPtsWts(nQ1,'Unif')   #Gauss sample pts in [-1,1]
-    xi2,w2=gqPtsWts(nQ2,'Unif')   #Gauss sample pts in [-1,1]
-    q1=mapFromUnit(xi1,q1Bound)    #map Gauss points to param1 space
-    q2=mapFromUnit(xi2,q2Bound)    #map Gauss points to param2 space
+    xi1,w1=gqPtsWts(nQ[0],'Unif')   #Gauss sample pts in [-1,1]
+    xi2,w2=gqPtsWts(nQ[1],'Unif')   #Gauss sample pts in [-1,1]
+    q1=mapFromUnit(xi1,qBound[0])    #map Gauss points to param1 space
+    q2=mapFromUnit(xi2,qBound[1])    #map Gauss points to param2 space
     fVal=analyticTestFuncs.fEx2D(q1,q2,'type1','tensorProd')  #function value at the parameter samples (Gauss quads)    
     #construct the gPCE
-    pceDict={'truncMethod':truncMethod,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod}
+    pceDict={'truncMethod':truncMethod,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,
+             'distType':distType}
     if truncMethod=='TO':
        pceDict.update({'LMax':LMax,'pceSolveMethod':'Regression'})
     pceDict=pceDict_corrector(pceDict)
     xiGrid=reshaper.vecs2grid(xi1,xi2)
-    fCoefs,kSet,fMean,fVar=pce_2d_cnstrct(fVal,[nQ1,nQ2],xiGrid,pceDict)
+    fCoefs,kSet,fMean,fVar=pce_2d_cnstrct(fVal,nQ,xiGrid,pceDict)
 
     #plot convergence of PCE terms
-    PCE_coef_conv_plot(fCoefs,kSet,['Unif','Unif'],{})
+    PCE_coef_conv_plot(fCoefs,kSet,distType,{})
 
     #make predictions at test points in the parameter space
-    q1Test =np.linspace(q1Bound[0],q1Bound[1],nTest1)  #test points in param1 space
-    xi1Test=mapToUnit(q1Test,q1Bound)
-    q2Test =np.linspace(q2Bound[0],q2Bound[1],nTest2)  #test points in param2 space
-    xi2Test=mapToUnit(q2Test,q2Bound)
+    q1Test =np.linspace(qBound[0][0],qBound[0][1],nTest[0])  #test points in param1 space
+    xi1Test=mapToUnit(q1Test,qBound[0])
+    q2Test =np.linspace(qBound[1][0],qBound[1][1],nTest[1])  #test points in param2 space
+    xi2Test=mapToUnit(q2Test,qBound[1])
     fTest=analyticTestFuncs.fEx2D(q1Test,q2Test,'type1','tensorProd')   #response value at the test points
     fPCE=pce_2d_eval(fCoefs,kSet,xi1Test,xi2Test,distType)  #Prediction at test points by PCE
     #create 2D grid and response surface over it
-    fTestGrid=fTest.reshape((nTest1,nTest2),order='F')
-    fErrorGrid=np.zeros((nTest1,nTest2))
-    for j in range(nTest2):
-        for i in range(nTest1):
-            k=i+j*nTest1
+    fTestGrid=fTest.reshape((nTest[0],nTest[1]),order='F')
+    fErrorGrid=np.zeros((nTest[0],nTest[1]))
+    for j in range(nTest[1]):
+        for i in range(nTest[0]):
+            k=i+j*nTest[0]
             #compute error between exact and surrogate response
             tmp=fTestGrid[i,j]
             if abs(tmp)<1.e-1:
@@ -972,7 +946,6 @@ def pce_2d_test():
     plt.title('|Exact-Surrogate|/Exact %')
     plt.show()
 #     
-#/////////////////
 def pce_3d_test():
     """
     Test PCE for 3 uncertain parameters uniformly distributed over [a1,b1]x[a2,b2]x[a3,b3] using Legendre polynomial bases
