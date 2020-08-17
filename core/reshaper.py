@@ -22,7 +22,7 @@ def lengthVector(x):
 #
 #///////////////////
 #DUMPED
-def vecs2grid_DUMP(x,y):
+def vecs2grid_dump(x,y):
     """
        Make a 2D tensor product grid z out of two 1D vectors x and y
           x: a numpy 1D array or a 1D list of length nx
@@ -49,7 +49,7 @@ def vecs2grid(x):
     p=len(x)
     if p<=1:
        print("ERROR in vecs2grid(): more than one vector should be imported.")
-    z_=np.meshgrid(*x,copy=True,sparse=False,indexing='ij')    
+    z_=np.meshgrid(*x,copy=True,sparse=False,indexing='xy')    
     n=z_[-1].size
     z=np.zeros((n,p))
     for i in range(p):
