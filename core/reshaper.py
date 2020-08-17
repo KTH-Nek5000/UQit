@@ -19,9 +19,9 @@ def lengthVector(x):
     else:
        print("ERROR in lengthVector: Unknown object x")
     return int(nx)
-
-
+#
 #///////////////////
+#DUMPED
 def vecs2grid_DUMP(x,y):
     """
        Make a 2D tensor product grid z out of two 1D vectors x and y
@@ -40,16 +40,16 @@ def vecs2grid_DUMP(x,y):
     return z
 #
 #///////////////////
-def vecs2grid(*x):
+def vecs2grid(x):
     """
        Make a pD tensor-product grid out of p 1D vectors x 
-          x: numpy 1D arrays or a 1D lists 
-          z: numpy pD array (n1*n2,...*np,p) 
+          x: a p-size list of 1D numpy arrays 
+          z: a numpy pD array (n1*n2,...*np,p) 
     """
     p=len(x)
     if p<=1:
        print("ERROR in vecs2grid(): more than one vector should be imported.")
-    z_=np.meshgrid(*x)    
+    z_=np.meshgrid(*x,copy=True,sparse=False,indexing='ij')    
     n=z_[-1].size
     z=np.zeros((n,p))
     for i in range(p):
@@ -76,8 +76,9 @@ def vecsGlue(*x):
        for i in range(n):
            z[i,j]=x[j][i]
     return z
-
+#
 #///////////////////
+#DUMPED
 def vecs2grid3d(x,y,z):
     """
        Make a 3D grid w out of three 1D vectors x, y, z
