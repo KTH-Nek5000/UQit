@@ -21,6 +21,7 @@ import plot2d
 import writeUQ
 import reshaper
 import linAlg
+import sampling
 #
 def mapToUnit(x,xBound):
     """
@@ -654,31 +655,42 @@ def pce_2d_test():
     #PCE Options
     truncMethod='TO'  #'TP'=Tensor Product
                       #'TO'=Total Order  
-    sampleType='GQ'     #'GQ'=Gauss Quadrature nodes
-                      #''= any other sample => only 'Regression' can be selected
+    sampleType='LHS'     #'GQ'=Gauss Quadrature nodes
+                        #''= any other sample => only 'Regression' can be selected
+                        #'LHS': Latin Hypercube Sampling
+    if sampleType=='LHS':
+       nQ=[100,1]
     pceSolveMethod='Regression' #'Regression': for any combination of sample points and truncation methods
                                 #'Projection': only for GQ+Tensor Product
     #NOTE: for 'TO' only 'Regression can be used'. pceSolveMethod will be overwritten
     if truncMethod=='TO':
-       LMax=20   #max polynomial order in each parameter direction
+       LMax=15   #max polynomial order in each parameter direction
     #------------------------
     p=len(distType)
     #Generate training data
     xi=[]
     q=[]
-    for i in range(p):
-        xi_,w_=gqPtsWts(nQ[i],distType[i])  #samples from the mapped space
-        q_=mapFromUnit(xi_,qBound[i])       #samples from the admissible space
-        xi.append(xi_)
-        q.append(q_)
-    fVal=analyticTestFuncs.fEx2D(q[0],q[1],'type1','tensorProd')  #function value at the parameter samples (Gauss quads)    
+    if sampleType=='GQ':
+       for i in range(p):
+           xi_,w_=gqPtsWts(nQ[i],distType[i])  #samples from the mapped space
+           q.append(mapFromUnit(xi_,qBound[i]))       #samples from the admissible space
+           xi.append(xi_)
+       fVal=analyticTestFuncs.fEx2D(q[0],q[1],'type1','tensorProd')  
+       xiGrid=reshaper.vecs2grid(xi)
+    elif sampleType=='LHS':
+        x=sampling.LHS_sampling(nQ[0],p)
+        for i in range(p):
+            xi_=x[:,i]*2-1
+            q.append(mapFromUnit(xi_,qBound[i]))       
+            xi.append(xi_)
+        fVal=analyticTestFuncs.fEx2D(q[0],q[1],'type1','pair')  
+        xiGrid=x*2-1
     #Construct the gPCE
     pceDict={'truncMethod':truncMethod,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,
              'distType':distType}
     if truncMethod=='TO':
        pceDict.update({'LMax':LMax,'pceSolveMethod':'Regression'})
     pceDict=pceDict_corrector(pceDict)
-    xiGrid=reshaper.vecs2grid(xi)
     fCoefs,kSet,fMean,fVar=pce_pd_cnstrct(fVal,nQ,xiGrid,pceDict)
     #Plot convergence of PCE terms
     PCE_coef_conv_plot(fCoefs,kSet,distType,{})
@@ -704,29 +716,33 @@ def pce_2d_test():
                tmp=1e-1
             fErrorGrid[i,j]=((abs(fTestGrid[i,j]-fPCE[i,j]))/tmp*100.)
     #2d grid from the sampled parameters
-    q1Grid,q2Grid=plot2d.plot2D_grid(q[0],q[1])
+    if sampleType=='LHS':
+        q1Grid=q[0]
+        q2Grid=q[1]
+    else:
+        q1Grid,q2Grid=plot2d.plot2D_grid(q[0],q[1])
     #plot 2d contours
     plt.figure(figsize=(21,8));
     plt.subplot(1,3,1)
     ax=plt.gca()
     CS1 = plt.contour(qTest[0],qTest[1],fTestGrid.T,40)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS1, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
-    plt.plot(q1Grid,q2Grid,'o',color='k',markersize=7)
-    plt.xlabel('q1');plt.ylabel('q2');
+    plt.plot(q1Grid,q2Grid,'o',color='r',markersize=7)
+    plt.xlabel('q1');plt.ylabel('q2')
     plt.title('Exact Response')
     plt.subplot(1,3,2)
     ax=plt.gca()
     CS2 = plt.contour(qTest[0],qTest[1],fPCE.T,40)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS2, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
-    plt.plot(q1Grid,q2Grid,'o',color='k',markersize=7)
-    plt.xlabel('q1');plt.ylabel('q2');
+    plt.plot(q1Grid,q2Grid,'o',color='r',markersize=7)
+    plt.xlabel('q1');plt.ylabel('q2')
     plt.title('Surrogate Response')
     plt.subplot(1,3,3)
     ax=plt.gca()
     CS3 = plt.contour(qTest[0],qTest[1],fErrorGrid.T,40)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS3, inline=True, fontsize=13,colors='k',fmt='%0.0f',rightside_up=True,manual=False)
-    plt.xlabel('q1');plt.ylabel('q2');
-    plt.plot(q1Grid,q2Grid,'o',color='k',markersize=7)
+    plt.xlabel('q1');plt.ylabel('q2')
+    plt.plot(q1Grid,q2Grid,'o',color='r',markersize=7)
     plt.title('|Exact-Surrogate|/Exact %')
     plt.show()
 #     
