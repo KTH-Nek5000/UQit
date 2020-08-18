@@ -21,25 +21,6 @@ def lengthVector(x):
     return int(nx)
 #
 #///////////////////
-#DUMPED
-def vecs2grid_dump(x,y):
-    """
-       Make a 2D tensor product grid z out of two 1D vectors x and y
-          x: a numpy 1D array or a 1D list of length nx
-          y: a numpy 1D array or a 1D list of length ny
-          z: numpy 2D array (nx*ny,2) 
-    """
-    nx=lengthVector(x)
-    ny=lengthVector(y)
-    z=np.zeros((nx*ny,2))
-    for iy in range(ny):
-        for ix in range(nx):
-            iz=iy*nx+ix
-            z[iz,0]=x[ix]
-            z[iz,1]=y[iy]
-    return z
-#
-#///////////////////
 def vecs2grid(x):
     """
        Make a pD tensor-product grid out of p 1D vectors x 
@@ -49,11 +30,11 @@ def vecs2grid(x):
     p=len(x)
     if p<=1:
        print("ERROR in vecs2grid(): more than one vector should be imported.")
-    z_=np.meshgrid(*x,copy=True,sparse=False,indexing='xy')    
+    z_=np.meshgrid(*x,copy=True,sparse=False,indexing='ij')    
     n=z_[-1].size
     z=np.zeros((n,p))
     for i in range(p):
-        z[:,i]=z_[i].reshape((n,1),order='C')[:,0]
+        z[:,i]=z_[i].reshape((n,1),order='F')[:,0]
     return z
 #
 #///////////////////
@@ -76,26 +57,3 @@ def vecsGlue(*x):
        for i in range(n):
            z[i,j]=x[j][i]
     return z
-#
-#///////////////////
-#DUMPED
-def vecs2grid3d(x,y,z):
-    """
-       Make a 3D grid w out of three 1D vectors x, y, z
-          x: numpy 1D array of length nx
-          y: numpy 1D array of length ny
-          z: numpy 1D array of length nz
-          w: numpy 2D array (nx*ny*nz,3) 
-    """
-    nx=x.size
-    ny=y.size
-    nz=z.size
-    w=np.zeros((nx*ny*nz,3))
-    for iz in range(nz):
-        for iy in range(ny):
-            for ix in range(nx):
-                iw=(iz*ny*nx)+(iy*nx)+ix
-                w[iw,0]=x[ix]
-                w[iw,1]=y[iy]
-                w[iw,2]=z[iz]
-    return w
