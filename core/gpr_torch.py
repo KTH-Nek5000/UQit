@@ -624,14 +624,11 @@ def gprTorch_2d_singleTask_test():
               #grid_=torch.linspace(qBound[i][0],qBound[i][1],n[i])   #torch
               grid_=np.linspace(qBound[i][0],qBound[i][1],n[i])
               gridList.append(grid_)
-          xTrain=reshaper.vecs2grid(gridList[0],gridList[1])
+          xTrain=reshaper.vecs2grid(gridList)
 #       xTrain = gpytorch.utils.grid.create_data_from_grid(gridList)  #torch
         elif sampleType=='random': 
              nSamp=n     #number of random samples   
-             xi_=sampling.LHS_sampling(nSamp,p)
-             xTrain=np.zeros((nSamp,p))
-             for i in range(p):
-                 xTrain[:,i]=(qBound[i][1]-qBound[i][0])*xi_[:,i]+qBound[i][0]
+             xTrain=sampling.LHS_sampling(n,qBound)
         #  (b) set the sdev of the observation noise   
         #noiseSdev=torch.ones(nTot).mul(0.1)    #torch
         noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
@@ -675,7 +672,7 @@ def gprTorch_2d_singleTask_test():
     #options for training data
     fExName='type2'          #Name of Exact function to generate synthetic data
                              #This is typ in fEx2D() in ../../analyticFuncs/analyticFuncs.py
-    sampleType='grid'        #'random' or 'grid': type of samples
+    sampleType='random'        #'random' or 'grid': type of samples
     if sampleType=='grid':
        n=[9,9]               #number of training observations in each input dimension
     elif sampleType=='random':
@@ -703,7 +700,7 @@ def gprTorch_2d_singleTask_test():
         #grid_=torch.linspace(qBound[i][0],qBound[i][1],20)    #torch
         grid_=np.linspace(qBound[i][0],qBound[i][1],nTest[i])
         testGrid.append(grid_)
-    xTest=reshaper.vecs2grid(testGrid[0],testGrid[1])
+    xTest=reshaper.vecs2grid(testGrid)
 
     #(3) construct the GPR based on the training data and make predictions at test inputs
     post_f,post_obs=gprTorch_pd(xTrain,[yTrain],noiseSdev,xTest,gprOpts)

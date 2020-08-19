@@ -297,11 +297,8 @@ def ppce_2d_test():
               gridList.append(grid_)
           xTrain=reshaper.vecs2grid(gridList)
         elif sampleType=='random':
-             nSamp=n     #number of random samples
-             xi_=sampling.LHS_sampling(nSamp,p)
-             xTrain=np.zeros((nSamp,p))
-             for i in range(p):
-                 xTrain[:,i]=(qBound[i][1]-qBound[i][0])*xi_[:,i]+qBound[i][0]
+             nSamp=n
+             xTrain=sampling.LHS_sampling(nSamp,qBound)
         #  (b) set the sdev of the observation noise
         noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
         #  (c) Training data
@@ -360,7 +357,7 @@ def ppce_2d_test():
     #options for training data
     fExName='type2'          #Name of Exact function to generate synthetic data
                              #This is typ in fEx2D() in ../../analyticFuncs/analyticFuncs.py
-    trainSampleType='grid'        #'random' or 'grid': type of samples
+    trainSampleType='random'        #'random' or 'grid': type of samples
     if trainSampleType=='grid':
        n=[10,10]               #number of training observations in each input dimension
     elif trainSampleType=='random':

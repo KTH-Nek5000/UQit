@@ -13,19 +13,21 @@ import pce
 #
 #
 #//////////////////////////
-def LHS_sampling(n=10,p=2):
+def LHS_sampling(n,range_):
     """
         LHS (Latin Hypercube) sampler from a p-D random variable distributed uniformly
         credit: https://zmurchok.github.io/2019/03/15/Latin-Hypercube-Sampling.html
         Inputs:
               n: number of samples
-              p: dimension of the RV
+              range_: Admissible orange of the samples,list of size p, =[[x1L,x1U],...[xpL,xpU]]
         Outputs:
-              x: n-by-p numpy array, x\in[0,1]
+              x: n-by-p numpy array, x\in range_
     """
+    p=len(range_)
     x = np.random.uniform(size=[n,p])
     for i in range(0,p):
-        x[:,i] = (np.argsort(x[:,i])+0.5)/float(n)
+        x_ = (np.argsort(x[:,i])+0.5)/float(n)
+        x[:,i]=x_*(range_[i][1]-range_[i][0])+range_[i][0]
     return x
 #
 #

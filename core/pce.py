@@ -1,10 +1,6 @@
 #############################################
 # generalized Polynomial Chaos Expansion
 #############################################
-# There are tests as external functions
-# Note1: in multi-dim parameter space:
-#     - always the last parameter is the outer loop when reading/writing
-#     - always the response is a vector with size nSample1*nSample2*...
 #--------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
 #--------------------------------------------
@@ -14,8 +10,7 @@ import numpy as np
 import math as mt
 import matplotlib
 import matplotlib.pyplot as plt
-UQit=os.getenv("UQit")
-sys.path.append(UQit)
+sys.path.append(os.getenv("UQit"))
 import analyticTestFuncs
 import plot2d
 import writeUQ
@@ -528,7 +523,11 @@ def pce_pd_eval(fk,kSet,xi,distType):
          Input:
             fk: 1D array of length K containing the coefficients of the PCE
             kSet: List of indices:[[k1,1,k2,1],[k1,2,k2,2],...,[k1,K,k2,K]] produced based on the tensor product or total order rules when constructing the PCE
-            xi1,xi2: Test points in each direction of the 2D parameter space. Always a tensor product grid is constructed based on test points to evaluate the PCE.
+            xi: A list of length p containing the test points in each direction of the  mapped pD
+                parameter space. xi=[xi1,xi2,..,xip], where xik: 1d numpy array containing the mapped
+                test samples on direction k. 
+                Always a tensor product grid is constructed based on test 
+                points to evaluate the PCE. 
             distType: List of distribution type of the parameters
          Output: 
            fpce: Response values predicted (inerpolated) by the PCE at the test points
@@ -548,9 +547,7 @@ def pce_pd_eval(fk,kSet,xi,distType):
     return fpce
 #    
 #
-################################
 # Tests
-################################ 
 #
 def pce_1d_test():
     """
@@ -558,12 +555,12 @@ def pce_1d_test():
     """
     #--- settings -------------------------
     #Parameter settings
-    distType='Unif'   #distribution type of the parameter
+    distType='Norm'   #distribution type of the parameter
     if distType=='Unif':
        qBound=[-2,4.0]   #parameter range only if 'Unif'
     elif distType=='Norm':
        qAux=[1.,1.5]   #[m,v] for 'Norm' q~N(m,v^2)
-    n=7   #number of training samples
+    n=15   #number of training samples
     nTest=200   #number of test sample sin the parameter space
     #PCE Options
     sampleType='GQ'    #'GQ'=Gauss Quadrature nodes
@@ -668,7 +665,7 @@ def pce_2d_test():
     #------------------------
     p=len(distType)
     #Generate training data
-    xi=[]
+#    xi=[]
     q=[]
     if sampleType=='GQ':
        for i in range(p):
@@ -678,13 +675,11 @@ def pce_2d_test():
        fVal=analyticTestFuncs.fEx2D(q[0],q[1],'type1','tensorProd')  
        xiGrid=reshaper.vecs2grid(xi)
     elif sampleType=='LHS':
-        x=sampling.LHS_sampling(nQ[0],p)
+        xi=sampling.LHS_sampling(nQ[0],[[-1,1]]*p)
         for i in range(p):
-            xi_=x[:,i]*2-1
-            q.append(mapFromUnit(xi_,qBound[i]))       
-            xi.append(xi_)
+            q.append(mapFromUnit(xi[:,i],qBound[i]))       
         fVal=analyticTestFuncs.fEx2D(q[0],q[1],'type1','pair')  
-        xiGrid=x*2-1
+        xiGrid=xi
     #Construct the gPCE
     pceDict={'truncMethod':truncMethod,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,
              'distType':distType}
