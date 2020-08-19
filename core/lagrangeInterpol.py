@@ -19,7 +19,7 @@ import analyticTestFuncs
 import sampling
 import pce
 import reshaper
-
+#
 #////////////////////////////////////////
 def lagrangeBasis_singleVar(qNodes,k,Q):
     """
@@ -167,6 +167,7 @@ def lagrangeInterpol_Quads2Line(fQuads,quads,lineDef):
                          'lineEnd=[q1End,q2End]',          #line's end point 
                          'noPtsLine'=<inetger>}                #number interpolation points on the line
     """
+    p=len(quads)
     nQ1=len(quads[0])
     nQ2=len(quads[1])
     if (fQuads.ndim==1):
