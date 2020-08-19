@@ -39,7 +39,7 @@ import reshaper
 import sampling
 #
 #/////////////////////////////////////////////////////////////
-def ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
+def ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     """
        Probabistric PCE (gPCE+GPR) for 1d-input parameter, y=f(q)+e
        Inputs:
@@ -62,6 +62,7 @@ def ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     nGQ=ppceDict['nGQtest']       #number of GQ test points in the parameter space
     qBound=ppceDict['qBound'] #admissible range of the input parameter q
     nMC=ppceDict['nMC']       #number of samples taken from GPR to estimate PCE coefs
+    distType=ppceDict['distType']
     #make a dict for gpr
     gprOpts={'nIter':ppceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of the GPR
              'lr':ppceDict['lr_gpr'],           #learning rate in opimization of hyperparameters of the GPR
@@ -69,8 +70,9 @@ def ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
             }
 
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
-    xiGQ,wGQ=pce.gqPtsWts(nGQ,'Unif')  #xiGQ\in[-1,1]
-    qTest=pce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
+    xiGQ,wGQ=pce.gqPtsWts(nGQ,distType)  
+    if distType=='Unif':
+       qTest=pce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
 
     #(2) Construct GPR surrogate based on training data
     post_f,post_obs=gpr_torch.gprTorch_1d(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
@@ -79,12 +81,12 @@ def ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     #    nMC independent samples are drawn from the GPR surrogate
     fMean_list=[]      #list of estimates for E[f(q)] 
     fVar_list =[]      #list of estimates for V[f(q)]
-    pceDict={'sampleType':'GQ','pceSolveMethod':'Projection'}
+    pceDict={'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType}
     for j in range(nMC):
         # draw a sample for f(q) from GPR surrogate
         f_=post_obs.sample().numpy()
         # construct PCE for the drawn sample
-        fCoef_,fMean_,fVar_=pce.pce_LegUnif_1d_cnstrct(f_,[],pceDict)
+        fCoef_,fMean_,fVar_=pce.pce_1d_cnstrct(f_,[],pceDict)
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
         if ((j+1)%50==0):
@@ -100,7 +102,7 @@ def ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     return fMean_list,fVar_list,optOut
 #
 #/////////////////////////////////////////////////////////////
-def ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
+def ppce_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     """
        Probabistric PCE (gPCE+GPR) for 2d-input parameter, y=f(q)+e
        Inputs:
@@ -124,6 +126,7 @@ def ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     nGQ=ppceDict['nGQtest']       #list of number of GQ test points in each of p dimensions of the parameter q
     qBound=ppceDict['qBound']     #admissible range of inputs parameter
     nMC=ppceDict['nMC']           #number of samples taken from GPR for estimating PCE coefs
+    distType=ppceDict['distType']
     #make a dict for gpr (do NOT change)
     gprOpts={'nIter':ppceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of GPR
              'lr':ppceDict['lr_gpr'],          #learning rate in opimization of hyperparameters of GPR
@@ -132,15 +135,17 @@ def ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     #make a dict for PCE (do NOT change)
     pceDict={'truncMethod':'TP',  #always use TP truncation with GQ sampling with Projection (GQ rule)
              'sampleType':'GQ', 
-             'pceSolveMethod':'Projection'
+             'pceSolveMethod':'Projection',
+             'distType':distType
              }
 
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
     qTestGrid=[]
     for i in range(p):
-        xiGQ_,wGQ_=pce.gqPtsWts(nGQ[i],'Unif')  #xiGQ\in[-1,1]
-        qTestGrid.append(pce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
-    qTest=reshaper.vecs2grid(qTestGrid[0],qTestGrid[1])
+        xiGQ_,wGQ_=pce.gqPtsWts(nGQ[i],distType[i]) 
+        if distType[i]=='Unif':
+           qTestGrid.append(pce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
+    qTest=reshaper.vecs2grid(qTestGrid)
 
     #(2) Construct GPR surrogate based on training data
     post_f,post_obs=gpr_torch.gprTorch_pd(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
@@ -153,7 +158,7 @@ def ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
         # draw a sample for f(q) from GPR surrogate
         f_=post_obs.sample().numpy()
         # construct PCE for the drawn sample
-        fCoef_,kSet_,fMean_,fVar_=pce.pce_LegUnif_2d_cnstrct(f_,nGQ,[],pceDict)
+        fCoef_,kSet_,fMean_,fVar_=pce.pce_pd_cnstrct(f_,nGQ,[],pceDict)
         fMean_list.append(fMean_)
         fVar_list.append(fVar_)
         if ((j+1)%50==0):
@@ -172,16 +177,16 @@ def ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
 # External Functions for Test
 ###############################
 import torch   #for plot
-def ppce_LegUnif_1d_cnstrct_test():
+def ppce_1d_test():
     """
-        Test for ppce_LegUnif_1d_cnstrct()
+        Test PPCE over 1D parameter space
     """
     def fEx(x):
         """
            Exact simulator
         """
         #yEx=np.sin(2*mt.pi*x)
-        yEx=analyticTestFuncs.fEx1D(x)
+        yEx=analyticTestFuncs.fEx1D(x,fType)
         return yEx
     #
     def noiseGen(n,noiseType):
@@ -238,6 +243,7 @@ def ppce_LegUnif_1d_cnstrct_test():
     qBound=[0,1]   #range of input
     #type of the noise in the data
     noiseType='hetero'   #'homo'=homoscedastic, 'hetero'=heterscedastic
+    distType='Unif'
     #GPR options
     nIter_gpr=800      #number of iterations in optimization of hyperparameters
     lr_gpr   =0.1      #learning rate for the optimizaer of the hyperparameters    
@@ -245,13 +251,15 @@ def ppce_LegUnif_1d_cnstrct_test():
     #number of samples drawn from GPR surrogate to construct estimates for moments of f(q)
     nMC=1000
     #---------------------------------------------    
+    if distType=='Unif':
+       fType='type1' 
     #(1) Generate synthetic training data
     qTrain,yTrain,noiseSdev=trainData(qBound,n,noiseType)
     #(2) Probabilistic gPCE 
     #   (a) make the dictionary
-    ppceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
+    ppceDict={'nGQtest':nGQtest,'qBound':qBound,'distType':distType,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     #   (b) call the method
-    fMean_samples,fVar_samples,optOut=ppce_LegUnif_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
+    fMean_samples,fVar_samples,optOut=ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
     #(3) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator    
     gpr1D_plotter(optOut['post_f'],optOut['post_obs'],qTrain,yTrain,optOut['qTest'],fEx(optOut['qTest']))
@@ -259,7 +267,7 @@ def ppce_LegUnif_1d_cnstrct_test():
     pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
     pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
     #   (c) compare the exact moments with estimated values by ppce
-    fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qBound)
+    fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qBound,fType)
     fMean_mean=fMean_samples.mean()
     fMean_sdev=fMean_samples.std()
     fVar_mean=fVar_samples.mean()
@@ -271,9 +279,9 @@ def ppce_LegUnif_1d_cnstrct_test():
     print('   ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
 #	
 #//////////////////////////////////
-def ppce_LegUnif_2d_cnstrct_test():
+def ppce_2d_test():
     """
-        Test for ppce_LegUnif_2d_cnstrct()
+        Test for ppce_pd_cnstrct()
         Note: some functions are taken from /gpr_torch.py/gprTorch_2d_singleTask_test()
     """
     ##
@@ -288,7 +296,7 @@ def ppce_LegUnif_2d_cnstrct_test():
           for i in range(p):
               grid_=np.linspace(qBound[i][0],qBound[i][1],n[i])
               gridList.append(grid_)
-          xTrain=reshaper.vecs2grid(gridList[0],gridList[1])
+          xTrain=reshaper.vecs2grid(gridList)
         elif sampleType=='random':
              nSamp=n     #number of random samples
              xi_=sampling.LHS_sampling(nSamp,p)
@@ -349,6 +357,7 @@ def ppce_LegUnif_2d_cnstrct_test():
     #
     #----- SETTINGS -------------------------------------------
     qBound=[[-2,2],[-2,2]]   #Admissible range of parameters
+    distType=['Unif','Unif']
     #options for training data
     fExName='type2'          #Name of Exact function to generate synthetic data
                              #This is typ in fEx2D() in ../../analyticFuncs/analyticFuncs.py
@@ -368,14 +377,14 @@ def ppce_LegUnif_2d_cnstrct_test():
     #number of samples drawn from GPR surrogate to construct estimates for moments of f(q)
     nMC=200
     #---------------------------------------------------------
-    p=2  #dimension of the input parameter q
+    p=len(distType)  #dimension of the input parameter q
     #(1) Generate synthetic training data
     qTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,trainSampleType,n,qBound,fExName,noiseType)
     #(2) Probabilistic gPCE 
     #   (a) make the dictionary
-    ppceDict={'nGQtest':nGQtest,'qBound':qBound,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
+    ppceDict={'nGQtest':nGQtest,'qBound':qBound,'distType':distType,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     #   (b) call the method
-    fMean_samples,fVar_samples,optOut=ppce_LegUnif_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
+    fMean_samples,fVar_samples,optOut=ppce_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
     #(3) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator    
     gpr_3dsurf_plot(qTrain,yTrain,optOut['qTestGrid'],nGQtest,optOut['post_obs'],optOut['post_f'])
