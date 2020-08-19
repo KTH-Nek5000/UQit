@@ -38,7 +38,6 @@ import writeUQ
 import reshaper
 import sampling
 #
-#/////////////////////////////////////////////////////////////
 def ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     """
        Probabistric PCE (gPCE+GPR) for 1d-input parameter, y=f(q)+e
@@ -101,12 +100,11 @@ def ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest}
     return fMean_list,fVar_list,optOut
 #
-#/////////////////////////////////////////////////////////////
-def ppce_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
+def ppce_pd_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     """
-       Probabistric PCE (gPCE+GPR) for 2d-input parameter, y=f(q)+e
+       Probabistric PCE (gPCE+GPR) for pd-input parameter, y=f(q)+e
        Inputs:
-           qTrain: training input parameters q, 2d numpy array of size nx2
+           qTrain: training input parameters q, pd numpy array of size nxp
            yTrain: training observed output y, 1d numpy array of size n
            noiseSdev: noise sdev of training observations: e~N(0,noiseSdev), 1d numpy array of size n
            ppceDict: dictionary containing controllers for PPCE, including:
@@ -122,7 +120,7 @@ def ppce_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     """
     print('... Probabilistic PCE for 2D input parameter.')
     #(0) Assignments
-    p=2    #dimension of input parameter q
+    p=qTrain.shape[-1]    #dimension of input parameter q
     nGQ=ppceDict['nGQtest']       #list of number of GQ test points in each of p dimensions of the parameter q
     qBound=ppceDict['qBound']     #admissible range of inputs parameter
     nMC=ppceDict['nMC']           #number of samples taken from GPR for estimating PCE coefs
@@ -172,9 +170,10 @@ def ppce_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     #in general we do not need them
     optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest,'qTestGrid':qTestGrid}
     return fMean_list,fVar_list,optOut
-
+#
+#
 ###############################
-# External Functions for Test
+# Tests
 ###############################
 import torch   #for plot
 def ppce_1d_test():
@@ -384,7 +383,7 @@ def ppce_2d_test():
     #   (a) make the dictionary
     ppceDict={'nGQtest':nGQtest,'qBound':qBound,'distType':distType,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     #   (b) call the method
-    fMean_samples,fVar_samples,optOut=ppce_2d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
+    fMean_samples,fVar_samples,optOut=ppce_pd_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
     #(3) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator    
     gpr_3dsurf_plot(qTrain,yTrain,optOut['qTestGrid'],nGQtest,optOut['post_obs'],optOut['post_f'])
