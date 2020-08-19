@@ -15,9 +15,9 @@ def Clenshaw_pts(n):
     x=np.zeros(n)
     for i in range(n):
         x[i]=np.cos(i*mt.pi/(n-1))
-    return x
-
-#///////////////
+    x_=x[::-1]    
+    return x_
+#
 def ClenshawCurtis_pts(l):
     """
         Generates Clenshaw-Curtis nodes at level l over [0,1]
@@ -32,4 +32,4 @@ def ClenshawCurtis_pts(l):
        x=np.zeros(n)
        x[0]=0.5
     return x
-
+#
