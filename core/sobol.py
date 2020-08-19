@@ -219,11 +219,13 @@ def sobol_2par_unif_test():
        
     #--------------------------
     #------- SETTINGS 
-    n=[100, 90]       #number of samples for q1 and q2
+    n=[100, 90]       #number of samples for q1 and q2, Method1
     qBound=[[-3,1],   #admissible range of parameters
             [-1,2]]
+    nQpce=[5,6]      #number of GQ points for Method2
     #--------------------------
     p=len(n)
+    distType=['Unif']*p
     #(1) Samples from parameters space
     q=[]
     for i in range(p):
@@ -237,26 +239,29 @@ def sobol_2par_unif_test():
     Si,Sij=sobol_unif([q[0],q[1]],fEx)
 
     #(4) Construct a gPCE and then use the predictions of the gPCE in numerical integration for computing Sobol indices.
-    #generate observations at Gauss-Legendre points
-    nQpce=[5,6]
-    xi1,w1=pce.gqPtsWts(nQpce[0],'Unif')
-    xi2,w2=pce.gqPtsWts(nQpce[1],'Unif')
-    q1pce=pce.mapFromUnit(xi1,qBound[0])   
-    q2pce=pce.mapFromUnit(xi2,qBound[1])    
-    fVal_pceCnstrct=analyticTestFuncs.fEx2D(q1pce,q2pce,'type3','tensorProd') 
-    #construct the gPCE
-    xiGrid=reshaper.vecs2grid(xi1,xi2)
-    pceDict={'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection'}
+    #Generate observations at Gauss-Legendre points
+    xi=[]
+    qpce=[]
+    for i in range(p):
+        xi_,w_=pce.gqPtsWts(nQpce[i],distType[i])
+        qpce.append(pce.mapFromUnit(xi_,qBound[i]))
+        xi.append(xi_)
+    fVal_pceCnstrct=analyticTestFuncs.fEx2D(qpce[0],qpce[1],'type3','tensorProd') 
+    #Construct the gPCE
+    xiGrid=reshaper.vecs2grid(xi)
+    pceDict={'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection',
+             'distType':distType}
     pceDict=pce.pceDict_corrector(pceDict)
-    fCoefs,kSet,fMean,fVar=pce.pce_LegUnif_2d_cnstrct(fVal_pceCnstrct,nQpce,xiGrid,pceDict)
-    #use gPCE to predict at test samples from parameter space
-    q1pceTest =np.linspace(qBound[0][0],qBound[0][1],n[0])  
-    xi1Test   =pce.mapToUnit(q1pceTest,qBound[0])
-    q2pceTest =np.linspace(qBound[1][0],qBound[1][1],n[1])  
-    xi2Test   =pce.mapToUnit(q2pceTest,qBound[1])
-    fPCETest  =pce.pce_LegUnif_2d_eval(fCoefs,kSet,xi1Test,xi2Test)
+    fCoefs,kSet,fMean,fVar=pce.pce_pd_cnstrct(fVal_pceCnstrct,nQpce,xiGrid,pceDict)
+    #Use gPCE to predict at test samples from parameter space
+    qpceTest=[]
+    xiTest=[]
+    for i in range(p):
+        qpceTest.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
+        xiTest.append(pce.mapToUnit(qpceTest[i],qBound[i]))
+    fPCETest  =pce.pce_pd_eval(fCoefs,kSet,xiTest,distType)
     #compute Sobol indices 
-    Si_pce,Sij_pce=sobol_unif([q1pceTest,q2pceTest],fPCETest)
+    Si_pce,Sij_pce=sobol_unif(qpceTest,fPCETest)
 
     #(5) Exact Sobol indices (analytical expressions)
     Si_ex,Sij_ex=analyticalSobol_2par(qBound)
