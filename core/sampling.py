@@ -66,9 +66,10 @@ def sampler_1d(range_,nSamp,sampType):
     qNodes=(range_[1]-range_[0])*(xi-xi0)/xi_len+range_[0]
     return qNodes
 
-class parSample:
+class trainSample:
     R"""
-    Generating training/test samples from 1D paramter space using different methods.
+    Generating training samples from 1D paramter space using different methods.
+    Samples of \xi\in\Gamma (mapped space) are drawn which then mapped to q\in Q
 
     Parameters
     ----------
@@ -191,6 +192,107 @@ class parSample:
            qBound_=self.qBound
            self.q=(xi_-xiBound_[0])/(xiBound_[1]-xiBound_[0])*\
                   (qBound_[1]-qBound_[0])+qBound_[0]
+
+class testSample:
+    R"""
+    Generating test samples from 1D paramter space using different methods.
+    Samples of q\in Q are drawn which then mapped to \xi\in\Gamma (mapped space)
+
+    Parameters
+    ----------
+    sampleType: string
+        Type of sample:
+        'unifSpaced': Uniformly-spaced
+        'unifRand': Uniformly distributed random
+        'normRand': Gaussian distributed random
+    GQdistType: string
+        Type of standard distribution in gPCE; Only needed if sampleType:'GQ'
+        'Unif': Uniform distribution, Gamma=[-1,1]            
+        'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
+    qInfo: List of length 2
+        Information on the parameter.
+        If q is Gaussian ('Norm') => qInfo=[mean,sdev]
+        Otherwise, qInfo=[] and providing it is optional
+    nSamp: Integer
+        Number of samples to draw
+    
+    Attributes
+    ----------
+    xi: 1d numpy array of size nSamp
+        Samples \xi from the mapped space \Gamma    
+    xiBound: List of length 2
+        Admissible range of xi
+    q: 1d numpy array of size nSamp
+        Samples q from the mapped space Q    
+    qBound: List of length 2
+        Admissible range of q
+    w: 1d numpy array of size nSamp    
+       Weights in Gauss-Quadrature rule (only if sampleType='GQ')
+    """
+    def __init__(self,sampleType='',GQdistType='Unif',qInfo=[],qBound=[],nSamp=0):
+        self.info()
+        self.sampleType=sampleType
+        self.GQdistType=GQdistType
+        self.qInfo=qInfo
+        self.check()
+        self.qBound=qBound
+        self.nSamp=nSamp
+        self.genTestSamples()
+
+    def info(self):
+        sampleTypeList=['unifSpaced','unifRand','normRand']
+        GQdistList=['Unif','Norm'] #list of available distributions for gpce
+        self.sampleTypeList=sampleTypeList
+        self.GQdistList=GQdistList
+
+    def check(self):
+        if self.sampleType not in self.sampleTypeList:
+           raise KeyError('#ERROR @ testSample: Invalid sampleType! Choose from'\
+                   ,self.sampleTypeList)
+        if self.sampleType=='GQ' and self.GQdistType not in self.GQdistList:
+           raise KeyError('#ERROR @ testSample: Invalid GQdistType! Choose from'\
+                   ,self.GQdistList)
+        if self.GQdistType=='Norm' and len(self.qInfo)==0:
+           raise KeyError("#ERROR @ testSample: qInfo is mandatory for GQdistType='Norm'")
+
+    def genTestSamples(self):       
+        n=self.nSamp
+        if self.GQdistType=='Unif':
+           self.xiBound=[-1,1]
+
+        if self.sampleType=='unifSpaced':
+           q_=np.linspace(self.qBound[0],self.qBound[1],n) 
+        elif self.sampleType=='unifRand':
+           if self.GQdistType!='Unif': 
+              raise ValueError("#ERROR @ testSample: sampleType 'unifRand' should be with GQdistType 'Unif' or ''.")
+           q_=np.random.rand(n)*(self.qBound[1]-self.qBound[0])+self.qBound[0]
+           q_=np.sort(q_)
+        elif self.sampleType=='normRand':
+           if self.GQdistType!='Norm': 
+               raise ValueError("#ERROR @ testSample: sampleType 'normRand' should be with\
+                       GQdistType 'Norm'.")
+           else:
+              xi_=np.random.normal(size=n)
+              xi_=np.sort(xi_)
+              self.xi=xi_
+              q_=self.qInfo[0]+xi_*self.qInfo[1]
+        self.q=q_
+        self.q2xi_map()      
+
+    def q2xi_map(self):
+        """
+        Linearly map q\in Q to xi\in\Gamma
+        """
+        q_=self.q
+        qBound_=self.qBound
+        if self.GQdistType=='Norm':   
+           xi_=(q_-self.qInfo[0])/self.qInfo[1]
+           self.xiBound=[min(xi_),max(xi_)]
+        else:
+           xi_=(self.xiBound[1]-self.xiBound[0])*(q_-qBound_[0])\
+               /(qBound_[1]-qBound_[0])+self.xiBound[0]
+        self.xi=xi_    
+
 #
 #
 # Tests
@@ -208,3 +310,26 @@ def trainSample_test():
     print('xi',F.xi)
     print('q',F.q)
     print('w',F.w)
+
+import matplotlib.pyplot as plt
+def testSample_test():
+    """
+    Test testSample()
+    """
+    F1=testSample(sampleType='unifRand',GQdistType='Unif',qBound=[-1,3],nSamp=10)
+    F2=testSample(sampleType='unifRand',qBound=[-1,3],nSamp=10)
+    F3=testSample(sampleType='normRand',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
+    F4=testSample(sampleType='unifSpaced',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
+    F5=testSample(sampleType='unifSpaced',GQdistType='Unif',qBound=[-1,3],nSamp=10)
+    print('sampleType:',F1.sampleType)
+    print('GQdistType:',F1.GQdistType)
+    print('qBound',F1.qBound)
+    print('xiBound',F1.xiBound)
+    print('xi',F1.xi)
+    print('q',F1.q)
+    plt.plot(F1.q,'ob')
+    plt.plot(F2.q,'xr')
+    plt.plot(F3.q,'sg')
+    plt.plot(F4.q,'+c')
+    plt.plot(F5.q,'pk')
+    plt.show()
