@@ -557,9 +557,11 @@ def pce_1d_test():
     #Parameter settings
     distType='Norm'   #distribution type of the parameter
     if distType=='Unif':
-       qBound=[-2,4.0]   #parameter range only if 'Unif'
+       qInfo=[-2,4.0]   #parameter range only if 'Unif'
+       fType='type1'    #Type of test exact model function
     elif distType=='Norm':
-       qAux=[1.,1.5]   #[m,v] for 'Norm' q~N(m,v^2)
+       qInfo=[0.5,0.9]   #[m,v] for 'Norm' q~N(m,v^2)
+       fType='type2'    #Type of test exact model function
     n=15   #number of training samples
     nTest=200   #number of test sample sin the parameter space
     #PCE Options
@@ -576,29 +578,17 @@ def pce_1d_test():
     pceDict=pceDict_corrector(pceDict)
     #
     #(1) generate training data
-    if sampleType=='GQ':
-       xi,w=gqPtsWts(n,distType)   #Gauss quadratures
-    else:         
-       if distType=='Unif': 
-          #xi=2.*np.random.rand(n)-1.0 #random samples in [-1,1]       
-          xi=np.linspace(-1,1,n)      #uniformly-spaced samples over [-1,1]
-    
-    if distType=='Unif':
-       qAux=qBound
-       fType='type1'
-       q=map_xi2q(xi,qBound,distType)
-       f=analyticTestFuncs.fEx1D(q,fType)   #function value at the parameter samples (Gauss quads)
-    elif distType=='Norm':
-       q=map_xi2q(xi,qAux,distType)
-       qBound=[min(q),max(q)]
-       fType='type2'
-       f=analyticTestFuncs.fEx1D(q,fType,qAux)   #function value at the parameter samples (Gauss quads)
+    samps=sampling.trainSample(sampleType=sampleType,GQdistType=distType,qInfo=qInfo,nSamp=n)
+    q=samps.q
+    xi=samps.xi
+    qBound=samps.qBound
+    f=analyticTestFuncs.fEx1D(q,fType,qInfo)   #function value at the parameter samples           
     #
     #(2) compute the exact moments (reference data)
-    fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qAux,fType)
+    fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qInfo,fType)
     #
     #(3) construct the PCE
-    fCoef,fMean,fVar=pce_1d_cnstrct(f,xi,pceDict)  #find PCE coefficients
+    fCoef,fMean,fVar=pce_1d_cnstrct(f,xi,pceDict)  
     #
     #(4) compare moments: exact vs. PCE estimations
     print(writeUQ.printRepeated('-',70))
@@ -612,15 +602,12 @@ def pce_1d_test():
     #
     #(6) plot
     # test samples
-    qTest=np.linspace(qBound[0],qBound[1],nTest)  #test points in param space
-    if distType=='Unif':
-       xiTest=mapToUnit(qTest,qBound)
-       fTest=analyticTestFuncs.fEx1D(qTest,fType)   #exact response at test points
-    elif distType=='Norm':   
-       xiTest=(qTest-qAux[0])/qAux[1]
-       fTest=analyticTestFuncs.fEx1D(qTest,fType,qAux)   #exact response at test points
-
-    fPCE=pce_1d_eval(fCoef,xiTest,distType)  #Prediction by PCE
+    testSamps=sampling.testSample('unifSpaced',GQdistType=distType,qInfo=qInfo,qBound=qBound,nSamp=nTest)
+    qTest=testSamps.q
+    xiTest=testSamps.xi
+    fTest=analyticTestFuncs.fEx1D(qTest,fType,qInfo)   #exact response at test samples
+    #Prediction by PCE at test samples
+    fPCE=pce_1d_eval(fCoef,xiTest,distType)
     plt.figure(figsize=(12,5))
     ax=plt.gca()
     plt.plot(qTest,fTest,'-k',lw=2,label=r'Exact $f(q)$')
@@ -645,41 +632,46 @@ def pce_2d_test():
     """
     #---- SETTINGS------------
     distType=['Unif','Unif']   #distribution type of the parameters
-    qBound=[[-1,2],   #parameter range 
-            [-3,3]] 
-    nQ=[11,9]   #number of collocation smaples of param1
+    qInfo=[[.0,0.4],   #parameter range 
+            [-2,2]] 
+    nQ=[7,6]   #number of collocation smaples of param1
     nTest=[121,120]   #number of test points in parameter spaces
     #PCE Options
     truncMethod='TO'  #'TP'=Tensor Product
                       #'TO'=Total Order  
     sampleType='LHS'     #'GQ'=Gauss Quadrature nodes
                         #''= any other sample => only 'Regression' can be selected
-                        #'LHS': Latin Hypercube Sampling
-    if sampleType=='LHS':
-       nQ=[100,1]
-    pceSolveMethod='Regression' #'Regression': for any combination of sample points and truncation methods
+                        #'LHS': Latin Hypercube Sampling (only when all distType='Unif')
+    fType='type1'#'type2' 'Rosenbrock'     #type of exact model response                
+    pceSolveMethod='Projection' #'Regression': for any combination of sample points and truncation methods
                                 #'Projection': only for GQ+Tensor Product
     #NOTE: for 'TO' only 'Regression can be used'. pceSolveMethod will be overwritten
     if truncMethod=='TO':
-       LMax=15   #max polynomial order in each parameter direction
+       LMax=10   #max polynomial order in each parameter direction
     #------------------------
     p=len(distType)
     #Generate training data
-#    xi=[]
+    xi=[]
     q=[]
+    qBound=[]
     if sampleType=='GQ':
        for i in range(p):
-           xi_,w_=gqPtsWts(nQ[i],distType[i])  #samples from the mapped space
-           q.append(mapFromUnit(xi_,qBound[i]))       #samples from the admissible space
-           xi.append(xi_)
-       fVal=analyticTestFuncs.fEx2D(q[0],q[1],'type1','tensorProd')  
+           samps=sampling.trainSample(sampleType=sampleType,GQdistType=distType[i],qInfo=qInfo[i],nSamp=nQ[i])
+           q.append(samps.q)
+           xi.append(samps.xi)
+           qBound.append(samps.qBound)
+       fVal=analyticTestFuncs.fEx2D(q[0],q[1],fType,'tensorProd')  
        xiGrid=reshaper.vecs2grid(xi)
     elif sampleType=='LHS':
-        xi=sampling.LHS_sampling(nQ[0],[[-1,1]]*p)
-        for i in range(p):
-            q.append(mapFromUnit(xi[:,i],qBound[i]))       
-        fVal=analyticTestFuncs.fEx2D(q[0],q[1],'type1','pair')  
-        xiGrid=xi
+        if distType==['Unif']*p:
+           qBound=qInfo
+           xi=sampling.LHS_sampling(nQ[0]*nQ[1],[[-1,1]]*p)
+           for i in range(p):
+               q.append(mapFromUnit(xi[:,i],qBound[i]))       
+           fVal=analyticTestFuncs.fEx2D(q[0],q[1],fType,'pair')  
+           xiGrid=xi
+        else:  
+           print("LHS works only when all q have 'Unif' distribution.") 
     #Construct the gPCE
     pceDict={'truncMethod':truncMethod,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,
              'distType':distType}
@@ -693,11 +685,12 @@ def pce_2d_test():
     qTest=[]
     xiTest=[]
     for i in range(p):
-        qTest_=np.linspace(qBound[i][0],qBound[i][1],nTest[i])  
-        xiTest_=mapToUnit(qTest_,qBound[i])
+        testSamps=sampling.testSample('unifSpaced',GQdistType=distType[i],qInfo=qInfo[i],qBound=qBound[i],nSamp=nTest[i])
+        qTest_=testSamps.q
+        xiTest_=testSamps.xi
         qTest.append(qTest_)
         xiTest.append(xiTest_)
-    fTest=analyticTestFuncs.fEx2D(qTest[0],qTest[1],'type1','tensorProd')
+    fTest=analyticTestFuncs.fEx2D(qTest[0],qTest[1],fType,'tensorProd')
     fPCE=pce_pd_eval(fCoefs,kSet,xiTest,distType)  #Prediction at test points by PCE
     #Create 2D grid and response surface over it
     fTestGrid=fTest.reshape((nTest[0],nTest[1]),order='F')
@@ -747,7 +740,7 @@ def pce_3d_test():
     """
     #----- SETTINGS------------
     distType=['Unif','Unif','Unif']
-    qBound=[[-0.75,1.5],   #range of param1
+    qInfo=[[-0.75,1.5],   #range of param1
              [-0.5,2.5],   #range of param2
              [ 1.0,3.0]]   #range of param3
     nQ=[6,5,4] #number of parameter samples in the 3 dimensions
@@ -756,7 +749,7 @@ def pce_3d_test():
     truncMethod='TO'  #'TP'=Tensor Product
                       #'TO'=Total Order  
     sampleType='GQ'   #'GQ'=Gauss Quadrature nodes
-                      #''= any other sample => only 'Regression' can be selected
+                      #any other sample => only 'Regression' can be selected
     pceSolveMethod='Regression' #'Regression': for any combination of sample points and truncation methods
                                 #'Projection': only for GQ+Tensor Product
     nTest=[5,4,3]   #number of test samples for the 3 parameters                          
@@ -768,11 +761,12 @@ def pce_3d_test():
     #Generate training data
     xi=[]
     q=[]
+    qBound=[]
     for i in range(p):
-        xi_,w_=gqPtsWts(nQ[i],distType[i])  #samples from the mapped space
-        q_=mapFromUnit(xi_,qBound[i])       #samples from the admissible space
-        xi.append(xi_)
-        q.append(q_)
+        samps=sampling.trainSample(sampleType=sampleType,GQdistType=distType[i],qInfo=qInfo[i],nSamp=nQ[i])
+        xi.append(samps.xi)
+        q.append(samps.q)
+        qBound.append(samps.qBound)
     fVal=analyticTestFuncs.fEx3D(q[0],q[1],q[2],'Ishigami','tensorProd',funOpt)  
     #construct the gPCE and compute moments
     pceDict={'truncMethod':truncMethod,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,
@@ -795,10 +789,9 @@ def pce_3d_test():
     qTest=[]
     xiTest=[]
     for i in range(p):
-        qTest_=np.linspace(qBound[i][0],qBound[i][1],nTest[i])  
-        xiTest_=mapToUnit(qTest_,qBound[i])
-        qTest.append(qTest_)
-        xiTest.append(xiTest_)
+        testSamps=sampling.testSample('unifSpaced',GQdistType=distType[i],qInfo=qInfo[i],qBound=qBound[i],nSamp=nTest[i])
+        qTest.append(testSamps.q)
+        xiTest.append(testSamps.xi)
     fVal_test_ex=analyticTestFuncs.fEx3D(qTest[0],qTest[1],qTest[2],'Ishigami','tensorProd',funOpt)  
     fVal_test_pce=pce_pd_eval(fCoefs,kSet,xiTest,distType)
     nTest_=np.prod(np.asarray(nTest))
