@@ -12,6 +12,43 @@ sys.path.append(os.getenv("UQit"))
 import nodes
 #
 class parSample:
+    R"""
+    Generating samples from 1D paramter space using different methods.
+
+    Parameters
+    ----------
+    sampType: string
+        Type of sample:
+        'GQ': Gauss-Quadrature nodes 
+        'unifSpaced': Uniformly-spaced
+        'unifRand': Uniformly distributed random
+        'normRand': Gaussian distributed random
+        'Clenshaw': Clenshaw points
+        'Clenshaw-Curtis': Clenshaw-Curtis points
+    GQdistType: string
+        Type of standard distribution in gPCE; Only needed if sampType:'GQ'
+        'Unif': Uniform distribution, Gamma=[-1,1]            
+        'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
+    qInfo: list of length 2
+        Information on the parameter.
+        If q is Gaussian ('Norm' or 'normRand') => qInfo=[mean,sdev]
+        Otherwise, qInfo=[min(q),max(q)]=admissible range of q
+    nSamp: Integer
+        Number of samples to draw
+    
+    Attributes
+    ----------
+    xi: 1d numpy array of size nSamp
+        Samples \xi from the mapped space \Gamma    
+    xiBound: List of length 2
+        Admissible range of xi
+    q: 1d numpy array of size nSamp
+        Samples q from the mapped space Q    
+    qBound: List of length 2
+        Admissible range of q
+    w: 1d numpy array of size nSamp    
+       Weights in Gauss-Quadrature rule (only if sampType='GQ')
+    """
     def __init__(self,sampType='',GQdistType='',qInfo=[],nSamp=0):
         self.info()
         self.sampType=sampType
@@ -31,11 +68,11 @@ class parSample:
 
     def check(self):
         if self.sampType not in self.sampTypeList:
-           print('#ERROR @ parSample: Invalid sampType') 
-           print('Available sampType:',self.samptypeList)
+           raise KeyError('#ERROR @ parSample: Invalid sampType! Choose from'\
+                   ,self.sampTypeList)
         if self.sampType=='GQ' and self.GQdistType not in self.GQdistList:
-           print('#ERROR @ parSample: Invalid GQdistType') 
-           print('Available GQsampType:',self.GQdistList)
+           raise KeyError('#ERROR @ parSample: Invalid GQdistType! Choose from'\
+                   ,self.GQdistList)
 
     def genSamples(self):       
         n=self.nSamp
@@ -102,8 +139,8 @@ class parSample:
 #
 # Test
 def test():
-    #F=parSample(sampType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10)
-    F=parSample(sampType='normRand',qInfo=[2,3],nSamp=10)
+    F=parSample(sampType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10)
+    #F=parSample(sampType='NormRand',qInfo=[2,3],nSamp=10)
     print('sampType:',F.sampType)
     print('GQdistType:',F.GQdistType)
     print('qBound',F.qBound)
@@ -111,5 +148,3 @@ def test():
     print('xi',F.xi)
     print('q',F.q)
     print('w',F.w)
-
-
