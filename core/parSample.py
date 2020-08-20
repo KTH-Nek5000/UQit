@@ -17,7 +17,7 @@ class parSample:
 
     Parameters
     ----------
-    sampType: string
+    sampleType: string
         Type of sample:
         'GQ': Gauss-Quadrature nodes 
         'unifSpaced': Uniformly-spaced
@@ -26,7 +26,7 @@ class parSample:
         'Clenshaw': Clenshaw points
         'Clenshaw-Curtis': Clenshaw-Curtis points
     GQdistType: string
-        Type of standard distribution in gPCE; Only needed if sampType:'GQ'
+        Type of standard distribution in gPCE; Only needed if sampleType:'GQ'
         'Unif': Uniform distribution, Gamma=[-1,1]            
         'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
     qInfo: list of length 2
@@ -47,11 +47,11 @@ class parSample:
     qBound: List of length 2
         Admissible range of q
     w: 1d numpy array of size nSamp    
-       Weights in Gauss-Quadrature rule (only if sampType='GQ')
+       Weights in Gauss-Quadrature rule (only if sampleType='GQ')
     """
-    def __init__(self,sampType='',GQdistType='',qInfo=[],nSamp=0):
+    def __init__(self,sampleType='',GQdistType='',qInfo=[],nSamp=0):
         self.info()
-        self.sampType=sampType
+        self.sampleType=sampleType
         self.GQdistType=GQdistType
         self.check()
         self.qInfo=qInfo
@@ -60,41 +60,41 @@ class parSample:
         self.genSamples()
 
     def info(self):
-        sampTypeList=['GQ','unifSpaced','unifRand','normRand','Clenshaw',\
+        sampleTypeList=['GQ','unifSpaced','unifRand','normRand','Clenshaw',\
                       'Clenshaw-Curtis']
         GQdistList=['Unif','Norm'] #list of available distributions for gpce
-        self.sampTypeList=sampTypeList
+        self.sampleTypeList=sampleTypeList
         self.GQdistList=GQdistList
 
     def check(self):
-        if self.sampType not in self.sampTypeList:
-           raise KeyError('#ERROR @ parSample: Invalid sampType! Choose from'\
-                   ,self.sampTypeList)
-        if self.sampType=='GQ' and self.GQdistType not in self.GQdistList:
+        if self.sampleType not in self.sampleTypeList:
+           raise KeyError('#ERROR @ parSample: Invalid sampleType! Choose from'\
+                   ,self.sampleTypeList)
+        if self.sampleType=='GQ' and self.GQdistType not in self.GQdistList:
            raise KeyError('#ERROR @ parSample: Invalid GQdistType! Choose from'\
                    ,self.GQdistList)
 
     def genSamples(self):       
         n=self.nSamp
-        if self.sampType=='GQ' and self.GQdistType in self.GQdistList:
+        if self.sampleType=='GQ' and self.GQdistType in self.GQdistList:
            self.gqPtsWts() 
-        elif self.sampType=='normRand':
+        elif self.sampleType=='normRand':
            self.xi=np.random.normal(size=n)
            self.xiBound=[min(self.xi),max(self.xi)]
            self.mean=self.qInfo[0]
            self.sdev=self.qInfo[1]
            self.xi2q_map()         
         else:    
-           if self.sampType=='unifSpaced':
+           if self.sampleType=='unifSpaced':
               self.xiBound=[0,1]
               self.xi=np.linspace(0,1,n)
-           elif self.sampType=='unifRand':
+           elif self.sampleType=='unifRand':
               self.xiBound=[0,1]
               self.xi=np.random.rand(n)
-           elif self.sampType=='Clenshaw':
+           elif self.sampleType=='Clenshaw':
               self.xiBound=[-1,1]
               self.xi=nodes.Clenshaw_pts(n)
-           elif self.sampType=='Clenshaw-Curtis':
+           elif self.sampleType=='Clenshaw-Curtis':
               self.xiBound=[0,1]
               l_=1+int(mt.log(n-1)/mt.log(2))
               self.xi=nodes.ClenshawCurtis_pts(l_)
@@ -126,8 +126,8 @@ class parSample:
         Linearly map xi\in\Gamma to q\in Q
         """
         xi_=self.xi
-        if (self.sampType=='GQ' and self.GQdistType=='Norm') or \
-            self.sampType=='normRand':
+        if (self.sampleType=='GQ' and self.GQdistType=='Norm') or \
+            self.sampleType=='normRand':
            self.q=self.qInfo[0]+self.qInfo[1]*xi_     
            self.qBound=[min(self.q),max(self.q)]
         else:
@@ -137,11 +137,15 @@ class parSample:
                   (qBound_[1]-qBound_[0])+qBound_[0]
 #
 #
-# Test
-def test():
-    F=parSample(sampType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10)
-    #F=parSample(sampType='NormRand',qInfo=[2,3],nSamp=10)
-    print('sampType:',F.sampType)
+# Tests
+#
+def parSample_test():
+    """
+    Test parSample()
+    """
+    F=parSample(sampleType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10)
+    #F=parSample(sampleType='NormRand',qInfo=[2,3],nSamp=10)
+    print('sampleType:',F.sampleType)
     print('GQdistType:',F.GQdistType)
     print('qBound',F.qBound)
     print('xiBound',F.xiBound)
