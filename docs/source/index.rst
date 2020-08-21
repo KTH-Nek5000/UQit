@@ -58,7 +58,9 @@ Examples and Documentation
    :caption: Contents:
 
    ./UQit_core_/instl_dep
+   ./UQit_core_/codes_list
    ./UQit_core_/terminology
+   ./UQit_core_/sampling
    ./UQit_core_/surrogate
    ./UQit_core_/uqFWD
    ./UQit_core_/gsa
