@@ -372,4 +372,49 @@ def lagrangeInterpol_multiVar_test3d():
     plt.plot(abs(fInterp_-fTestEx)/(fTestEx)*100,'-sk')
     plt.ylabel(r'$|f_{interp}(q)-f_{Analytic}(q)|/f_{Analytic}(q) \%$',fontsize=15)
     plt.xlabel(r'Test Parameters',fontsize=18)
+    plt.grid(alpha=0.4)
     plt.show()
+#
+def lagrangeInterpol_Quads2Line_test():
+    """
+       Test lagrangeInterpol_Quads2Line_test(.....):
+       A set of Gauss-Legendre points in a 2D parameters plane along with associated response are given. The aim is to construct a Lagrange interpolation based on these sets and interpolate the response at all points over a straight line relying in the 2D parameter plane.    
+    """
+    #----- SETTINGS --------------------------------------------------------------
+    # Settings of the discrete samples in space of param1 & param2
+    nNodes=[9,9]   #number of (non-uniform=Gauss-Legendre) nodes in 1d parameter spaces
+    sampType=['GLL',      #Method to draw samples for q1, q2
+              'unifSpaced']
+    qBound=[[-0.75,1.5],  #param_k-space <range_k
+            [-0.8 ,2.5]]  #(line k: range for param k)
+    # Define the line in qBound[0]xqBound[1] plane over which interpolation is to be done
+    lineDef={'start':[1.4,2.3],    #coordinates of the line's starting point in the q1-q2 plane
+             'end':[-0.7,-0.2],    #coordinates of the line's end point in the q1-q2 plane
+             'noPtsLine':100
+            }
+    #-----------------------------------------------------------------------------
+    p=len(nNodes)
+    # (1) Create nodal sets over the parameter space (each node=one joint sample)    
+    # Generate Gauss-Legendre points over qBounds[0] and qBounds[1]
+    qNodes=[]
+    for i in range(p):
+        qNodes_=sampling.trainSample(sampleType=sampType[i],qInfo=qBound[i],nSamp=nNodes[i])        
+        qNodes.append(qNodes_.q)
+    # Response at the GL samples
+    fNodes=analyticTestFuncs.fEx2D(qNodes[0],qNodes[1],'type1','tensorProd')
+
+    #(2) Interpolate from the nodal set to the points over the line defined above
+    qLine,fLine=lagrangeInterpol_Quads2Line(fNodes,qNodes,lineDef) 
+
+    #(3) Plot results
+    plt.figure(figsize=(8,5))
+    plt.plot(qLine[0],fLine,'-ob',label='Lagrange Interpolation')
+    # exact response
+    fLine_ex=analyticTestFuncs.fEx2D(qLine[0],qLine[1],'type1','pair')
+    plt.plot(qLine[0],fLine_ex,'-xr',label='Exact')
+    plt.title('%d x%d interpolating nodes in Q1xQ2 space.' %(nNodes[0],nNodes[1]))
+    plt.xlabel('q1');
+    plt.ylabel('Response')
+    plt.legend()
+    plt.grid(alpha=0.4)
+    plt.show()    
