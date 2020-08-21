@@ -76,6 +76,7 @@ class trainSample:
     sampleType: string
         Type of sample:
         'GQ': Gauss-Quadrature nodes 
+        'GLL': Gauss-Lobatto-Lgendre nodes
         'unifSpaced': Uniformly-spaced
         'unifRand': Uniformly distributed random
         'normRand': Gaussian distributed random
@@ -116,7 +117,7 @@ class trainSample:
         self.genSamples()
 
     def info(self):
-        sampleTypeList=['GQ','unifSpaced','unifRand','normRand','Clenshaw',\
+        sampleTypeList=['GQ','GLL','unifSpaced','unifRand','normRand','Clenshaw',\
                       'Clenshaw-Curtis']
         GQdistList=['Unif','Norm'] #list of available distributions for gpce
         self.sampleTypeList=sampleTypeList
@@ -141,6 +142,11 @@ class trainSample:
            self.sdev=self.qInfo[1]
            self.xi2q_map()         
         else:    
+           if self.sampleType=='GLL':
+              self.xiBound=[-1,1]
+              xi_,w_=nodes.gllPts(n) 
+              self.xi=xi_
+              self.w=w_
            if self.sampleType=='unifSpaced':
               xiBound_=[0,1]
               self.xiBound=xiBound_
@@ -202,11 +208,12 @@ class testSample:
     ----------
     sampleType: string
         Type of sample:
+        'GLL': Gauss-Lobatto-Lgendre nodes
         'unifSpaced': Uniformly-spaced
         'unifRand': Uniformly distributed random
         'normRand': Gaussian distributed random
     GQdistType: string
-        Type of standard distribution in gPCE; Only needed if sampleType:'GQ'
+        Type of standard distribution in gPCE; default='Unif'
         'Unif': Uniform distribution, Gamma=[-1,1]            
         'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
     qInfo: List of length 2
@@ -240,7 +247,7 @@ class testSample:
         self.genTestSamples()
 
     def info(self):
-        sampleTypeList=['unifSpaced','unifRand','normRand']
+        sampleTypeList=['GLL','unifSpaced','unifRand','normRand']
         GQdistList=['Unif','Norm'] #list of available distributions for gpce
         self.sampleTypeList=sampleTypeList
         self.GQdistList=GQdistList
@@ -262,6 +269,10 @@ class testSample:
 
         if self.sampleType=='unifSpaced':
            q_=np.linspace(self.qBound[0],self.qBound[1],n) 
+        elif self.sampleType=='GLL':
+             self.xiBound=[-1,1]
+             xi_,w_=nodes.gllPts(n) 
+             q_=xi_*(self.qBound[1]-self.qBound[0])+self.qBound[0]
         elif self.sampleType=='unifRand':
            if self.GQdistType!='Unif': 
               raise ValueError("#ERROR @ testSample: sampleType 'unifRand' should be with GQdistType 'Unif' or ''.")
@@ -301,8 +312,9 @@ def trainSample_test():
     """
     Test trainSample()
     """
-    F=trainSample(sampleType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10)
-    #F=parSample(sampleType='NormRand',qInfo=[2,3],nSamp=10)
+    #F=trainSample(sampleType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10)
+    #F=trainSample(sampleType='NormRand',qInfo=[2,3],nSamp=10)
+    F=trainSample(sampleType='GLL',qInfo=[2,3],nSamp=10)
     print('sampleType:',F.sampleType)
     print('GQdistType:',F.GQdistType)
     print('qBound',F.qBound)
@@ -321,6 +333,7 @@ def testSample_test():
     F3=testSample(sampleType='normRand',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
     F4=testSample(sampleType='unifSpaced',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
     F5=testSample(sampleType='unifSpaced',GQdistType='Unif',qBound=[-1,3],nSamp=10)
+    F6=testSample(sampleType='GLL',qBound=[-1,3],nSamp=10)
     print('sampleType:',F1.sampleType)
     print('GQdistType:',F1.GQdistType)
     print('qBound',F1.qBound)
@@ -332,4 +345,5 @@ def testSample_test():
     plt.plot(F3.q,'sg')
     plt.plot(F4.q,'+c')
     plt.plot(F5.q,'pk')
+    plt.plot(F6.q,'^m')
     plt.show()
