@@ -72,7 +72,17 @@ def gllPts(n,eps=10**-8,maxIter=1000):
         xi=xi_old-(xi*V[:,n-1]-V[:,n-2])/(n*V[:,n-1])
         err=max(abs(xi-xi_old).flatten())
         xi_old=xi
+    if (iter_>maxIter and err>eps):
+       print('gllPts(): max iterations reached without convergence!')
     #Weights
     w=2./(n*(n-1)*V[:,n-1]**2.)
     return xi,w
+#
+#
+# Tests
+#
+def gllPts_test():
+    xi,w=gllPts(8)
+    print('GLL nodes:',xi)
+    print('GLL weights:',w)
 
