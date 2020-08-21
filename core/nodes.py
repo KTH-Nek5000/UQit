@@ -47,7 +47,7 @@ def gllPts(n,eps=10**-8,maxIter=1000):
     Outputs
     -------
     xi: 1d numpy array of size n, GLL nodes
-    w: 1d numpy array of size n, GLL nodes
+    w: 1d numpy array of size n, GLL weights
 
     Reference
     ---------
