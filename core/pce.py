@@ -100,7 +100,8 @@ def pceDict_corrector(pceDict):
          * For 'GQ' samples+'TP' truncation method: either 'Projection' or 'Regression' can be used
          * For all combination of sample points and truncation, 'Projection' can be used to compute PCE coefficients
     """
-    #single-D parameter, p==1
+    if 'distType' not in pceDict:
+       raise KeyError("'distType' is missing in pceDict.") 
     if 'truncMethod' not in pceDict:
        if pceDict['pceSolveMethod']=='Projection':
           if pceDict['sampleType'] !='GQ':
