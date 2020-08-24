@@ -5,6 +5,9 @@
 #----------------------------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
 #----------------------------------------------------------------
+#1. Add header notes
+#2. Remove the multi-task routines
+#----------------------------------------------------------------
 """
    >>> Tricks I learned about GpyTorch by experience:
     1. Number of learning data cannot exceed 128
