@@ -4,6 +4,10 @@
 #--------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
 #--------------------------------------------
+#TODO:
+#1. header Notes
+#2. A help method in pce class to show available options
+#--------------------------------------------
 #
 import os
 import sys
@@ -118,7 +122,7 @@ class pce:
       Linearly map \xi\in[-1,1] to x\in[xBound]
       x can be either scalar or a vector
       """
-      xi = np.array(xi, copy=False, ndmin=1)
+      xi_ = np.array(xi_, copy=False, ndmin=1)
       x_=(0.5*(xi_+1.0)*(xBound_[1]-xBound_[0])+xBound_[0])
       return x_
 
