@@ -5,6 +5,10 @@
 #--------------------------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
 #--------------------------------------------------------------
+#TODO:
+#1. Add header nodes
+#2. Add other distType for pce
+#--------------------------------------------------------------
 """
    >>> Probabilistic generalized Polynomial Chaos Expansion (PgPCE) 
    [IDEA]:
@@ -38,8 +42,36 @@ import writeUQ
 import reshaper
 import sampling
 #
-def ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
+#
+class ppce:
     """
+    Probabilistic Polynomial Chaos Expansion (PPCE)
+    """
+    def __init__(self,qTrain,yTrain,noiseV,ppceDict):
+        self.qTrain=qTrain
+        self.yTrain=yTrain
+        self.noiseV=noiseV
+        self.ppceDict=ppceDict
+        self.info()
+        self.cnstrct()
+
+    def info(self):
+        if self.qTrain.ndim==1:
+           self.p=1
+        elif self.qTrain.ndim==2:
+           self.p=self.qTrain.shape[-1] 
+
+        if self.qTrain.shape[0]==self.yTrain.shape:
+           raise ValueError("Size of qTrain and yTrain should be the same.")
+
+    def cnstrct(self):
+        if self.p==1:
+           self.ppce_cnstrct_1d() 
+        elif self.p>1:
+           self.ppce_cnstrct_pd() 
+
+    def ppce_cnstrct_1d(self):
+       """
        Probabistric PCE (gPCE+GPR) for 1d-input parameter, y=f(q)+e
        Inputs:
            qTrain: training input parameters q, 1d numpy array of size n
@@ -55,56 +87,62 @@ def ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
            fMean_list: PCE estimates for the mean of f(q), 1d numpy array
            fVar_list : PCE estimates for the var of f(q) , 1d numpy array
            optOut: optional outputs for plotting
-    """
-    print('... Probabilistic PCE for 1D input parameter.')
-    #(0) assignments
-    p=1
-    nGQ=ppceDict['nGQtest']       #number of GQ test points in the parameter space
-    qBound=ppceDict['qBound'] #admissible range of the input parameter q
-    nMC=ppceDict['nMC']       #number of samples taken from GPR to estimate PCE coefs
-    distType=ppceDict['distType']
-    #make a dict for gpr
-    gprOpts={'nIter':ppceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of the GPR
-             'lr':ppceDict['lr_gpr'],           #learning rate in opimization of hyperparameters of the GPR
-             'convPlot':ppceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
-            }
+       """
+       print('... Probabilistic PCE for 1D input parameter.')
+       p=self.p
+       ppceDict=self.ppceDict
+       qTrain=self.qTrain
+       yTrain=self.yTrain
+       noiseSdev=self.noiseV
+       #(0) assignments
+       nGQ=ppceDict['nGQtest']       #number of GQ test points in the parameter space
+       qBound=ppceDict['qBound'] #admissible range of the input parameter q
+       nMC=ppceDict['nMC']       #number of samples taken from GPR to estimate PCE coefs
+       distType=ppceDict['distType']
+       #make a dict for gpr
+       gprOpts={'nIter':ppceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of the GPR
+                'lr':ppceDict['lr_gpr'],           #learning rate in opimization of hyperparameters of the GPR
+                'convPlot':ppceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
+               }
 
-    #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
-    xiGQ,wGQ=pce.pce.gqPtsWts(nGQ,distType)  
-    if distType=='Unif':
-       qTest=pce.pce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
+       #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
+       xiGQ,wGQ=pce.pce.gqPtsWts(nGQ,distType)  
+       if distType=='Unif':
+          qTest=pce.pce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
 
-    #(2) Construct GPR surrogate based on training data
-    gpr_=gpr_torch.gpr(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
-    post_f=gpr_.post_f
-    post_obs=gpr_.post_y
+       #(2) Construct GPR surrogate based on training data
+       gpr_=gpr_torch.gpr(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
+       post_f=gpr_.post_f
+       post_obs=gpr_.post_y
 
-    #(3) Use samples of GPR tested at GQ nodes to construct a PCE
-    #    nMC independent samples are drawn from the GPR surrogate
-    fMean_list=[]      #list of estimates for E[f(q)] 
-    fVar_list =[]      #list of estimates for V[f(q)]
-    pceDict={'p':p,'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType}
-    for j in range(nMC):
-        # draw a sample for f(q) from GPR surrogate
-        f_=post_obs.sample().numpy()
-        # construct PCE for the drawn sample
-        pce_=pce.pce(fVal=f_,xi=[],qInfo=[qBound],pceDict=pceDict)
-        fMean_list.append(pce_.fMean)
-        fVar_list.append(pce_.fVar)
-        if ((j+1)%50==0):
-           print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
+       #(3) Use samples of GPR tested at GQ nodes to construct a PCE
+       #    nMC independent samples are drawn from the GPR surrogate
+       fMean_list=[]      #list of estimates for E[f(q)] 
+       fVar_list =[]      #list of estimates for V[f(q)]
+       pceDict={'p':p,'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType}
+       for j in range(nMC):
+           # draw a sample for f(q) from GPR surrogate
+           f_=post_obs.sample().numpy()
+           # construct PCE for the drawn sample
+           pce_=pce.pce(fVal=f_,xi=[],qInfo=[qBound],pceDict=pceDict)
+           fMean_list.append(pce_.fMean)
+           fVar_list.append(pce_.fVar)
+           if ((j+1)%50==0):
+              print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
-    #(4) Convert lists to numpy arrays    
-    # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
-    fMean_list=np.asarray(fMean_list)
-    fVar_list=np.asarray(fVar_list)
-    #optional outputs: only used for plot in the test below
-    #in general we do not need them
-    optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest}
-    return fMean_list,fVar_list,optOut
+       #(4) Convert lists to numpy arrays    
+       # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
+       fMean_list=np.asarray(fMean_list)
+       fVar_list=np.asarray(fVar_list)
+       #optional outputs: only used for plot in the test below
+       #in general we do not need them
+       optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest}
+       self.fMean_samps=fMean_list
+       self.fVar_samps=fVar_list
+       self.optOut=optOut
 #
-def ppce_pd_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
-    """
+    def ppce_cnstrct_pd(self):
+       """
        Probabistric PCE (gPCE+GPR) for pd-input parameter, y=f(q)+e
        Inputs:
            qTrain: training input parameters q, pd numpy array of size nxp
@@ -120,68 +158,73 @@ def ppce_pd_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
            fMean_list: PCE estimates for the mean of f(q), 1d numpy array
            fVar_list : PCE estimates for the var of f(q) , 1d numpy array
            optOut: optional outputs for plotting
-    """
-    print('... Probabilistic PCE for 2D input parameter.')
-    #(0) Assignments
-    p=qTrain.shape[-1]    #dimension of input parameter q
-    nGQ=ppceDict['nGQtest']       #list of number of GQ test points in each of p dimensions of the parameter q
-    qBound=ppceDict['qBound']     #admissible range of inputs parameter
-    nMC=ppceDict['nMC']           #number of samples taken from GPR for estimating PCE coefs
-    distType=ppceDict['distType']
-    #make a dict for gpr (do NOT change)
-    gprOpts={'nIter':ppceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of GPR
-             'lr':ppceDict['lr_gpr'],          #learning rate in opimization of hyperparameters of GPR
-             'convPlot':ppceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
-            }
-    #make a dict for PCE (do NOT change)
-    pceDict={'p':p,
-             'truncMethod':'TP',  #always use TP truncation with GQ sampling with Projection (GQ rule)
-             'sampleType':'GQ', 
-             'pceSolveMethod':'Projection',
-             'distType':distType
-             }
+       """
+       print('... Probabilistic PCE for 2D input parameter.')
+       p=self.p
+       ppceDict=self.ppceDict
+       qTrain=self.qTrain
+       yTrain=self.yTrain
+       noiseSdev=self.noiseV
+       #(0) Assignments
+       nGQ=ppceDict['nGQtest']       #list of number of GQ test points in each of p dimensions of the parameter q
+       qBound=ppceDict['qBound']     #admissible range of inputs parameter
+       nMC=ppceDict['nMC']           #number of samples taken from GPR for estimating PCE coefs
+       distType=ppceDict['distType']
+       #make a dict for gpr (do NOT change)
+       gprOpts={'nIter':ppceDict['nIter_gpr'],    #number of iterations to optimize hyperparameters of GPR
+                'lr':ppceDict['lr_gpr'],          #learning rate in opimization of hyperparameters of GPR
+                'convPlot':ppceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
+              }
+       #make a dict for PCE (do NOT change)
+       pceDict={'p':p,
+                'truncMethod':'TP',  #always use TP truncation with GQ sampling with Projection (GQ rule)
+                'sampleType':'GQ', 
+                'pceSolveMethod':'Projection',
+                'distType':distType
+               }
 
-    #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
-    qTestGrid=[]
-    for i in range(p):
-        xiGQ_,wGQ_=pce.pce.gqPtsWts(nGQ[i],distType[i]) 
-        if distType[i]=='Unif':
-           qTestGrid.append(pce.pce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
-    qTest=reshaper.vecs2grid(qTestGrid)
+       #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
+       qTestGrid=[]
+       for i in range(p):
+           xiGQ_,wGQ_=pce.pce.gqPtsWts(nGQ[i],distType[i]) 
+           if distType[i]=='Unif':
+              qTestGrid.append(pce.pce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
+       qTest=reshaper.vecs2grid(qTestGrid)
 
-    #(2) Construct GPR surrogate based on training data
-    gpr_=gpr_torch.gpr(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
-    post_f=gpr_.post_f
-    post_obs=gpr_.post_y
+       #(2) Construct GPR surrogate based on training data
+       gpr_=gpr_torch.gpr(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
+       post_f=gpr_.post_f
+       post_obs=gpr_.post_y
 
-    #(3) Use samples of GPR tested at GQ nodes to construct a PCE
-    #    nMC independent samples are drawn from the GPR surrogate
-    fMean_list=[]      #list of estimates for E[f(q)] 
-    fVar_list =[]      #list of estimates for V[f(q)]
-    for j in range(nMC):
-        # draw a sample for f(q) from GPR surrogate
-        f_=post_obs.sample().numpy()
-        # construct PCE for the drawn sample
-        #fCoef_,kSet_,fMean_,fVar_=pce.pce_pd_cnstrct(f_,nGQ,[],pceDict)
-        pce_=pce.pce(fVal=f_,nQList=nGQ,xi=[],qInfo=qBound,pceDict=pceDict)
-        fMean_list.append(pce_.fMean)
-        fVar_list.append(pce_.fVar)
-        if ((j+1)%50==0):
-           print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
+       #(3) Use samples of GPR tested at GQ nodes to construct a PCE
+       #    nMC independent samples are drawn from the GPR surrogate
+       fMean_list=[]      #list of estimates for E[f(q)] 
+       fVar_list =[]      #list of estimates for V[f(q)]
+       for j in range(nMC):
+           # draw a sample for f(q) from GPR surrogate
+           f_=post_obs.sample().numpy()
+           # construct PCE for the drawn sample
+           #fCoef_,kSet_,fMean_,fVar_=pce.pce_pd_cnstrct(f_,nGQ,[],pceDict)
+           pce_=pce.pce(fVal=f_,nQList=nGQ,xi=[],qInfo=qBound,pceDict=pceDict)
+           fMean_list.append(pce_.fMean)
+           fVar_list.append(pce_.fVar)
+           if ((j+1)%50==0):
+              print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
-    #(4) Convert lists to numpy arrays    
-    # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
-    fMean_list=np.asarray(fMean_list)
-    fVar_list=np.asarray(fVar_list)
-    #optional outputs: only used for plot in the test below
-    #in general we do not need them
-    optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest,'qTestGrid':qTestGrid}
-    return fMean_list,fVar_list,optOut
+       #(4) Convert lists to numpy arrays    
+       # estimates for their mean and sdev: fMean_list.mean(), fMean_list.std(), ...
+       fMean_list=np.asarray(fMean_list)
+       fVar_list=np.asarray(fVar_list)
+       #optional outputs: only used for plot in the test below
+       #in general we do not need them
+       optOut={'post_f':post_f,'post_obs':post_obs,'qTest':qTest,'qTestGrid':qTestGrid}
+       self.optOut=optOut
+       self.fMean_samps=fMean_list
+       self.fVar_samps=fVar_list
 #
 #
-###############################
 # Tests
-###############################
+#
 import torch   #for plot
 def ppce_1d_test():
     """
@@ -265,7 +308,12 @@ def ppce_1d_test():
     #   (a) make the dictionary
     ppceDict={'nGQtest':nGQtest,'qBound':qBound,'distType':distType,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     #   (b) call the method
-    fMean_samples,fVar_samples,optOut=ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
+#    fMean_samples,fVar_samples,optOut=ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
+    ppce_=ppce(qTrain,yTrain,noiseSdev,ppceDict)
+    fMean_samples=ppce_.fMean_samps
+    fVar_samples=ppce_.fVar_samps
+    optOut=ppce_.optOut
+
     #(3) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator    
     gpr1D_plotter(optOut['post_f'],optOut['post_obs'],qTrain,yTrain,optOut['qTest'],fEx(optOut['qTest']))
@@ -284,7 +332,6 @@ def ppce_1d_test():
     print('>> Exact Var(f) = %g' %fVar_ex)
     print('   ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
 #	
-#//////////////////////////////////
 def ppce_2d_test():
     """
         Test for ppce_pd_cnstrct()
@@ -387,7 +434,10 @@ def ppce_2d_test():
     #   (a) make the dictionary
     ppceDict={'nGQtest':nGQtest,'qBound':qBound,'distType':distType,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     #   (b) call the method
-    fMean_samples,fVar_samples,optOut=ppce_pd_cnstrct(qTrain,yTrain,noiseSdev,ppceDict)
+    ppce_=ppce(qTrain,yTrain,noiseSdev,ppceDict)
+    optOut=ppce_.optOut
+    fMean_samples=ppce_.fMean_samps
+    fVar_samples=ppce_.fVar_samps
     #(3) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator    
     gpr_3dsurf_plot(qTrain,yTrain,optOut['qTestGrid'],nGQtest,optOut['post_obs'],optOut['post_f'])
