@@ -58,6 +58,7 @@ def ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     """
     print('... Probabilistic PCE for 1D input parameter.')
     #(0) assignments
+    p=1
     nGQ=ppceDict['nGQtest']       #number of GQ test points in the parameter space
     qBound=ppceDict['qBound'] #admissible range of the input parameter q
     nMC=ppceDict['nMC']       #number of samples taken from GPR to estimate PCE coefs
@@ -69,25 +70,27 @@ def ppce_1d_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
             }
 
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
-    xiGQ,wGQ=pce.gqPtsWts(nGQ,distType)  
+    xiGQ,wGQ=pce.pce.gqPtsWts(nGQ,distType)  
     if distType=='Unif':
-       qTest=pce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
+       qTest=pce.pce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
 
     #(2) Construct GPR surrogate based on training data
-    post_f,post_obs=gpr_torch.gprTorch_1d(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
+    gpr_=gpr_torch.gpr(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
+    post_f=gpr_.post_f
+    post_obs=gpr_.post_y
 
     #(3) Use samples of GPR tested at GQ nodes to construct a PCE
     #    nMC independent samples are drawn from the GPR surrogate
     fMean_list=[]      #list of estimates for E[f(q)] 
     fVar_list =[]      #list of estimates for V[f(q)]
-    pceDict={'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType}
+    pceDict={'p':p,'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType}
     for j in range(nMC):
         # draw a sample for f(q) from GPR surrogate
         f_=post_obs.sample().numpy()
         # construct PCE for the drawn sample
-        fCoef_,fMean_,fVar_=pce.pce_1d_cnstrct(f_,[],pceDict)
-        fMean_list.append(fMean_)
-        fVar_list.append(fVar_)
+        pce_=pce.pce(fVal=f_,xi=[],qInfo=[qBound],pceDict=pceDict)
+        fMean_list.append(pce_.fMean)
+        fVar_list.append(pce_.fVar)
         if ((j+1)%50==0):
            print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
@@ -131,7 +134,8 @@ def ppce_pd_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
              'convPlot':ppceDict['convPlot_gpr']  #plot convergence of optimization of GPR hyperparameters
             }
     #make a dict for PCE (do NOT change)
-    pceDict={'truncMethod':'TP',  #always use TP truncation with GQ sampling with Projection (GQ rule)
+    pceDict={'p':p,
+             'truncMethod':'TP',  #always use TP truncation with GQ sampling with Projection (GQ rule)
              'sampleType':'GQ', 
              'pceSolveMethod':'Projection',
              'distType':distType
@@ -140,13 +144,15 @@ def ppce_pd_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
     #(1) Generate test points that are Gauss quadratures chosen based on the distribution of q (gPCE rule) 
     qTestGrid=[]
     for i in range(p):
-        xiGQ_,wGQ_=pce.gqPtsWts(nGQ[i],distType[i]) 
+        xiGQ_,wGQ_=pce.pce.gqPtsWts(nGQ[i],distType[i]) 
         if distType[i]=='Unif':
-           qTestGrid.append(pce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
+           qTestGrid.append(pce.pce.mapFromUnit(xiGQ_,qBound[i])) #qTest\in qBound
     qTest=reshaper.vecs2grid(qTestGrid)
 
     #(2) Construct GPR surrogate based on training data
-    post_f,post_obs=gpr_torch.gprTorch_pd(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
+    gpr_=gpr_torch.gpr(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
+    post_f=gpr_.post_f
+    post_obs=gpr_.post_y
 
     #(3) Use samples of GPR tested at GQ nodes to construct a PCE
     #    nMC independent samples are drawn from the GPR surrogate
@@ -156,9 +162,10 @@ def ppce_pd_cnstrct(qTrain,yTrain,noiseSdev,ppceDict):
         # draw a sample for f(q) from GPR surrogate
         f_=post_obs.sample().numpy()
         # construct PCE for the drawn sample
-        fCoef_,kSet_,fMean_,fVar_=pce.pce_pd_cnstrct(f_,nGQ,[],pceDict)
-        fMean_list.append(fMean_)
-        fVar_list.append(fVar_)
+        #fCoef_,kSet_,fMean_,fVar_=pce.pce_pd_cnstrct(f_,nGQ,[],pceDict)
+        pce_=pce.pce(fVal=f_,nQList=nGQ,xi=[],qInfo=qBound,pceDict=pceDict)
+        fMean_list.append(pce_.fMean)
+        fVar_list.append(pce_.fVar)
         if ((j+1)%50==0):
            print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" %(j,nMC))
 
