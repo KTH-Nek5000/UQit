@@ -23,6 +23,17 @@ import sampling
 class pce:
    """
    Construction of non-inrusive generalized Polynomial Chaos Expansion (PCE)
+
+   Parameters
+   ----------
+
+   Attributes
+   ----------
+
+   Methods
+   -------
+
+
    """
    def __init__(self,fVal,xi,qInfo,pceDict,nQList=[]):
        self.fVal=fVal
@@ -32,6 +43,7 @@ class pce:
        self.pceDict=pceDict
        self.info()
        self.pceDict_corrector()
+       self.cnstrct()
 
    def info(self):
        obligKeyList=['p','distType','sampleType','pceSolveMethod'] #obligatory keys in pceDict
@@ -581,6 +593,7 @@ class pceEval:
       self.kSet=kSet
       self.convPltOpts=convPltOpts
       self.info()
+      self.eval()
    
    def info(self):
        if len(self.kSet)==0:
@@ -781,7 +794,6 @@ def pce_1d_test():
     #
     #(3) Construct the PCE
     pce_=pce(fVal=f,xi=xi,qInfo=[qInfo],pceDict=pceDict)
-    pce_.cnstrct()
     fMean=pce_.fMean  #mean, var estimated by the PCE and PCE coefficients
     fVar=pce_.fVar
     pceCoefs=pce_.coefs
@@ -801,7 +813,6 @@ def pce_1d_test():
     fTest=analyticTestFuncs.fEx1D(qTest,fType,qInfo)   #exact response at test samples
     #Prediction by PCE at test samples
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType)
-    pcePred_.eval()
     fPCE=pcePred_.pceVal
     #
     #(6) PLots
@@ -880,7 +891,6 @@ def pce_2d_test():
        pceDict.update({'LMax':LMax,'pceSolveMethod':'Regression'})
     #Construct the PCE
     pce_=pce(fVal=fVal,xi=xiGrid,qInfo=qInfo,pceDict=pceDict,nQList=nQ)
-    pce_.cnstrct()
     fMean=pce_.fMean
     fVar=pce_.fVar
     pceCoefs=pce_.coefs
@@ -897,7 +907,6 @@ def pce_2d_test():
     fTest=analyticTestFuncs.fEx2D(qTest[0],qTest[1],fType,'tensorProd')
     #Evaluate PCE at the test samples
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType,kSet=kSet)
-    pcePred_.eval()
     fPCE=pcePred_.pceVal
 
     #plot convergence of the PCE
@@ -979,7 +988,6 @@ def pce_3d_test():
     #Construct the PCE   
     xiGrid=reshaper.vecs2grid(xi)
     pce_=pce(fVal=fVal,xi=xiGrid,qInfo=qInfo,pceDict=pceDict,nQList=nQ)
-    pce_.cnstrct()
     fMean=pce_.fMean
     fVar=pce_.fVar
     pceCoefs=pce_.coefs
@@ -1002,7 +1010,6 @@ def pce_3d_test():
     fVal_test_ex=analyticTestFuncs.fEx3D(qTest[0],qTest[1],qTest[2],'Ishigami','tensorProd',funOpt)  
     #PCE prediction at test points
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType,kSet=kSet)
-    pcePred_.eval()
     fVal_test_pce=pcePred_.pceVal
 
     nTest_=np.prod(np.asarray(nTest))
