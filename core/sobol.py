@@ -243,23 +243,25 @@ def sobol_2par_unif_test():
     xi=[]
     qpce=[]
     for i in range(p):
-        xi_,w_=pce.gqPtsWts(nQpce[i],distType[i])
-        qpce.append(pce.mapFromUnit(xi_,qBound[i]))
+        xi_,w_=pce.pce.gqPtsWts(nQpce[i],distType[i])
+        qpce.append(pce.pce.mapFromUnit(xi_,qBound[i]))
         xi.append(xi_)
     fVal_pceCnstrct=analyticTestFuncs.fEx2D(qpce[0],qpce[1],'type3','tensorProd') 
     #Construct the gPCE
     xiGrid=reshaper.vecs2grid(xi)
-    pceDict={'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection',
+    pceDict={'p':2,'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection',
              'distType':distType}
-    pceDict=pce.pceDict_corrector(pceDict)
-    fCoefs,kSet,fMean,fVar=pce.pce_pd_cnstrct(fVal_pceCnstrct,nQpce,xiGrid,pceDict)
+    #fCoefs,kSet,fMean,fVar=pce.pce_pd_cnstrct(fVal_pceCnstrct,nQpce,xiGrid,pceDict)
+    pce_=pce.pce(fVal=fVal_pceCnstrct,nQList=nQpce,qInfo=qBound,xi=xiGrid,pceDict=pceDict)
+
     #Use gPCE to predict at test samples from parameter space
     qpceTest=[]
     xiTest=[]
     for i in range(p):
         qpceTest.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
-        xiTest.append(pce.mapToUnit(qpceTest[i],qBound[i]))
-    fPCETest  =pce.pce_pd_eval(fCoefs,kSet,xiTest,distType)
+        xiTest.append(pce.pce.mapToUnit(qpceTest[i],qBound[i]))
+    fPCETest_=pce.pceEval(coefs=pce_.coefs,kSet=pce_.kSet,xi=xiTest,distType=distType)
+    fPCETest=fPCETest_.pceVal
     #compute Sobol indices 
     Si_pce,Sij_pce=sobol_unif(qpceTest,fPCETest)
 
@@ -302,13 +304,11 @@ def sobol_3par_unif_test():
     #(3) Compute Sobol indices (method of choice in this library)
     Si,Sij=sobol_unif([q[0],q[1],q[2]],fEx)
 
-    #(4) Exact Sobol indices (analytical expressions)
-##    Si_ex,Sij_ex=analyticalSobol_2par(qBound)
-    
-    #(5) Write results on screen
     print('sobol_3par_unif_test(): Sobol Sensitivity Indices for fEx3D("Ishigami")')
     print(' > Indices by UQit : S1=%g, S2=%g, S3=%g' %(Si[0],Si[1],Si[2]))
     print(' >                        S12=%g, S13=%g, S23=%g' %(Sij[0],Sij[1],Sij[2]))
+
+    #(4) Exact Sobol indices (analytical expressions)
 
     D1=b*pi**4./5.+b**2.*pi**8./50. + 0.5
     D2=a**2./8.0
