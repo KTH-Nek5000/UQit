@@ -74,7 +74,7 @@ class lagInt():
           else:
              testRule=self.liDict['testRule']
              if testRule!='tensorProd' and testRule!='set':
-                raise ValueError("ERROR in lagrangeInterpol_multiVar: Invalid value for 'tensorProd'") 
+                raise ValueError("Invalid value for 'tensorProd'") 
 
    def interp(self):
        """
