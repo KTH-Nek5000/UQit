@@ -86,7 +86,6 @@ def sobolDecomposCoefs_3par(Q,f):
     f1=f1-f0
     f2=f2-f0
     f3=f3-f0      
-    fi=[f1,f2,f3]
     #2nd-order Interaction terms 
     f12_=simps(f,Q[2],axis=2)/L[2]
     f12=interactionTerm(f12_,f1,f2,f0)
@@ -252,7 +251,7 @@ def sobol_2par_unif_test():
     pceDict={'p':2,'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection',
              'distType':distType}
     #fCoefs,kSet,fMean,fVar=pce.pce_pd_cnstrct(fVal_pceCnstrct,nQpce,xiGrid,pceDict)
-    pce_=pce.pce(fVal=fVal_pceCnstrct,nQList=nQpce,qInfo=qBound,xi=xiGrid,pceDict=pceDict)
+    pce_=pce.pce(fVal=fVal_pceCnstrct,nQList=nQpce,xi=xiGrid,pceDict=pceDict)
 
     #Use gPCE to predict at test samples from parameter space
     qpceTest=[]

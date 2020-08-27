@@ -39,11 +39,10 @@ class pce:
 
 
    """
-   def __init__(self,fVal,xi,qInfo,pceDict,nQList=[]):
+   def __init__(self,fVal,xi,pceDict,nQList=[]):
        self.fVal=fVal
        self.xi=xi
        self.nQList=nQList
-       self.qInfo=qInfo
        self.pceDict=pceDict
        self.info()
        self.pceDict_corrector()
@@ -68,9 +67,6 @@ class pce:
        if self.pceDict['p']>1:   
           if len(self.pceDict['distType'])!=self.pceDict['p']:
              raise ValueError("'p' is not equal to the number of %s in pceDict." %key_)
-
-       if len(self.qInfo)!=self.pceDict['p']:
-          raise ValueError("'p' is not equal to the length of 'qInfo'.")
 
        if 'truncMethod' not in self.pceDict:
           if self.pceDict['p']!=1:
@@ -797,7 +793,7 @@ def pce_1d_test():
     fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qInfo,fType)
     #
     #(3) Construct the PCE
-    pce_=pce(fVal=f,xi=xi,qInfo=[qInfo],pceDict=pceDict)
+    pce_=pce(fVal=f,xi=xi,pceDict=pceDict)
     fMean=pce_.fMean  #mean, var estimated by the PCE and PCE coefficients
     fVar=pce_.fVar
     pceCoefs=pce_.coefs
@@ -894,7 +890,7 @@ def pce_2d_test():
     if truncMethod=='TO':
        pceDict.update({'LMax':LMax,'pceSolveMethod':'Regression'})
     #Construct the PCE
-    pce_=pce(fVal=fVal,xi=xiGrid,qInfo=qInfo,pceDict=pceDict,nQList=nQ)
+    pce_=pce(fVal=fVal,xi=xiGrid,pceDict=pceDict,nQList=nQ)
     fMean=pce_.fMean
     fVar=pce_.fVar
     pceCoefs=pce_.coefs
@@ -991,7 +987,7 @@ def pce_3d_test():
        pceDict.update({'LMax':LMax})
     #Construct the PCE   
     xiGrid=reshaper.vecs2grid(xi)
-    pce_=pce(fVal=fVal,xi=xiGrid,qInfo=qInfo,pceDict=pceDict,nQList=nQ)
+    pce_=pce(fVal=fVal,xi=xiGrid,pceDict=pceDict,nQList=nQ)
     fMean=pce_.fMean
     fVar=pce_.fVar
     pceCoefs=pce_.coefs
