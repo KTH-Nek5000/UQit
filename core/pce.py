@@ -163,6 +163,20 @@ class pce:
       return v
 
    @classmethod
+   def basisNorm(self,k_,distType_,nInteg=10000):
+      R"""
+      Evaluate L2-norma of the gPCE polynomial basis of order k at \xi\in\Gamma,
+      where Gamma is the standard polynomials are choosen based on the gPCE rules. 
+      """
+      if distType_=='Unif':
+         xi_=np.linspace(-1,1,nInteg)
+      elif distType_=='Norm':
+         xi_=np.linspace(-5,5,nInteg)          
+      psi_k_=self.basis(k_,xi_,distType_)
+      psiNorm=np.linalg.norm(psi_k_,2)
+      return psiNorm
+
+   @classmethod
    def density(self,xi_,distType_):
       R"""
       Evaluate the PDF of the standard gPCE random variables with distribution
@@ -586,12 +600,11 @@ class pceEval:
    R"""
    Evaluation of a PCE at test samples taken from a parameter space
    """
-   def __init__(self,coefs,xi,distType,kSet=[],convPltOpts=[]):
+   def __init__(self,coefs,xi,distType,kSet=[]):
       self.coefs=coefs
       self.xi=xi
       self.distType=distType
       self.kSet=kSet
-      self.convPltOpts=convPltOpts
       self.info()
       self.eval()
    
@@ -678,7 +691,8 @@ class pceEval:
       fpce=A    
       self.pceVal=fpce
 
-   def convPlot(self):
+class convPlot:
+   def __init__(self,coefs,distType,kSet=[],convPltOpts=[]):
       R"""
       Plot convergence of the PCE terms. 
       The indicator ::math::`||fk*Psi_k||/||f0*Psi_0||` is plotted versus 
@@ -692,63 +706,90 @@ class pceEval:
          if p>1: List of length K of lists of length p
             kSet=[[k1,1,k2,1,...,kp,1],[k1,2,k2,2,...,kp,2],...,[k1,K,k2,K,...,kp,K]] is 
             produced based on the truncation scheme employed when constructing the PCE.
-            kSet: Index set of PCE, kSet=[[k1,k2,...,kp],...], if empty: 1d param space
          elif p==1:
             kset=[]
-      `distType`: string
-          distribution type of the parameter based on the gPCE rule
+      `distType`: string (if p==1) or List (size p) of strings
+           distribution type of the parameter based on the gPCE rule
           'Unif', 'Norm'
       `convPltOpts`: (optional) options to save the figure, 
           keys: 'figDir', 'figName'           
+      
+      Attributes
+      ----------
+      kMag: list of K int
+          =|k|
+      pceTermNorm= numpy array of size K
+          =PCE convergence indicator
       """
-      K=self.K
-      kSet_=[]
-      if self.p==1:
-         distType_=[self.distType] 
-         for i in range(K):
-             kSet_.append([i])
-      else:
-         kSet_=self.kSet 
-         distType_=self.distType
-      #magnitude of indices
-      kMag=[]
-      for i in range(K):
-          kMag.append(sum(kSet_[i]))
-      #compute norm of the PCE bases
-      xi_=np.linspace(-1,1,1000)
-      termNorm=[]
-      for ik in range(K):   #over PCE terms
-          PsiNorm=1.0
-          for ip in range(self.p):   #over parameter dimension 
-              k_=kSet_[ik][ip]
-              psi_k_=pce.basis(k_,xi_,distType_[ip])
-              PsiNorm*=np.linalg.norm(psi_k_,2)
-              if distType_[ip] not in ['Unif','Norm']:
-                 raise ValueError('...... ERROR in PCE_coef_conv_plot(): distribution %s is not available!'%distType_[ip])
-          termNorm.append(abs(self.coefs[ik])*PsiNorm)
-      termNorm0=termNorm[0]
-      #plot
-      plt.figure(figsize=(10,5))
-      plt.semilogy(kMag,termNorm/termNorm0,'ob',fillstyle='none')
-      plt.xlabel(r'$|\mathbf{k}|$',fontsize=18)
-      plt.ylabel(r'$|\hat{f}_\mathbf{k}|\, ||\Psi_{\mathbf{k}(\mathbf{\xi})}||_2/|\hat{f}_0|$',fontsize=18)
-      plt.xticks(ticks=kMag,fontsize=17)
-      plt.yticks(fontsize=17)
-      plt.grid(alpha=0.3)
-      if self.convPltOpts:
-         if 'ylim' in self.convPltOpts:
-             plt.ylim(self.convPltOpts['ylim'])
-         fig = plt.gcf()
-         DPI = fig.get_dpi()
-         fig.set_size_inches(800/float(DPI),400/float(DPI))
-         figDir=self.convpltOpts['figDir']
-         if not os.path.exists(figDir):
-            os.makedirs(figDir)
-         outName=self.convPltOpts['figName']
-         plt.savefig(figDir+outName+'.pdf',bbox_inches='tight')
-         plt.show()
-      else:
-         plt.show()
+      self.coefs=coefs
+      self.distType=distType
+      self.kSet=kSet
+      self.convPltOpts=convPltOpts
+      self.get_info()
+      self.pceConv()
+      self.pceConvPlot()
+      
+   def get_info(self):
+       if len(self.kSet)==0:
+          p=1
+       else:
+          p=len(self.distType)
+       self.p=p   #param dimension
+       K=len(self.coefs)
+       self.K=K   #PCE truncation 
+
+   def pceConv(self):
+       """
+       Compute the convergence indicator 
+       """
+       K=self.K
+       if self.p==1:
+          distType_=[self.distType] 
+          kSet_=[[i] for i in range(K)]
+       else:
+          kSet_=self.kSet 
+          distType_=self.distType
+       #magnitude of the pce indices
+       kMag=[sum(kSet_[i]) for i in range(K)]
+       #compute norm of the PCE bases
+       termNorm=[]
+       for ik in range(K):   #over PCE terms
+           PsiNorm=1.0
+           for ip in range(self.p):   #over parameter dimension 
+               k_=kSet_[ik][ip]
+               if distType_[ip] not in ['Unif','Norm']:
+                  raise ValueError('Distribution %s is not available!'%distType_[ip])
+               PsiNorm*=pce.basisNorm(k_,distType_[ip])
+           termNorm.append(abs(self.coefs[ik])*PsiNorm)
+           termNorm0=termNorm[0]
+       self.kMag=kMag    
+       self.pceConvIndic=termNorm/termNorm0    
+
+   def pceConvPlot(self):        
+       """
+       Plot the pce convergence indicator
+       """
+       plt.figure(figsize=(10,5))
+       plt.semilogy(self.kMag,self.pceConvIndic,'ob',fillstyle='none')
+       plt.xlabel(r'$|\mathbf{k}|$',fontsize=18)
+       plt.ylabel(r'$|\hat{f}_\mathbf{k}|\, ||\Psi_{\mathbf{k}(\mathbf{\xi})}||_2/|\hat{f}_0|$',fontsize=18)
+       plt.xticks(ticks=self.kMag,fontsize=17)
+       plt.yticks(fontsize=17)
+       plt.grid(alpha=0.3)
+       if self.convPltOpts:
+          if 'ylim' in self.convPltOpts:
+              plt.ylim(self.convPltOpts['ylim'])
+          fig = plt.gcf()
+          DPI = fig.get_dpi()
+          fig.set_size_inches(800/float(DPI),400/float(DPI))
+          figDir=self.convpltOpts['figDir']
+          if not os.path.exists(figDir):
+             os.makedirs(figDir)
+          outName=self.convPltOpts['figName']
+          plt.savefig(figDir+outName+'.pdf',bbox_inches='tight')
+          plt.show()
+       else:
+          plt.show()
 #
 #
 ############
@@ -766,16 +807,16 @@ def pce_1d_test():
        qInfo=[-2,4.0]   #parameter range only if 'Unif'
        fType='type1'    #Type of test exact model function
     elif distType=='Norm':
-       qInfo=[0.1,0.6]   #[m,v] for 'Norm' q~N(m,v^2)
+       qInfo=[.5,0.05]   #[m,v] for 'Norm' q~N(m,v^2)
        fType='type2'    #Type of test exact model function
-    n=16   #number of training samples
+    n=8   #number of training samples
     nTest=200   #number of test sample sin the parameter space
     #PCE Options
     sampleType='GQ'    #'GQ'=Gauss Quadrature nodes
                        #''= any other sample => only 'Regression' can be selected
     pceSolveMethod='Regression' #'Regression': for any combination of sample points 
                                 #'Projection': only for GQ
-    LMax_=20   #(Only needed for Regresson method), =K: truncation (num of terms) in PCE                               #(LMax will be over written by nSamples if it is provided for 'GQ'+'Projection')
+    LMax_=11   #(Only needed for Regresson method), =K: truncation (num of terms) in PCE                               #(LMax will be over written by nSamples if it is provided for 'GQ'+'Projection')
                #NOTE: LMAX>=nSamples
     #--------------------------------------
     #(0) Make the pceDict
@@ -805,7 +846,11 @@ def pce_1d_test():
     print('Var  of f(q) = %g\t%g\t%g' %(fVar_ex,fVar,(fVar-fVar_ex)/fVar_ex*100.))
     print(writeUQ.printRepeated('-',70))
     #
-    #(5) Evaluate the PCE at test samples
+    #(5) Plots
+    # Plot convergence of the PCE
+    convPlot(coefs=pceCoefs,distType=distType)
+    #
+    #(6) Evaluate the PCE at test samples
     # Test samples
     testSamps=sampling.testSample('unifSpaced',GQdistType=distType,qInfo=qInfo,qBound=qBound,nSamp=nTest)
     qTest=testSamps.q
@@ -814,12 +859,8 @@ def pce_1d_test():
     #Prediction by PCE at test samples
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType)
     fPCE=pcePred_.pceVal
-    #
-    #(6) PLots
-    # Plot convergence of the PCE
-    pcePred_.convPlot()
-
-    # Plot the exact and PCE response surface
+    
+    #(7) Plot the exact and PCE response surface
     plt.figure(figsize=(12,5))
     ax=plt.gca()
     plt.plot(qTest,fTest,'-k',lw=2,label=r'Exact $f(q)$')
@@ -845,11 +886,11 @@ def pce_2d_test():
     #---- SETTINGS------------
     distType=['Unif','Norm']   #distribution type of the parameters
     qInfo=[[-2,3],   #parameters info
-           [-2,0.5]] 
-    nQ=[7,9]   #number of collocation smaples of param1,param2: only for 'TP', otherwise =[]
+           [-2,0.2]] 
+    nQ=[7,12]   #number of collocation smaples of param1,param2: only for 'TP', otherwise =[]
     nTest=[121,120]   #number of test points in parameter spaces
     #PCE Options
-    truncMethod='TP'  #'TP'=Tensor Product
+    truncMethod='TO'  #'TP'=Tensor Product
                       #'TO'=Total Order  
     sampleType='GQ'     #'GQ'=Gauss Quadrature nodes
                       #''= any other sample (see sampling.py, trainSample) => only 'Regression' can be selected
@@ -895,6 +936,8 @@ def pce_2d_test():
     fVar=pce_.fVar
     pceCoefs=pce_.coefs
     kSet=pce_.kSet
+    #plot convergence of the PCE
+    convPlot(coefs=pceCoefs,distType=distType,kSet=kSet)
     #Make predictions at test points in the parameter space
     qTest=[]
     xiTest=[]
@@ -908,9 +951,6 @@ def pce_2d_test():
     #Evaluate PCE at the test samples
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType,kSet=kSet)
     fPCE=pcePred_.pceVal
-
-    #plot convergence of the PCE
-    pcePred_.convPlot()
 
     #Create 2D grid from the test samples and plot the contours of response surface over it
     fTestGrid=fTest.reshape((nTest[0],nTest[1]),order='F')
@@ -992,6 +1032,8 @@ def pce_3d_test():
     fVar=pce_.fVar
     pceCoefs=pce_.coefs
     kSet=pce_.kSet
+    #Convergence of the PCE terms
+    convPlot(coefs=pceCoefs,distType=distType,kSet=kSet)
 
     #Exact moments of the Ishigami function
     m,v=analyticTestFuncs.ishigami_exactMoments(qBound[0],qBound[1],qBound[2],funOpt)
