@@ -15,9 +15,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 UQit=os.getenv("UQit")
 sys.path.append(UQit)
-import pce
+from pce import pce, pceEval
 import analyticTestFuncs
-import lagrangeInterpol
+from lagInt import lagInt
 import reshaper
 import plot2d
 #
@@ -59,15 +59,15 @@ def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType):
        qM2=qM2[0]
     elif (ndim>1):
        if (pDmethod=='tensorProd'):
-          qM2=reshaper.vecs2grid(qM2) #Make a grid out of two 1D vectors
+          #qM2=reshaper.vecs2grid(qM2) #Make a grid out of two 1D vectors
           xiM2=reshaper.vecs2grid(xiM2) #Make a grid out of two 1D vectors
        else:
           print('ERROR in lagIntAtGaussPts: currently only tensor-product is available')
     #(3) Use lagrange interpolation to find values at q2, given fVal1 at q1
     if ndim==1:
-       fVal2Interp=lagrangeInterpol.lagrangeInterpol_singleVar(fValM1,qM1[0],qM2)
+       fVal2Interp=lagInt(fNodes=fValM1,qNodes=[qM1[0]],qTest=[qM2]).val
     elif (ndim>1):
-       fVal2Interp=lagrangeInterpol.lagrangeInterpol_multiVar(fValM1,qM1,qM2,pDmethod)
+       fVal2Interp=lagInt(fNodes=fValM1,qNodes=qM1,qTest=qM2,liDict={'testRule':pDmethod}).val
     return qM2,xiM2,fVal2Interp
 #
 def pce2pce_GQ(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType):
@@ -101,14 +101,19 @@ def pce2pce_GQ(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType):
     qM2,xiGridM2,fVal2Interp=lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType)
     #(3) Construct PCE2 over spaceM2
     if ndim==1:
-       pceDict={'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType} 
-       fCoef2,fMean2,fVar2=pce.pce_1d_cnstrct(fVal2Interp,[],pceDict)  
-       kSet2=[]
+        pceDict={'p':ndim,'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType} 
+        pce_=pce(fVal=fVal2Interp,xi=[],pceDict=pceDict)    
+        kSet2=[]
     elif (ndim>1): #multi-dimensional param space
-       pceDict={'sampleType':'GQ','pceSolveMethod':'Projection','truncMethod':'TO',
-                'distType':distType}
-       pceDict=pce.pceDict_corrector(pceDict)
-       fCoef2,kSet2,fMean2,fVar2=pce.pce_pd_cnstrct(fVal2Interp,nM2,xiGridM2,pceDict)
+        pceDict={'p':ndim,'sampleType':'GQ','pceSolveMethod':'Projection','truncMethod':'TP',
+                 'distType':distType}
+        nM2prod=np.prod(np.asarray(nM2))
+        fVal2Interp_=fVal2Interp.reshape(nM2prod,order='F')        
+        pce_=pce(fVal=fVal2Interp_,xi=xiGridM2,pceDict=pceDict,nQList=nM2)
+        kSet2=pce_.kSet        
+    fMean2=pce_.fMean
+    fVar2=pce_.fVar
+    fCoef2=pce_.coefs
     return fCoef2,kSet2,fMean2,fVar2,qM2,fVal2Interp
 #
 #
@@ -132,8 +137,11 @@ def pce2pce_GQ_1d_test():
     q1_=pce.mapFromUnit(xi1,space1[0])    #map Gauss points to param space
     q1.append(q1_)
     fVal1=analyticTestFuncs.fEx1D(q1[0],'type1')  #function value at the parameter samples (Gauss quads)
-    pceDict={'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType} 
-    fCoef1,fMean1,fVar1=pce.pce_1d_cnstrct(fVal1,[],pceDict)  #find PCE coefficients
+    pceDict={'p':1,'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType} 
+    pce_=pce(fVal=fVal1,xi=[],pceDict=pceDict)    
+    fMean1=pce_.fMean  
+    fVar1=pce_.fVar
+    fCoef1=pce_.coefs
 
     #(2) Construct PCE2 given values predicted by PCE1 at nSampMod2 GL samples over space2
     fCoef2,kSet2,fMean2,fVar2,q2,fVal2=pce2pce_GQ(fVal1,q1,space1,nSampMod2,space2,'',distType)
@@ -142,12 +150,14 @@ def pce2pce_GQ_1d_test():
     qTest1=np.linspace(space1[0][0],space1[0][1],nTest)  #test points in param space
     fTest1=analyticTestFuncs.fEx1D(qTest1,'type1')   #exact response at test points
     xiTest1=pce.mapToUnit(qTest1,space1[0])
-    fPCETest1=pce.pce_1d_eval(fCoef1,xiTest1,distType)    
+    pcePred_=pceEval(coefs=fCoef1,xi=xiTest1,distType=distType)
+    fPCETest1=pcePred_.pceVal
 
     qTest2=np.linspace(space2[0][0],space2[0][1],nTest)  #test points in param space
     fTest2=analyticTestFuncs.fEx1D(qTest2,'type1')   #exact response at test points
     xiTest2=pce.mapToUnit(qTest2,space2[0])
-    fPCETest2=pce.pce_1d_eval(fCoef2,xiTest2,distType)    
+    pcePred_=pceEval(coefs=fCoef2,xi=xiTest2,distType=distType)
+    fPCETest2=pcePred_.pceVal
 
     #(4) Plot
     plt.figure(figsize=(15,8))
@@ -179,12 +189,13 @@ def pce2pce_GQ_2d_test():
     #Test samples
     nTest=[100,101]   #number of test samples of parameter 1,2
     #---------------------------------------------------------------------
+    p=2
     distType=['Unif','Unif']
     #(1) Construct PCE1
     #GL points for param1,2
     qM1=[];
     xiM1=[]
-    for i in range(2):
+    for i in range(p):
        xi_,wXI=pce.gqPtsWts(nSampM1[i],distType[i])   #Gauss sample pts in [-1,1]
        qM1.append(pce.mapFromUnit(xi_,spaceM1[i]))    #map Gauss points to param space
        xiM1.append(xi_)
@@ -192,12 +203,15 @@ def pce2pce_GQ_2d_test():
     #Response values at the GL points
     fValM1=analyticTestFuncs.fEx2D(qM1[0],qM1[1],'type1','tensorProd') 
     #Construct the PCE
-    pceDict={'sampleType':'GQ','pceSolveMethod':'Regression','truncMethod':'TO','LMax':10,
+    pceDict={'p':p,'sampleType':'GQ','pceSolveMethod':'Projection','truncMethod':'TP','LMax':10,
              'distType':distType}
-    pceDict=pce.pceDict_corrector(pceDict)
     xiGridM1=reshaper.vecs2grid(xiM1)
-    fCoefM1,kSetM1,fMeanM1,fVarM1=pce.pce_pd_cnstrct(fValM1,nSampM1,xiGridM1,pceDict)  
-
+    pce_=pce(fVal=fValM1,xi=xiM1,pceDict=pceDict,nQList=nSampM1)
+    fMeanM1=pce_.fMean
+    fVarM1=pce_.fVar
+    fCoefM1=pce_.coefs
+    kSetM1=pce_.kSet
+    
     #(2) Construct PCE2 given values predicted by PCE1 at GL samples over spaceM2
     fCoefM2,kSetM2,fMeanM2,fVarM2,qM2,fVal2Interp=pce2pce_GQ(fValM1,qM1,spaceM1,nSampM2,spaceM2,'tensorProd',distType)
 
@@ -213,7 +227,8 @@ def pce2pce_GQ_2d_test():
     for i in range(2):
         xiTestM1_=pce.mapToUnit(qTestM1[i],spaceM1[i])
         xiTestM1.append(xiTestM1_)
-    fPCETestM1=pce.pce_pd_eval(fCoefM1,kSetM1,xiTestM1,distType)
+    pcePred_=pceEval(coefs=fCoefM1,xi=xiTestM1,distType=distType,kSet=kSetM1)
+    fPCETestM1=pcePred_.pceVal
 
     #Predictions by PCE2 in spaceM2
     qTestM2=[]
@@ -224,7 +239,8 @@ def pce2pce_GQ_2d_test():
         xiTestM2_=pce.mapToUnit(qTestM2[i],spaceM2[i])
         xiTestM2.append(xiTestM2_)
     fTestM2=analyticTestFuncs.fEx2D(qTestM2[0],qTestM2[1],'type1','tensorProd')   #exact response at test points of model2
-    fPCETestM2=pce.pce_pd_eval(fCoefM2,kSetM2,xiTestM2,distType)
+    pcePred_=pceEval(coefs=fCoefM2,xi=xiTestM2,distType=distType,kSet=kSetM2)
+    fPCETestM2=pcePred_.pceVal
 
     #(4) 2d contour plots
     plt.figure(figsize=(20,8))
@@ -243,7 +259,8 @@ def pce2pce_GQ_2d_test():
     plt.clabel(CS2, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     qM1Grid=reshaper.vecs2grid(qM1)
     plt.plot(qM1Grid[:,0],qM1Grid[:,1],'o',color='r',markersize=6)
-    plt.plot(qM2[:,0],qM2[:,1],'s',color='b',markersize=6)
+    qM2_=reshaper.vecs2grid(qM2)
+    plt.plot(qM2_[:,0],qM2_[:,1],'s',color='b',markersize=6)
     plt.xlabel('q1');plt.ylabel('q2');
     plt.title('Response Surface by PCE1')
 
@@ -252,7 +269,7 @@ def pce2pce_GQ_2d_test():
     fPCETestM2_Grid=fPCETestM2.reshape((qTestM2[0].shape[0],qTestM2[1].shape[0]),order='F').T
     CS3 = plt.contour(qTestM2[0],qTestM2[1],fPCETestM2_Grid,20)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS3, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
-    plt.plot(qM2[:,0],qM2[:,1],'s',color='b',markersize=6)
+    plt.plot(qM2_[:,0],qM2_[:,1],'s',color='b',markersize=6)
     plt.xlabel('q1');plt.ylabel('q2');
     plt.title('Response Surface by PCE2 \n (Response values at GL2 samples are \n Lagrange-interpolated from PCE1)')
     plt.xlim(spaceM1[0][:])
