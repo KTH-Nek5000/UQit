@@ -408,7 +408,172 @@ class gprPost:
         self.ciL=lower_
         self.ciU=upper_
 
-        
+class gprPlot:
+    """
+    Plotters for GPR
+
+    Parameters
+    ----------
+    pltOpts=dict (optional) with the following keys for plane plots (p=1 or 2):
+       'title':string, plot title
+       'legFS':float, legend fontsize
+       'labFS':[float,float], x,y-axes label fontsize
+       'ticksFS':[float,float], x,y-ticks fontsize
+       'save':bool,   #save the plot?
+       If 'save':True:
+         'figName':string, figure name 
+         'figDir':string, directory to save the fig
+         'figSize':[float,float], figure size
+
+    Attributes
+    ----------
+
+    Methods
+    -------
+    torch1d(): Single-task GPR on a 1d array
+
+    """
+    def __init__(self,pltOpts={}):
+        self.pltOpts=pltOpts
+        self._set_vals()
+
+    def _set_vals(self):
+        keys_=self.pltOpts.keys() #provided keys
+        if 'title' in keys_:
+           self.title=self.pltOpts['title']
+        if 'xlab' in keys_:
+           self.xlab=self.pltOpts['xlab']
+        if 'ylab' in keys_:
+           self.ylab=self.pltOpts['ylab']
+        #default values for fontsizes
+        self.titleFS=15        #title fs
+        self.legFS=15          #legend fs
+        self.labFS=[17,17]     #axes-label fs
+        self.ticksFS=[18,18]   #axes-label fs
+        if 'titleFS' in keys_:
+           self.titleFS=self.pltOpts['titleFS']
+        if 'legFS' in keys_:
+           self.legFS=self.pltOpts['legFS']
+        if 'labFS' in keys_:
+           self.labFS=self.pltOpts['labFS']
+           if len(self.labFS)!=2:
+              raise ValueError("Value of 'labFS' should have length 2 (x,y-axes label fontsize).")
+        if 'ticksFS' in keys_:
+           self.ticksFS=self.pltOpts['ticksFS']
+           if len(self.ticksFS)!=2:
+              raise ValueError("Value of 'ticksFS' should have length 2 (x,y-axes label fontsize).")
+        #options for saving the plot        
+        self.figSave=False
+        if 'save' in keys_ and self.pltOpts['save']:
+           list_=['figName','figDir','figSize'] 
+           for L_ in list_:
+               if L_ not in keys_:
+                  raise KeyError("%s is required in pltOpts since 'save' is True." %L_)
+               else:
+                  globals()[L_]=self.pltOpts[L_]
+           self.figName=figName       
+           self.figDir=figDir
+           self.figSize=figSize
+           self.figSave=True
+    
+    def _figSaver(self):
+        """
+        Save the plot in file
+        """
+        fig = plt.gcf()
+        if not os.path.exists(self.figDir):
+           os.makedirs(self.figDir)
+        figSave_=figDir+figName
+        figOut=figDir+figName
+        DPI = fig.get_dpi()
+        fig.set_size_inches(self.figSize[0]/float(DPI),self.figSize[1]/float(DPI))
+        plt.savefig(figOut+'.pdf',bbox_inches='tight')
+                      
+    def torch1d(self,post_f,post_obs,xTrain,yTrain,xTest,fExTest):
+        """
+           Plot GPR constructed by GPyToch for 1D input
+        """
+        with torch.no_grad():
+             lower_f, upper_f = post_f.confidence_region()
+             lower_obs, upper_obs = post_obs.confidence_region()
+             plt.figure(figsize=(10,6))
+             plt.plot(xTest,fExTest,'--b',label='Exact Output')
+             plt.plot(xTrain, yTrain, 'ok',markersize=4,label='Training observations')
+             plt.plot(xTest, post_f.mean[:].numpy(), '-r',lw=2,label='Mean Model')
+             plt.plot(xTest, post_obs.mean[:].numpy(), ':m',lw=2,label='Mean Posterior Prediction')
+             plt.plot(xTest, post_obs.sample().numpy(), '-k',lw=1,label='Sample Posterior Prediction')
+             plt.fill_between(xTest, lower_f.numpy(), upper_f.numpy(), alpha=0.3,label='Confidence f(q)')
+             plt.fill_between(xTest, lower_obs.numpy(), upper_obs.numpy(), alpha=0.15, color='r',label='Confidence Yobs')
+             plt.legend(loc='best',fontsize=self.legFS)
+             #NOTE: confidence = 2* sdev, see
+             #https://github.com/cornellius-gp/gpytorch/blob/4a1ba02d2367e4e9dd03eb1ccbfa4707da02dd08/gpytorch/distributions/multivariate_normal.py             
+             if hasattr(self,'title'):
+                plt.title(self.title,fontsize=self.titleFS) 
+             else:   
+                plt.title('Single-task GP, 1D parameter',fontsize=self.titleFS)
+             plt.xticks(fontsize=self.ticksFS[0])
+             plt.yticks(fontsize=self.ticksFS[1])
+             plt.xlabel(r'$\mathbf{q}$',fontsize=self.labFS[0])
+             plt.ylabel(r'$y$',fontsize=self.labFS[1])             
+             if self.figSave:
+                self._figSaver()
+             plt.show()
+
+    def torch2d_2dcont(self,xTrain,testGrid,fTestGrid):
+        fig = plt.figure(figsize=(5,5))
+        plt.plot(xTrain[:,0],xTrain[:,1],'or')
+        CS1=plt.contour(testGrid[0],testGrid[1],fTestGrid.T,levels=40)
+        plt.clabel(CS1, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
+        plt.legend(loc='best',fontsize=self.legFS)
+        plt.xticks(fontsize=self.ticksFS[0])
+        plt.yticks(fontsize=self.ticksFS[1])
+        if hasattr(self,'xlab'):
+           plt.xlabel(self.xlab,fontsize=self.labFS[0]) 
+        if hasattr(self,'ylab'):
+           plt.ylabel(self.ylab,fontsize=self.labFS[1]) 
+        if hasattr(self,'title'):
+           plt.title(self.title,fontsize=self.titleFS) 
+        if self.figSave:
+           self._figSaver()
+        plt.show()
+             
+    def torch2d_3dSurf(self,xTrain,yTrain,testGrid,nTest,post_obs,post_f):
+        """
+           3D plot of the GPR surface (mean+CI) constructed on a 2d parameter space
+        """
+        #Predicted mean and variance at the test grid
+        fP_=gprPost(post_f,nTest)
+        fP_.torchPost()
+        post_f_mean=fP_.mean
+        post_f_sdev=fP_.sdev
+        lower_f=fP_.ciL
+        upper_f=fP_.ciU
+
+        obsP_=gprPost(post_obs,nTest)
+        obsP_.torchPost()
+        post_obs_mean=obsP_.mean
+        post_obs_sdev=obsP_.sdev
+        lower_obs=obsP_.ciL
+        upper_obs=obsP_.ciU
+
+        xTestGrid1,xTestGrid2=np.meshgrid(testGrid[0],testGrid[1], sparse=False, indexing='ij')
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        mean_surf = ax.plot_surface(xTestGrid1, xTestGrid2, post_obs_mean,cmap='jet', antialiased=True,rstride=1,cstride=1,linewidth=0,alpha=0.4)
+        upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_obs, linewidth=1,alpha=0.25,color='r')
+        lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_obs, linewidth=1,alpha=0.25,color='b')
+        #upper_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_f, linewidth=1,alpha=0.5,color='r')
+        #lower_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_f, linewidth=1,alpha=0.5,color='b')
+        plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok')
+        if self.figSave:
+           self._figSaver()
+        plt.show()
+             
+    
+
+
+            
+       
         
             
 
@@ -503,17 +668,10 @@ def gprTorch_1d_multiTask(xTrain_,yTrain_,noiseSdev_,xTest,gprOpts):
     model.eval()
     likelihood.eval()  
     return model,likelihood
-
 #
-#////////////////////////////////////////////////////
-#///////////////////////////////////////////////////////
-
-#////////////////////////////////////////////////////
-
-##############################
-# External Functions for Test
-##############################
-#///////////////////////////////
+#
+# Tests
+#
 def gprTorch_1d_multiTask_test():
     """
         Test for GPR for a mult-task model which depends on 1 parameter
@@ -572,7 +730,6 @@ def gprTorch_1d_multiTask_test():
     xTrain,yTrain,noiseSdev=trainData(xBound,n,noiseType)
     gprTorch_1d(xTrain,yTrain,noiseSdev,gprOpts)
 
-#//////////////////////////////////
 def gprTorch_1d_singleTask_test():
     """
         Test for GPR for 1d parameter
@@ -631,25 +788,10 @@ def gprTorch_1d_singleTask_test():
     post_obs=gpr_.post_y
 
     #(3) Plots
-    with torch.no_grad():
-         lower_f, upper_f = post_f.confidence_region()
-         lower_obs, upper_obs = post_obs.confidence_region()
-         plt.figure(figsize=(10,6))
-         plt.plot(xTest,fEx(xTest),'--b')
-         plt.plot(xTrain, yTrain, 'ok',markersize=4)
-         plt.plot(xTest, post_f.mean[:].numpy(), '-r',lw=2)
-         plt.plot(xTest, post_obs.mean[:].numpy(), ':m',lw=2)
-         plt.fill_between(xTest, lower_f.numpy(), upper_f.numpy(), alpha=0.3)
-         plt.fill_between(xTest, lower_obs.numpy(), upper_obs.numpy(), alpha=0.15, color='r')
-         plt.legend(['Exact Reponse','Observed Data', 'Mean Model','Mean Posterior Prediction', 'Confidence (f)', 'Confidence (obs)'],loc='best',fontsize=15)
-         #NOTE: confidence = 2* sdev, see 
-#         https://github.com/cornellius-gp/gpytorch/blob/4a1ba02d2367e4e9dd03eb1ccbfa4707da02dd08/gpytorch/distributions/multivariate_normal.py
-         plt.title('Single-Task GP + Heteroscedastic Noise')
-         plt.xticks(fontsize=18)
-         plt.yticks(fontsize=18)
-         plt.xlabel(r'$\mathbf{q}$',fontsize=17)
-         plt.ylabel(r'$y$',fontsize=17)
-         plt.show()
+    fExTest=fEx(xTest)
+    #plot options (none is mandatory)
+    pltOpts={'title':'Single-task GP, 1d param, %s-scedastic noise'%noiseType}
+    gprPlot(pltOpts).torch1d(post_f,post_obs,xTrain,yTrain,xTest,fExTest)
 
 #//////////////////////////////////
 from mpl_toolkits.mplot3d import Axes3D    #for 3d plot
@@ -679,21 +821,6 @@ def gprTorch_2d_singleTask_test():
         plt.xticks(fontsize=15)
         plt.yticks(fontsize=15)    
         plt.title('Training data with associated confidence')
-        plt.show()
-    ##
-    def gpr_3dsurf_plot(xTrain,yTrain,testGrid,post_obs_mean,upper_obs,lower_obs,upper_f,lower_f):
-        """
-           3D plot of the GPR surface (mean+CI)
-        """
-        xTestGrid1,xTestGrid2=np.meshgrid(testGrid[0],testGrid[1], sparse=False, indexing='ij')
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        mean_surf = ax.plot_surface(xTestGrid1, xTestGrid2, post_obs_mean,cmap='jet', antialiased=True,rstride=1,cstride=1,linewidth=0,alpha=0.4)
-        upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_obs, linewidth=1,alpha=0.25,color='r')
-        lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_obs, linewidth=1,alpha=0.25,color='b')
-        #upper_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_f, linewidth=1,alpha=0.5,color='r')
-        #lower_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_f, linewidth=1,alpha=0.5,color='b')
-        plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok')
         plt.show()
     ##
     def trainDataGen(p,sampleType,n,qBound,fExName,noiseType):
@@ -819,6 +946,12 @@ def gprTorch_2d_singleTask_test():
         ax.set_title(r'Lower Confidence for Observations')
         plt.show()
 
+        #2dplot
+        pltOpts={'title':'Mean posterior of f(q)',
+                 'xlab':r'$q_1$',
+                 'ylab':r'$q_2$'}
+        gprPlot(pltOpts).torch2d_2dcont(xTrain,testGrid,post_f_mean) 
+
         #3d plot
-        gpr_3dsurf_plot(xTrain,yTrain,testGrid,post_obs_mean,upper_obs,lower_obs,upper_f,lower_f)
+        gprPlot().torch2d_3dSurf(xTrain,yTrain,testGrid,nTest,post_obs,post_f)
 
