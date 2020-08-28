@@ -363,6 +363,53 @@ class gpr:
            plt.legend(loc='best',fontsize=14)
         plt.suptitle("Convergence of GPR's hyperparam optimization")
         plt.show()
+
+class gprPost:
+    """
+    Post-processing a constructed GPR
+
+    Parameters
+    ----------
+    gpPost: GPR posterior created by GPyTorch
+    nTest: A list of size p>1
+       containing number of test points in each parameter dimension: [nTest1,nTest2,...nTestp]
+
+    Attributes
+    ----------
+    mean: pD numpy array of size [nTest1,nTest2,...,nTestp]
+        Mean of the GP-posterior
+    sdev: pD numpy array of size [nTest1,nTest2,...,nTestp]
+        Standard-deviation of the GP-posterior
+    ciL: pD numpy array of size [nTest1,nTest2,...,nTestp]
+        Lower 95% CI of the GP-posterior
+    ciU: pD numpy array of size [nTest1,nTest2,...,nTestp]
+        Upper 95% CI of the GP-posterior
+    """
+    def __init__(self,gpPost,nTest):
+        self.gpPost=gpPost
+        self.nTest=nTest
+
+    def torchPost(self):
+        """
+           Convert the GP-posterior created by GPyTorch to numpy format suitable for contourplot
+           and compute the mean and sdev of the GP-posterior
+        """
+        with torch.no_grad():
+            post_=self.gpPost
+            nTest=self.nTest
+            post_mean_=post_.mean.detach().numpy()
+            post_mean =post_mean_.reshape(nTest,order='F')   #posterior mean
+            lower_, upper_ = post_.confidence_region()     #\pm 2*sdev of posterior mean
+            lower_=lower_.detach().numpy().reshape(nTest,order='F')
+            upper_=upper_.detach().numpy().reshape(nTest,order='F')
+            post_sdev = (post_mean-lower_)/2.0   #sdev of the posterior mean of f(q)
+        self.mean=post_mean    
+        self.sdev=post_sdev
+        self.ciL=lower_
+        self.ciU=upper_
+
+        
+        
             
 
 
@@ -579,7 +626,6 @@ def gprTorch_1d_singleTask_test():
     #xTest = torch.linspace(xBound[0], xBound[1], nTest)   #if torch is used for training
      
     #(2) Construct the GPR using the training data
-##    post_f,post_obs=gprTorch_1d(xTrain,[yTrain],noiseSdev,xTest,gprOpts)
     gpr_=gpr(xTrain=xTrain,yTrain=[yTrain],noiseV=noiseSdev,xTest=xTest,gprOpts=gprOpts)
     post_f=gpr_.post_f
     post_obs=gpr_.post_y
@@ -691,19 +737,6 @@ def gprTorch_2d_singleTask_test():
           #sdV=0.15*np.ones(n)
           sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')+0.001)
        return sdV  #vector of standard deviations
-    ##
-    def gpr_torch_postProc(post_,nTest):
-        """
-           Convert the outputs of gpr-torch to numpy format suitable for contourplot
-        """
-        with torch.no_grad():
-            post_mean_=post_.mean.detach().numpy()
-            post_mean =post_mean_.reshape((nTest[0],nTest[1]),order='F')   #posterior mean
-            lower_, upper_ = post_.confidence_region()     #\pm 2*sdev of posterior mean
-            lower_=lower_.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
-            upper_=upper_.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
-            post_sdev = (post_mean-lower_)/2.0   #sdev of the posterior mean of f(q)
-        return post_mean,post_sdev,lower_,upper_
 
     #----- SETTINGS
     qBound=[[-2,2],[-2,2]]   #Admissible range of parameters
@@ -741,15 +774,25 @@ def gprTorch_2d_singleTask_test():
     xTest=reshaper.vecs2grid(testGrid)
 
     #(3) construct the GPR based on the training data and make predictions at test inputs
-    #post_f,post_obs=gprTorch_pd(xTrain,[yTrain],noiseSdev,xTest,gprOpts)
     gpr_=gpr(xTrain,[yTrain],noiseSdev,xTest,gprOpts)
     post_f=gpr_.post_f
     post_obs=gpr_.post_y
 
     #(4) Plot 2d contours
     #   (a) Predicted mean and variance at the test grid    
-    post_f_mean,post_f_sdev,lower_f,upper_f=gpr_torch_postProc(post_f,nTest)
-    post_obs_mean,post_obs_sdev,lower_obs,upper_obs=gpr_torch_postProc(post_obs,nTest)
+    fP_=gprPost(post_f,nTest)
+    fP_.torchPost()
+    post_f_mean=fP_.mean
+    post_f_sdev=fP_.sdev
+    lower_f=fP_.ciL
+    upper_f=fP_.ciU
+
+    obsP_=gprPost(post_obs,nTest)
+    obsP_.torchPost()
+    post_obs_mean=obsP_.mean
+    post_obs_sdev=obsP_.sdev
+    lower_obs=obsP_.ciL
+    upper_obs=obsP_.ciU
     #   (b) Plots
     with torch.no_grad():
         fig = plt.figure(figsize=(16,4))
