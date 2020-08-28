@@ -7,6 +7,8 @@
 #--------------------------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
 #--------------------------------------------------------------
+#TO do: go through it
+#--------------------------------------------------------------
 #
 import os
 import sys
@@ -67,7 +69,9 @@ def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType):
     if ndim==1:
        fVal2Interp=lagInt(fNodes=fValM1,qNodes=[qM1[0]],qTest=[qM2]).val
     elif (ndim>1):
-       fVal2Interp=lagInt(fNodes=fValM1,qNodes=qM1,qTest=qM2,liDict={'testRule':pDmethod}).val
+       fVal2Interp_=lagInt(fNodes=fValM1,qNodes=qM1,qTest=qM2,liDict={'testRule':pDmethod}).val
+       nM2_=fVal2Interp_.size
+       fVal2Interp=fVal2Interp_.reshape(nM2_,order='F')
     return qM2,xiM2,fVal2Interp
 #
 def pce2pce_GQ(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType):
@@ -107,9 +111,7 @@ def pce2pce_GQ(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType):
     elif (ndim>1): #multi-dimensional param space
         pceDict={'p':ndim,'sampleType':'GQ','pceSolveMethod':'Projection','truncMethod':'TP',
                  'distType':distType}
-        nM2prod=np.prod(np.asarray(nM2))
-        fVal2Interp_=fVal2Interp.reshape(nM2prod,order='F')        
-        pce_=pce(fVal=fVal2Interp_,xi=xiGridM2,pceDict=pceDict,nQList=nM2)
+        pce_=pce(fVal=fVal2Interp,xi=xiGridM2,pceDict=pceDict,nQList=nM2)
         kSet2=pce_.kSet        
     fMean2=pce_.fMean
     fVar2=pce_.fVar
