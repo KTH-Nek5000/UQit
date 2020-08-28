@@ -152,7 +152,7 @@ class lagInt():
       k=np.arange(n)
       Lk=self.basis1d(qNodes,k,Q)
       fInterp=np.matmul(fNodes[None,:],Lk).T
-      self.val=fInterp
+      self.val=fInterp[:,0]
 
    def interp_pd(self):
       R"""
@@ -273,6 +273,7 @@ def lagInt_Quads2Line(fNodes,qNodes,lineDef):
     lineEnd  =lineDef['end'] 
     for i in range(p):
         if (lineStart[i]<qBound[i][0] or lineStart[i]>qBound[i][1]):
+           print(i,lineStart[i],qBound[i][0],lineStart[i],qBound[i][1]) 
            raise ValueError('Test line cannot be outside of the training plane. Check lineStart in dim %d' %i)
         if (lineEnd[i]<qBound[i][0] or lineEnd[i]>qBound[i][1]):
            raise ValueError('Test line cannot be outside of the training plane. Check lineEnd in dim %d' %i)
