@@ -261,31 +261,6 @@ def ppce_1d_test():
         y=fEx(x) + sdV * np.random.randn(n)
         return x,y,sdV
     #
-    def gpr1D_plotter(post_f,post_obs,xTrain,yTrain,xTest,fExTest):
-        """
-           Plot GPR constructed by GPyToch for 1D input
-        """
-        with torch.no_grad():
-             lower_f, upper_f = post_f.confidence_region()
-             lower_obs, upper_obs = post_obs.confidence_region()
-             plt.figure(figsize=(10,6))
-             plt.plot(xTest,fExTest,'--b',label='Exact Output')
-             plt.plot(xTrain, yTrain, 'ok',markersize=4,label='Training observations')
-             plt.plot(xTest, post_f.mean[:].numpy(), '-r',lw=2,label='Mean Model')
-             plt.plot(xTest, post_obs.mean[:].numpy(), ':m',lw=2,label='Mean Posterior Prediction')
-             plt.plot(xTest, post_obs.sample().numpy(), '-k',lw=1,label='Sample Posterior Prediction')
-             plt.fill_between(xTest, lower_f.numpy(), upper_f.numpy(), alpha=0.3,label='Confidence f(q)')
-             plt.fill_between(xTest, lower_obs.numpy(), upper_obs.numpy(), alpha=0.15, color='r',label='Confidence Yobs')
-             plt.legend(loc='best',fontsize=15)
-             #NOTE: confidence = 2* sdev, 
-             plt.title('Single-Task GP + Heteroscedastic Noise')
-             plt.xticks(fontsize=18)
-             plt.yticks(fontsize=18)
-             plt.xlabel(r'$\mathbf{q}$',fontsize=17)
-             plt.ylabel(r'$y$',fontsize=17)
-             plt.show()
-    #
-    #
     #-------SETTINGS------------------------------
     n=12       #number of training data
     nGQtest=50   #number of test points (=Gauss Quadrature points)
@@ -316,7 +291,9 @@ def ppce_1d_test():
 
     #(3) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator    
-    gpr1D_plotter(optOut['post_f'],optOut['post_obs'],qTrain,yTrain,optOut['qTest'],fEx(optOut['qTest']))
+    pltOpts={'title':'PPCE, 1d param, %s-scedastic noise'%noiseType}
+    gpr_torch.gprPlot(pltOpts).torch1d(optOut['post_f'],optOut['post_obs'],qTrain,yTrain,optOut['qTest'],fEx(optOut['qTest']))
+
     #   (b) plot histogram and pdf of the mean and variance distribution 
     pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
     pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
@@ -372,36 +349,6 @@ def ppce_2d_test():
           sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')+0.001)
        return sdV  #vector of standard deviations
     ##
-    def gpr_3dsurf_plot(xTrain,yTrain,testGrid,nTest,post_obs,post_f):
-        """
-           3D plot of the GPR surface (mean+CI)
-        """
-        #Predicted mean and variance at the test grid
-        fP_=gpr_torch.gprPost(post_f,nTest)
-        fP_.torchPost()
-        post_f_mean=fP_.mean
-        post_f_sdev=fP_.sdev
-        lower_f=fP_.ciL
-        upper_f=fP_.ciU
-
-        obsP_=gpr_torch.gprPost(post_obs,nTest)
-        obsP_.torchPost()
-        post_obs_mean=obsP_.mean
-        post_obs_sdev=obsP_.sdev
-        lower_obs=obsP_.ciL
-        upper_obs=obsP_.ciU
-
-        xTestGrid1,xTestGrid2=np.meshgrid(testGrid[0],testGrid[1], sparse=False, indexing='ij')
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        mean_surf = ax.plot_surface(xTestGrid1, xTestGrid2, post_obs_mean,cmap='jet', antialiased=True,rstride=1,cstride=1,linewidth=0,alpha=0.4)
-        upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_obs, linewidth=1,alpha=0.25,color='r')
-        lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_obs, linewidth=1,alpha=0.25,color='b')
-        #upper_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_f, linewidth=1,alpha=0.5,color='r')
-        #lower_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_f, linewidth=1,alpha=0.5,color='b')
-        plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok')
-        plt.show()
-    ##
     #
     #----- SETTINGS -------------------------------------------
     qBound=[[-2,2],[-2,2]]   #Admissible range of parameters
@@ -438,7 +385,8 @@ def ppce_2d_test():
     fVar_samples=ppce_.fVar_samps
     #(3) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator    
-    gpr_3dsurf_plot(qTrain,yTrain,optOut['qTestGrid'],nGQtest,optOut['post_obs'],optOut['post_f'])
+    gpr_torch.gprPlot().torch2d_3dSurf(qTrain,yTrain,optOut['qTestGrid'],nGQtest,optOut['post_obs'],optOut['post_f'])
+
     #   (b) plot histogram and pdf of the mean and variance distribution 
     pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
     pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
