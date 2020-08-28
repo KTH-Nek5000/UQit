@@ -782,7 +782,7 @@ class convPlot:
           fig = plt.gcf()
           DPI = fig.get_dpi()
           fig.set_size_inches(800/float(DPI),400/float(DPI))
-          figDir=self.convpltOpts['figDir']
+          figDir=self.convPltOpts['figDir']
           if not os.path.exists(figDir):
              os.makedirs(figDir)
           outName=self.convPltOpts['figName']
@@ -802,21 +802,21 @@ def pce_1d_test():
     """
     #--- settings -------------------------
     #Parameter settings
-    distType='Unif'   #distribution type of the parameter
+    distType='Norm'   #distribution type of the parameter
     if distType=='Unif':
        qInfo=[-2,4.0]   #parameter range only if 'Unif'
        fType='type1'    #Type of test exact model function
     elif distType=='Norm':
-       qInfo=[.5,0.05]   #[m,v] for 'Norm' q~N(m,v^2)
+       qInfo=[.5,0.9]   #[m,v] for 'Norm' q~N(m,v^2)
        fType='type2'    #Type of test exact model function
-    n=8   #number of training samples
+    n=20   #number of training samples
     nTest=200   #number of test sample sin the parameter space
     #PCE Options
     sampleType='GQ'    #'GQ'=Gauss Quadrature nodes
                        #''= any other sample => only 'Regression' can be selected
     pceSolveMethod='Regression' #'Regression': for any combination of sample points 
                                 #'Projection': only for GQ
-    LMax_=11   #(Only needed for Regresson method), =K: truncation (num of terms) in PCE                               #(LMax will be over written by nSamples if it is provided for 'GQ'+'Projection')
+    LMax_=19   #(Only needed for Regresson method), =K: truncation (num of terms) in PCE                               #(LMax will be over written by nSamples if it is provided for 'GQ'+'Projection')
                #NOTE: LMAX>=nSamples
     #--------------------------------------
     #(0) Make the pceDict

@@ -372,26 +372,24 @@ def ppce_2d_test():
           sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')+0.001)
        return sdV  #vector of standard deviations
     ##
-    def gpr_torch_postProc(post_,nTest):
-        """
-           Convert the outputs of gpr-torch to numpy format suitable for contourplot
-        """
-        with torch.no_grad():
-            post_mean_=post_.mean.detach().numpy()
-            post_mean =post_mean_.reshape((nTest[0],nTest[1]),order='F')   #posterior mean
-            lower_, upper_ = post_.confidence_region()     #\pm 2*sdev of posterior mean
-            lower_=lower_.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
-            upper_=upper_.detach().numpy().reshape((nTest[0],nTest[1]),order='F')
-            post_sdev = (post_mean-lower_)/2.0   #sdev of the posterior mean of f(q)
-        return post_mean,post_sdev,lower_,upper_
-    ##
     def gpr_3dsurf_plot(xTrain,yTrain,testGrid,nTest,post_obs,post_f):
         """
            3D plot of the GPR surface (mean+CI)
         """
         #Predicted mean and variance at the test grid
-        post_f_mean,post_f_sdev,lower_f,upper_f=gpr_torch_postProc(post_f,nTest)
-        post_obs_mean,post_obs_sdev,lower_obs,upper_obs=gpr_torch_postProc(post_obs,nTest)
+        fP_=gpr_torch.gprPost(post_f,nTest)
+        fP_.torchPost()
+        post_f_mean=fP_.mean
+        post_f_sdev=fP_.sdev
+        lower_f=fP_.ciL
+        upper_f=fP_.ciU
+
+        obsP_=gpr_torch.gprPost(post_obs,nTest)
+        obsP_.torchPost()
+        post_obs_mean=obsP_.mean
+        post_obs_sdev=obsP_.sdev
+        lower_obs=obsP_.ciL
+        upper_obs=obsP_.ciU
 
         xTestGrid1,xTestGrid2=np.meshgrid(testGrid[0],testGrid[1], sparse=False, indexing='ij')
         fig = plt.figure()
