@@ -44,18 +44,20 @@ class pce:
        self.xi=xi
        self.nQList=nQList
        self.pceDict=pceDict
-       self.info()
-       self.pceDict_corrector()
+       self._info()
+       self._pceDict_corrector()
        self.cnstrct()
 
-   def info(self):
+   def _info(self):
        obligKeyList=['p','distType','sampleType','pceSolveMethod'] #obligatory keys in pceDict
        optKeyList=['truncMethod','LMax'] #optional keys in pceDict
        self.obligKeyList=obligKeyList
        self.optKeyList=optKeyList
        self.LMax_def=10   #default value of LMax (in case it is not provided)
+       if self.fVal.ndim >1:
+          raise ValueError("fVal should be a 1D numpy array of size n.") 
 
-   def pceDict_corrector(self):
+   def _pceDict_corrector(self):
        R"""
         Check and Correct pceDict for PCE to ensure consistency.
         * For 'GQ' samples+'TP' truncation method: either 'Projection' or 'Regression' can be used
@@ -605,10 +607,10 @@ class pceEval:
       self.xi=xi
       self.distType=distType
       self.kSet=kSet
-      self.info()
+      self._info()
       self.eval()
    
-   def info(self):
+   def _info(self):
        if len(self.kSet)==0:
           p=1
        else:
@@ -725,11 +727,11 @@ class convPlot:
       self.distType=distType
       self.kSet=kSet
       self.convPltOpts=convPltOpts
-      self.get_info()
+      self._get_info()
       self.pceConv()
       self.pceConvPlot()
       
-   def get_info(self):
+   def _get_info(self):
        if len(self.kSet)==0:
           p=1
        else:
