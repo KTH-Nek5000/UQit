@@ -2,8 +2,9 @@
 Sampling
 ========
 
-Training: we usually sample from :math:`\Gamma` and then we map it to :math:`\mathbb{Q}`.
+In :code:`UQit`, different types of samples can be taken from the parameter space. 
+In the big picture, the parameter samples are divided into training and test. 
 
-Test: we usually sample from :math:`\mathbb{Q}` and then map it to :math:`\Gamma`.
-But this is not always possible, for instance when we have a distribution other than uniform. 
+To construct a surrogate or perform a UQ forward problem, we need to take training samples from :math:`\Gamma` and then we map them to :math:`\mathbb{Q}`.
+In contrast the test samples which are, for instance, used to evalute the surrogates, are taken from :math:`\mathbb{Q}` and then are mapped to :math:`\Gamma`.
 
