@@ -86,6 +86,7 @@ def sobolDecomposCoefs_3par(Q,f):
     f1=f1-f0
     f2=f2-f0
     f3=f3-f0      
+    fi=[f1,f2,f3]
     #2nd-order Interaction terms 
     f12_=simps(f,Q[2],axis=2)/L[2]
     f12=interactionTerm(f12_,f1,f2,f0)
