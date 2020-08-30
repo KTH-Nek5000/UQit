@@ -27,17 +27,6 @@ import sampling
 class pce:
    """
    Construction of non-inrusive generalized Polynomial Chaos Expansion (PCE)
-
-   Parameters
-   ----------
-
-   Attributes
-   ----------
-
-   Methods
-   -------
-
-
    """
    def __init__(self,fVal,xi,pceDict,nQList=[]):
        self.fVal=fVal
@@ -49,17 +38,20 @@ class pce:
        self.cnstrct()
 
    def _info(self):
+       """
+       Checks consistency of the inputs
+       """
        obligKeyList=['p','distType','sampleType','pceSolveMethod'] #obligatory keys in pceDict
        optKeyList=['truncMethod','LMax'] #optional keys in pceDict
        self.obligKeyList=obligKeyList
        self.optKeyList=optKeyList
-       self.LMax_def=10   #default value of LMax (in case it is not provided)
+       self.LMax_def=10   #default value of LMax (if not provided)
        if self.fVal.ndim >1:
           raise ValueError("fVal should be a 1D numpy array of size n.") 
 
    def _pceDict_corrector(self):
        R"""
-        Check and Correct pceDict for PCE to ensure consistency.
+        Checks and correct `pceDict`to ensure the consistency of the options.
         * For 'GQ' samples+'TP' truncation method: either 'Projection' or 'Regression' can be used
         * For all combination of sample points and truncation, 'Projection' can be used to compute PCE coefficients
        """
@@ -167,8 +159,8 @@ class pce:
    @classmethod
    def basisNorm(self,k_,distType_,nInteg=10000):
       R"""
-      Evaluate L2-norma of the gPCE polynomial basis of order k at \xi\in\Gamma,
-      where Gamma is the standard polynomials are choosen based on the gPCE rules. 
+      Evaluates the L2-norm of the gPCE polynomial basis of order `k_` at `nInteg` points on the 
+      mapped space :math:`\Gamma`, where :math:`\Gamma` is the standard polynomials are choosen based on the gPCE rules. 
       """
       if distType_=='Unif':
          xi_=np.linspace(-1,1,nInteg)
@@ -181,8 +173,8 @@ class pce:
    @classmethod
    def density(self,xi_,distType_):
       R"""
-      Evaluate the PDF of the standard gPCE random variables with distribution
-         type `distType_` at points \xi\in\Gamma (\Gamma: mapped space)
+      Evaluate the PDF of the standard gPCE random variables with distribution 
+      type `distType_` at points `xi_` where :math:`\xi\in\Gamma`. 
       """
       if distType_=='Unif':
          pdf_=0.5*np.ones(xi_.shape[-1])
@@ -190,7 +182,7 @@ class pce:
          pdf_=np.exp(-0.5*xi_**2.)/mt.sqrt(2*mt.pi)
       return pdf_
 
-   def gqInteg_fac(self,distType_):
+   def _gqInteg_fac(self,distType_):
       """
       Multipliers for the GQ rule given the weights provided by numpy
       """
@@ -277,7 +269,7 @@ class pce:
       #Find the coefficients in the expansion
       fCoef=np.zeros(nQ)
       sum2=[]
-      fac_=self.gqInteg_fac(self.distType)
+      fac_=self._gqInteg_fac(self.distType)
       for k in range(K):  #k-th coeff in PCE
           psi_k=self.basis(k,xi,self.distType)
           sum1=np.sum(self.fVal[:K]*psi_k[:K]*w[:K]*fac_)
@@ -324,7 +316,7 @@ class pce:
       A=np.zeros((nData,K))    #Matrix of known coeffcient for regression to compute PCE coeffcients
       sum2=[]
       xi_aux,w_aux=self.gqPtsWts(K+1,self.distType)  #auxiliary GQ rule for computing gamma_k
-      fac_=self.gqInteg_fac(self.distType)
+      fac_=self._gqInteg_fac(self.distType)
       for k in range(K):
           psi_aux=self.basis(k,xi_aux,self.distType)
           for j in range(nData):
@@ -435,7 +427,7 @@ class pce:
           xi.append(xi_)
           w.append(w_)
           K*=self.nQList[i]
-          fac.append(self.gqInteg_fac(distType[i]))
+          fac.append(self._gqInteg_fac(distType[i]))
       print('...... Number of terms in PCE, K= ',K)
       nData=len(self.fVal)   #number of observations
       print('...... Number of Data point, n= ',nData)
@@ -555,7 +547,7 @@ class pce:
           xi_,w_=self.gqPtsWts(self.nQList[i],distType[i])
           xiAux.append(xi_)
           wAux.append(w_)
-          fac.append(self.gqInteg_fac(distType[i]))
+          fac.append(self._gqInteg_fac(distType[i]))
       # Index set
       kSet=[]    #index set for the constructed PCE
       kGlob=np.arange(Nmax)   #Global index
@@ -818,7 +810,7 @@ def pce_1d_test():
                        #''= any other sample => only 'Regression' can be selected
     pceSolveMethod='Regression' #'Regression': for any combination of sample points 
                                 #'Projection': only for GQ
-    LMax_=19   #(Only needed for Regresson method), =K: truncation (num of terms) in PCE                               #(LMax will be over written by nSamples if it is provided for 'GQ'+'Projection')
+    LMax_=10   #(Only needed for Regresson method), =K: truncation (num of terms) in PCE                               #(LMax will be over written by nSamples if it is provided for 'GQ'+'Projection')
                #NOTE: LMAX>=nSamples
     #--------------------------------------
     #(0) Make the pceDict
@@ -889,7 +881,7 @@ def pce_2d_test():
     distType=['Unif','Norm']   #distribution type of the parameters
     qInfo=[[-2,3],   #parameters info
            [-2,0.2]] 
-    nQ=[7,12]   #number of collocation smaples of param1,param2: only for 'TP', otherwise =[]
+    nQ=[13,11]   #number of collocation smaples of param1,param2: only for 'TP', otherwise =[]
     nTest=[121,120]   #number of test points in parameter spaces
     #PCE Options
     truncMethod='TO'  #'TP'=Tensor Product
