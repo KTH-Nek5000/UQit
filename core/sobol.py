@@ -160,70 +160,14 @@ def sobol_2par_unif_test():
        * Method2: First a PCE is constructed and then its predicitons at test points are used in Simpson integral of the Sobol indices. 
        * Method3: Analytical expressions (see my notes)      
     """
-    print('... Test: sobol_2par_unif_test(): Sobol Sensitivity Indices for fEx2D("type3")')
-    def D1_Ex(a,b,q1):
-        """
-          Analytical function for variance D1 for for analyticalTestFuncs.fEx2D('type3')
-          a,b: terms in derived expression f1(q1)=q1^2+a*q1+b
-          q1: sample for q1 at which the expression is evaluated
-        """
-        return(0.2*q1**5.+0.5*a*q1**4.+(a**2.+2.*b)/3.*q1**3.+a*b*q1**2.+b**2.*q1)
-        
-    def D2_Ex(a,b,q2):
-        """
-          Analytical function for variance D2 for for analyticalTestFuncs.fEx2D('type3')
-          a,b: terms in derived expression f2(q2)=a*q2+b
-          q2: sample for q2 at which the expression is evaluated
-        """
-        return((a**2./3.)*q2**3.+a*b*q2**2.+b**2.*q2) 
-
-    def D12_Ex(a,b,c,q1Bound,q2Bound):
-        """
-          Analytical function for variance D12 for for analyticalTestFuncs.fEx2D('type3')
-          a,b: terms in derived expression f12(q1,q2)=q1*q2+a*q1+b*q2+c
-          q1Bound, q2Bound: bounds of the samples at which the expression is evaluated
-        """
-        q1_1=q1Bound[1]-q1Bound[0]
-        q1_2=q1Bound[1]**2.-q1Bound[0]**2.
-        q1_3=q1Bound[1]**3.-q1Bound[0]**3.
-        q2_1=q2Bound[1]-q2Bound[0]
-        q2_2=q2Bound[1]**2.-q2Bound[0]**2.
-        q2_3=q2Bound[1]**3.-q2Bound[0]**3.
-        return(q1_3*q2_3/9.+a/3.*q1_3*q2_2+b*q1_2*q2_3/3.+0.5*(c+a*b)*q1_2*q2_2+a**2.*q1_3*q2_1/3.+b**2.*q1_1*q2_3/3.+a*c*q1_2*q2_1+b*c*q1_1*q2_2+c**2.*q1_1*q2_1)
-
-    def analyticalSobol_2par(qBound):
-        """
-        Analytical Sobol indices for analyticalTestFuncs.fEx2D('type3')
-        """      
-        #Variances in Sobol decomposition
-        a1=qBound[0][0]
-        b1=qBound[0][1]
-        a2=qBound[1][0]
-        b2=qBound[1][1]
-        f0=(a1**2.+b1**2.+a1*b1)/3.+0.25*(a1+b1)*(a2+b2)
-        a=(a2+b2)/2.0
-        b=-f0
-        D1_ex=(D1_Ex(a,b,b1)-D1_Ex(a,b,a1))/(b1-a1)
-        a=(a1+b1)/2.0
-        b=(a1**2.+a1*b1+b1**2.)/3.-f0
-        D2_ex=(D2_Ex(a,b,b2)-D2_Ex(a,b,a2))/(b2-a2)
-        a=-(a2+b2)/2.
-        b=-(a1+b1)/2.
-        c=f0-(a1**2.+a1*b1+b1**2.)/3.
-        D12_ex=(D12_Ex(a,b,c,qBound[0],qBound[1]))/((b1-a1)*(b2-a2))
-        #Sensitivity indices
-        D_ex=D1_ex+D2_ex+D12_ex
-        Si_ex=[D1_ex/D_ex,D2_ex/D_ex]
-        Sij_ex=[D12_ex/D_ex]
-        return Si_ex,Sij_ex
-       
     #--------------------------
     #------- SETTINGS 
-    n=[100, 90]       #number of samples for q1 and q2, Method1
+    n=[101, 100]       #number of samples for q1 and q2, Method1
     qBound=[[-3,1],   #admissible range of parameters
             [-1,2]]
     nQpce=[5,6]      #number of GQ points for Method2
     #--------------------------
+    fType='type3'    #type of analytical function
     p=len(n)
     distType=['Unif']*p
     #(1) Samples from parameters space
@@ -232,11 +176,11 @@ def sobol_2par_unif_test():
         q.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
 
     #(2) Compute function value at the parameter samples
-    fEx_=analyticTestFuncs.fEx2D(q[0],q[1],'type3','tensorProd')    
-    fEx=np.reshape(fEx_,(n[0],n[1]),'F')  
+    fEx_=analyticTestFuncs.fEx2D(q[0],q[1],fType,'tensorProd')    
+    fEx=np.reshape(fEx_.val,n,'F')  
     
     #(3) Compute Sobol indices direct numerical integration
-    Si,Sij=sobol_unif([q[0],q[1]],fEx)
+    Si,Sij=sobol_unif(q,fEx)
 
     #(4) Construct a gPCE and then use the predictions of the gPCE in numerical integration for computing Sobol indices.
     #Generate observations at Gauss-Legendre points
@@ -246,12 +190,11 @@ def sobol_2par_unif_test():
         xi_,w_=pce.pce.gqPtsWts(nQpce[i],distType[i])
         qpce.append(pce.pce.mapFromUnit(xi_,qBound[i]))
         xi.append(xi_)
-    fVal_pceCnstrct=analyticTestFuncs.fEx2D(qpce[0],qpce[1],'type3','tensorProd') 
+    fVal_pceCnstrct=analyticTestFuncs.fEx2D(qpce[0],qpce[1],fType,'tensorProd').val
     #Construct the gPCE
     xiGrid=reshaper.vecs2grid(xi)
     pceDict={'p':2,'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection',
              'distType':distType}
-    #fCoefs,kSet,fMean,fVar=pce.pce_pd_cnstrct(fVal_pceCnstrct,nQpce,xiGrid,pceDict)
     pce_=pce.pce(fVal=fVal_pceCnstrct,nQList=nQpce,xi=xiGrid,pceDict=pceDict)
 
     #Use gPCE to predict at test samples from parameter space
@@ -266,7 +209,10 @@ def sobol_2par_unif_test():
     Si_pce,Sij_pce=sobol_unif(qpceTest,fPCETest)
 
     #(5) Exact Sobol indices (analytical expressions)
-    Si_ex,Sij_ex=analyticalSobol_2par(qBound)
+    if fType=='type3':
+       fEx_.sobol(qBound)
+       Si_ex=fEx_.Si
+       Sij_ex=fEx_.Sij
     
     #(6) Write results on screen
     print(' > Indices by UQit:\n\t S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
@@ -299,28 +245,19 @@ def sobol_3par_unif_test():
 
     #(2) Compute function value at the parameter samples
     fEx_=analyticTestFuncs.fEx3D(q[0],q[1],q[2],'Ishigami','tensorProd',{'a':a,'b':b})    
-    fEx=np.reshape(fEx_,(n[0],n[1],n[2]),'F')  
+    fEx=np.reshape(fEx_.val,n,'F')  
     
     #(3) Compute Sobol indices (method of choice in this library)
-    Si,Sij=sobol_unif([q[0],q[1],q[2]],fEx)
+    Si,Sij=sobol_unif(q,fEx)
 
     print('sobol_3par_unif_test(): Sobol Sensitivity Indices for fEx3D("Ishigami")')
     print(' > Indices by UQit : S1=%g, S2=%g, S3=%g' %(Si[0],Si[1],Si[2]))
     print(' >                        S12=%g, S13=%g, S23=%g' %(Sij[0],Sij[1],Sij[2]))
 
     #(4) Exact Sobol indices (analytical expressions)
-
-    D1=b*pi**4./5.+b**2.*pi**8./50. + 0.5
-    D2=a**2./8.0
-    D3=0.0
-    D13=b**2.*pi**8./50.0+7.*b**2.*pi**8./450
-    D12=0.0
-    D23=0.0
-    D123=0.0
-  
-    D=D1+D2+D3+D12+D13+D23+D123
-    Si_ex=[D1/D,D2/D,D3/D]
-    Sij_ex=[D12/D,D13/D,D23/D]
+    fEx_.sobol(qBound)
+    Si_ex=fEx_.Si
+    Sij_ex=fEx_.Sij
     print(' > Analytical Reference: S1=%g, S2=%g, S3=%g' %(Si_ex[0],Si_ex[1],Si_ex[2]))
     print(' >                        S12=%g, S13=%g, S23=%g' %(Sij_ex[0],Sij_ex[1],Sij_ex[2]))
 #    print(' > Analytical Expression: D1=%g, D2=%g, D12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
