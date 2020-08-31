@@ -30,8 +30,8 @@ def myLinearRegress(A,R,L_=1,max_iter_=100000):
         #make the system normal
         M=np.dot(A.T,A)   
         R=np.dot(A.T,R)
-        if (K>=n): #only under-determined system => use compressed sensing
-#        if (0==0): #always use compressed sensing (regularization)
+#        if (K>=n): #only under-determined system => use compressed sensing
+        if (K!=n): #always use compressed sensing (regularization)
            f = cvx.Variable(K)
            objective = cvx.Minimize(cvx.norm(f, L_))   #L1/L2-regularization
            constraints = [M*f == R]
