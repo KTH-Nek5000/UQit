@@ -88,8 +88,8 @@ class lagInt():
    def basis1d(self,qNodes_,k,Q_):
       """
       Construct single-variate Lagrange basis :math:`L_k(q)` using n nodes `qNodes_`. 
-      The bases are evaluated at `m` test points `Q_`, for p=1 (single-variate parameter). 
-      Note that k=0,1,...,n-1. 
+      The bases are evaluated at `m` test points `Q_`, for `p=1` (single-variate parameter). 
+      Note that `k=0,1,...,n-1`. 
 
       Parameters
       ----------
@@ -98,12 +98,12 @@ class lagInt():
       `Q_`: 1D numpy array of size m
          Test samples 
       `k`: int
-         specify the order of the polynomial basis
+         Order of the polynomial basis
 
       Output
       ------
-      prod: n-by-m numpy array
-          Values of L_k(Q) for k=0,1,...,n evaluated at Q of size m
+      `prod`: n-by-m numpy array
+          Values of :math:`L_k(Q)` for `k=0,1,...,n` evaluated at `Q_`
       """
       n=qNodes_.size
       m=Q_.shape[-1]
@@ -307,7 +307,7 @@ def lagInt_test_1d():
     # Create nNodes random nodal points over qBound range and function value at the nodes
     samps_=sampling.trainSample(sampleType=sampType,qInfo=qBound,nSamp=nNodes)        
     qNodes=samps_.q
-    fNodes=analyticTestFuncs.fEx1D(qNodes,fType)
+    fNodes=analyticTestFuncs.fEx1D(qNodes,fType,qBound).val
 
     # Generate test points
     qTestFull=np.linspace(qBound[0],qBound[1],nTest)
@@ -317,7 +317,7 @@ def lagInt_test_1d():
     fInterpTest=lagInt(fNodes=fNodes,qNodes=[qNodes],qTest=[qTest]).val
 
     # Plot
-    fTestFull=analyticTestFuncs.fEx1D(qTestFull,fType)
+    fTestFull=analyticTestFuncs.fEx1D(qTestFull,fType,qBound).val
     plt.figure(figsize=(12,7))
     plt.plot(qTestFull,fTestFull,'--r',lw=2,label='Exact f(q)')
     plt.plot(qTest,fInterpTest,'-b',lw=2,label='f(q) by Lagrange Interpolation')
@@ -360,7 +360,7 @@ def lagInt_test_2d():
         qNodes_=sampling.trainSample(sampleType=sampType[i],qInfo=qBound[i],nSamp=nNodes[i])        
         qNodes.append(qNodes_.q)
     # Response at the GL samples
-    fNodes=analyticTestFuncs.fEx2D(qNodes[0],qNodes[1],'type1','tensorProd')
+    fNodes=analyticTestFuncs.fEx2D(qNodes[0],qNodes[1],'type1','tensorProd').val
 
     # (3) Use response values at the sampled nodes and predict at test points.The test points are generated over q1Boundxq2Bound. These points make a uniform mesh that is used for contourplot
     qTestList=[]
@@ -376,7 +376,7 @@ def lagInt_test_2d():
         qTestFull_=np.linspace(domRange[i][0],domRange[i][1],nTest[i])  #test points in param1 space
         qTestFull.append(qTestFull_)
 
-    fTestFull=analyticTestFuncs.fEx2D(qTestFull[0],qTestFull[1],'type1','tensorProd')   #response value at the test points
+    fTestFull=analyticTestFuncs.fEx2D(qTestFull[0],qTestFull[1],'type1','tensorProd').val   #response value at the test points
     fTestFullGrid=fTestFull.reshape((nTest[0],nTest[1]),order='F').T
     fTestGrid=fTest.reshape((nTest[0],nTest[1]),order='F').T
 
@@ -432,7 +432,7 @@ def lagInt_test_3d():
         qNodes.append(qNodes_.q)
 
     # (2) Function values at the samples
-    fNodes=analyticTestFuncs.fEx3D(qNodes[0],qNodes[1],qNodes[2],'Ishigami','tensorProd',{'a':a,'b':b})
+    fNodes=analyticTestFuncs.fEx3D(qNodes[0],qNodes[1],qNodes[2],'Ishigami','tensorProd',{'a':a,'b':b}).val
    
     # (3) Create the test points
     qTest=[]
@@ -441,7 +441,7 @@ def lagInt_test_3d():
         qTest.append(qTest_.q)
     # (4) Compute exact and predicted-by-Lagrange inerpolation values of function
     # Exact Value 
-    fTestEx=analyticTestFuncs.fEx3D(qTest[0],qTest[1],qTest[2],'Ishigami','tensorProd',{'a':a,'b':b})
+    fTestEx=analyticTestFuncs.fEx3D(qTest[0],qTest[1],qTest[2],'Ishigami','tensorProd',{'a':a,'b':b}).val
     # (5) Construct Lagrange interpolation from the nodal values and make predictions at test points
     fInterp=lagInt(fNodes=fNodes,qNodes=qNodes,qTest=qTest,liDict={'testRule':'tensorProd'}).val
     
@@ -489,7 +489,7 @@ def lagInt_Quads2Line_test():
         qNodes_=sampling.trainSample(sampleType=sampType[i],qInfo=qBound[i],nSamp=nNodes[i])        
         qNodes.append(qNodes_.q)
     # Response at the GL samples
-    fNodes=analyticTestFuncs.fEx2D(qNodes[0],qNodes[1],'type1','tensorProd')
+    fNodes=analyticTestFuncs.fEx2D(qNodes[0],qNodes[1],'type1','tensorProd').val
 
     #(2) Interpolate from the nodal set to the points over the line defined above
     qLine,fLine=lagInt_Quads2Line(fNodes,qNodes,lineDef) 
@@ -498,7 +498,7 @@ def lagInt_Quads2Line_test():
     plt.figure(figsize=(8,5))
     plt.plot(qLine[0],fLine,'-ob',label='Lagrange Interpolation')
     # exact response
-    fLine_ex=analyticTestFuncs.fEx2D(qLine[0],qLine[1],'type1','pair')
+    fLine_ex=analyticTestFuncs.fEx2D(qLine[0],qLine[1],'type1','comp').val
     plt.plot(qLine[0],fLine_ex,'-xr',label='Exact')
     plt.title('%d x%d interpolating nodes in Q1xQ2 space.' %(nNodes[0],nNodes[1]))
     plt.xlabel('q1');

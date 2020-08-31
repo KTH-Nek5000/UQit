@@ -822,10 +822,15 @@ def pce_1d_test():
     q=samps.q
     xi=samps.xi
     qBound=samps.qBound
-    f=analyticTestFuncs.fEx1D(q,fType,qInfo)   #function value at the parameter samples           
+    fEx=analyticTestFuncs.fEx1D(q,fType,qInfo)   
+    f=fEx.val
     #
     #(2) Compute the exact moments (as the reference data)
-    fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qInfo,fType)
+    #fMean_ex,fVar_ex=analyticTestFuncs.fEx1D(q,fType,qInfo)
+    fEx.moments(qInfo)
+    fMean_ex=fEx.mean
+    fVar_ex=fEx.var
+
     #
     #(3) Construct the PCE
     pce_=pce(fVal=f,xi=xi,pceDict=pceDict)
@@ -849,7 +854,7 @@ def pce_1d_test():
     testSamps=sampling.testSample('unifSpaced',GQdistType=distType,qInfo=qInfo,qBound=qBound,nSamp=nTest)
     qTest=testSamps.q
     xiTest=testSamps.xi
-    fTest=analyticTestFuncs.fEx1D(qTest,fType,qInfo)   #exact response at test samples
+    fTest=analyticTestFuncs.fEx1D(qTest,fType,qInfo).val   #exact response at test samples
     #Prediction by PCE at test samples
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType)
     fPCE=pcePred_.pceVal
@@ -907,7 +912,7 @@ def pce_2d_test():
            q.append(samps.q)
            xi.append(samps.xi)
            qBound.append(samps.qBound)
-       fVal=analyticTestFuncs.fEx2D(q[0],q[1],fType,'tensorProd')  
+       fVal=analyticTestFuncs.fEx2D(q[0],q[1],fType,'tensorProd').val  
        xiGrid=reshaper.vecs2grid(xi)
     elif sampleType=='LHS':
         if distType==['Unif']*p:
@@ -915,7 +920,7 @@ def pce_2d_test():
            xi=sampling.LHS_sampling(nQ[0]*nQ[1],[[-1,1]]*p)
            for i in range(p):
                q.append(pce.mapFromUnit(xi[:,i],qBound[i]))       
-           fVal=analyticTestFuncs.fEx2D(q[0],q[1],fType,'pair')  
+           fVal=analyticTestFuncs.fEx2D(q[0],q[1],fType,'comp').val  
            xiGrid=xi
         else:  
            print("LHS works only when all q have 'Unif' distribution.") 
@@ -941,7 +946,7 @@ def pce_2d_test():
         xiTest_=testSamps.xi
         qTest.append(qTest_)
         xiTest.append(xiTest_)
-    fTest=analyticTestFuncs.fEx2D(qTest[0],qTest[1],fType,'tensorProd')
+    fTest=analyticTestFuncs.fEx2D(qTest[0],qTest[1],fType,'tensorProd').val
     #Evaluate PCE at the test samples
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType,kSet=kSet)
     fPCE=pcePred_.pceVal
@@ -1013,7 +1018,8 @@ def pce_3d_test():
         xi.append(samps.xi)
         q.append(samps.q)
         qBound.append(samps.qBound)
-    fVal=analyticTestFuncs.fEx3D(q[0],q[1],q[2],'Ishigami','tensorProd',funOpt)  
+    fEx=analyticTestFuncs.fEx3D(q[0],q[1],q[2],'Ishigami','tensorProd',funOpt)  
+    fVal=fEx.val
     #Make the pceDict
     pceDict={'p':3,'truncMethod':truncMethod,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,
              'distType':distType}
@@ -1030,7 +1036,9 @@ def pce_3d_test():
     convPlot(coefs=pceCoefs,distType=distType,kSet=kSet)
 
     #Exact moments of the Ishigami function
-    m,v=analyticTestFuncs.ishigami_exactMoments(qBound[0],qBound[1],qBound[2],funOpt)
+    fEx.moments(qInfo=qBound)
+    m=fEx.mean
+    v=fEx.var
     #Comapre PCE and exact moments
     print(writeUQ.printRepeated('-',50))
     print('\t\t Exact \t\t PCE')
@@ -1043,7 +1051,7 @@ def pce_3d_test():
         testSamps=sampling.testSample('unifSpaced',GQdistType=distType[i],qInfo=qInfo[i],qBound=qBound[i],nSamp=nTest[i])
         qTest.append(testSamps.q)
         xiTest.append(testSamps.xi)
-    fVal_test_ex=analyticTestFuncs.fEx3D(qTest[0],qTest[1],qTest[2],'Ishigami','tensorProd',funOpt)  
+    fVal_test_ex=analyticTestFuncs.fEx3D(qTest[0],qTest[1],qTest[2],'Ishigami','tensorProd',funOpt).val  
     #PCE prediction at test points
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType,kSet=kSet)
     fVal_test_pce=pcePred_.pceVal

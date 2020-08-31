@@ -235,7 +235,7 @@ def ppce_1d_test():
            Exact simulator
         """
         #yEx=np.sin(2*mt.pi*x)
-        yEx=analyticTestFuncs.fEx1D(x,fType)
+        yEx=analyticTestFuncs.fEx1D(x,fType,qBound).val
         return yEx
     #
     def noiseGen(n,noiseType):
@@ -298,7 +298,11 @@ def ppce_1d_test():
     pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
     pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
     #   (c) compare the exact moments with estimated values by ppce
-    fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qBound,fType)
+    fEx=analyticTestFuncs.fEx1D(qTrain,fType,qBound)
+    fEx.moments(qBound)
+    fMean_ex=fEx.mean
+    fVar_ex=fEx.var
+
     fMean_mean=fMean_samples.mean()
     fMean_sdev=fMean_samples.std()
     fVar_mean=fVar_samples.mean()
@@ -333,7 +337,7 @@ def ppce_2d_test():
         #  (b) set the sdev of the observation noise
         noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
         #  (c) Training data
-        yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')
+        yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp').val
         yTrain_noiseFree=yTrain
         yTrain=yTrain_noiseFree+noiseSdev*np.random.randn(nSamp)
         return xTrain,yTrain,noiseSdev,yTrain_noiseFree
@@ -346,7 +350,7 @@ def ppce_2d_test():
           sd=0.2   #standard deviation (NOTE: cannot be zero)
           sdV=sd*np.ones(n)
        elif noiseType=='hetero':
-          sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')+0.001)
+          sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp').val+0.001)
        return sdV  #vector of standard deviations
     ##
     #
@@ -391,7 +395,6 @@ def ppce_2d_test():
     pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
     pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
     #   (c) compare the exact moments with estimated values by ppce
-    #fMean_ex,fVar_ex=analyticTestFuncs.fEx1D_moments(qBound)
     fMean_mean=fMean_samples.mean()
     fMean_sdev=fMean_samples.std()
     fVar_mean=fVar_samples.mean()

@@ -845,7 +845,7 @@ def gprTorch_2d_singleTask_test():
         noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
         #yTrain = torch.sin(mt.pi*xTrain[:,0])*torch.cos(.25*mt.pi*xTrain[:,1])+torch.randn_like(xTrain[:,0]).mul(0.1)   #torch
         #   (c) Training data
-        yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')
+        yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp').val
         yTrain_noiseFree=yTrain
         yTrain=yTrain_noiseFree+noiseSdev*np.random.randn(nSamp)
         return xTrain,yTrain,noiseSdev,yTrain_noiseFree
@@ -862,7 +862,7 @@ def gprTorch_2d_singleTask_test():
           #sdMax=0.5
           #sdV=sdMin+(sdMax-sdMin)*np.linspace(0.0,1.0,n)
           #sdV=0.15*np.ones(n)
-          sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'pair')+0.001)
+          sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp').val+0.001)
        return sdV  #vector of standard deviations
 
     #----- SETTINGS
@@ -924,7 +924,7 @@ def gprTorch_2d_singleTask_test():
     with torch.no_grad():
         fig = plt.figure(figsize=(16,4))
         ax = fig.add_subplot(141)        
-        fEx_test=analyticTestFuncs.fEx2D(xTest[:,0],xTest[:,1],fExName,'pair')
+        fEx_test=analyticTestFuncs.fEx2D(xTest[:,0],xTest[:,1],fExName,'comp').val
         CS0=ax.contour(testGrid[0],testGrid[1],fEx_test.reshape((nTest[0],nTest[1]),order='F').T,levels=40)
         ax.clabel(CS0, inline=True, fontsize=15,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
         ax.plot(xTrain[:,0],xTrain[:,1],'or')

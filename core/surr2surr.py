@@ -138,7 +138,7 @@ def pce2pce_GQ_1d_test():
     xi1,w1=pce.gqPtsWts(nSampMod1[0],distType)   #Gauss sample pts in [-1,1]
     q1_=pce.mapFromUnit(xi1,space1[0])    #map Gauss points to param space
     q1.append(q1_)
-    fVal1=analyticTestFuncs.fEx1D(q1[0],'type1')  #function value at the parameter samples (Gauss quads)
+    fVal1=analyticTestFuncs.fEx1D(q1[0],'type1',space1).val  #function value at the parameter samples (Gauss quads)
     pceDict={'p':1,'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType} 
     pce_=pce(fVal=fVal1,xi=[],pceDict=pceDict)    
     fMean1=pce_.fMean  
@@ -150,13 +150,13 @@ def pce2pce_GQ_1d_test():
 
     #(3) Make predictions by PCE1 and PCE2 over their admissible spaces
     qTest1=np.linspace(space1[0][0],space1[0][1],nTest)  #test points in param space
-    fTest1=analyticTestFuncs.fEx1D(qTest1,'type1')   #exact response at test points
+    fTest1=analyticTestFuncs.fEx1D(qTest1,'type1',space1).val   #exact response at test points
     xiTest1=pce.mapToUnit(qTest1,space1[0])
     pcePred_=pceEval(coefs=fCoef1,xi=xiTest1,distType=distType)
     fPCETest1=pcePred_.pceVal
 
     qTest2=np.linspace(space2[0][0],space2[0][1],nTest)  #test points in param space
-    fTest2=analyticTestFuncs.fEx1D(qTest2,'type1')   #exact response at test points
+    fTest2=analyticTestFuncs.fEx1D(qTest2,'type1',space2).val   #exact response at test points
     xiTest2=pce.mapToUnit(qTest2,space2[0])
     pcePred_=pceEval(coefs=fCoef2,xi=xiTest2,distType=distType)
     fPCETest2=pcePred_.pceVal
@@ -203,7 +203,7 @@ def pce2pce_GQ_2d_test():
        xiM1.append(xi_)
   
     #Response values at the GL points
-    fValM1=analyticTestFuncs.fEx2D(qM1[0],qM1[1],'type1','tensorProd') 
+    fValM1=analyticTestFuncs.fEx2D(qM1[0],qM1[1],'type1','tensorProd').val
     #Construct the PCE
     pceDict={'p':p,'sampleType':'GQ','pceSolveMethod':'Projection','truncMethod':'TP','LMax':10,
              'distType':distType}
@@ -223,7 +223,7 @@ def pce2pce_GQ_2d_test():
     for i in range(2):
         qTestM1_=np.linspace(spaceM1[i][0],spaceM1[i][1],nTest[i])  #test points in param_i
         qTestM1.append(qTestM1_)
-    fTest =analyticTestFuncs.fEx2D(qTestM1[0],qTestM1[1],'type1','tensorProd')   #exact response at test points of model1
+    fTest =analyticTestFuncs.fEx2D(qTestM1[0],qTestM1[1],'type1','tensorProd').val   #exact response at test points of model1
     #GL points
     xiTestM1=[]
     for i in range(2):
@@ -240,7 +240,7 @@ def pce2pce_GQ_2d_test():
         qTestM2.append(qTestM2_)
         xiTestM2_=pce.mapToUnit(qTestM2[i],spaceM2[i])
         xiTestM2.append(xiTestM2_)
-    fTestM2=analyticTestFuncs.fEx2D(qTestM2[0],qTestM2[1],'type1','tensorProd')   #exact response at test points of model2
+    fTestM2=analyticTestFuncs.fEx2D(qTestM2[0],qTestM2[1],'type1','tensorProd').val   #exact response at test points of model2
     pcePred_=pceEval(coefs=fCoefM2,xi=xiTestM2,distType=distType,kSet=kSetM2)
     fPCETestM2=pcePred_.pceVal
 
