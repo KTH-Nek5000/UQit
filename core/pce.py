@@ -5,7 +5,6 @@
 # Saleh Rezaeiravesh, salehr@kth.se
 #--------------------------------------------
 #TODO:
-#1. header Notes
 #2. A help method in pce class to show available options
 #--------------------------------------------
 #
@@ -26,7 +25,7 @@ import sampling
 #
 class pce:
    """
-   Construction of non-inrusive generalized Polynomial Chaos Expansion (PCE)
+   Constructs non-inrusive generalized Polynomial Chaos Expansion (PCE)
    """
    def __init__(self,fVal,xi,pceDict,nQList=[]):
        self.fVal=fVal
@@ -48,12 +47,13 @@ class pce:
        self.LMax_def=10   #default value of LMax (if not provided)
        if self.fVal.ndim >1:
           raise ValueError("fVal should be a 1D numpy array of size n.") 
+       self.availDist=['Unif','Norm'] #available distributions
 
    def _pceDict_corrector(self):
        R"""
         Checks and correct `pceDict`to ensure the consistency of the options.
-        * For 'GQ' samples+'TP' truncation method: either 'Projection' or 'Regression' can be used
-        * For all combination of sample points and truncation, 'Projection' can be used to compute PCE coefficients
+          * For 'GQ' samples+'TP' truncation scheme: either 'Projection' or 'Regression' can be used
+          * For all combination of samples and truncation schemes, 'Projection' can be used to compute PCE coefficients
        """
        for key_ in self.obligKeyList:
            if key_ not in self.pceDict:
@@ -96,12 +96,20 @@ class pce:
           self.LMax=self.pceDict['LMax'] 
        if self.p>1:
           self.truncMethod=self.pceDict['truncMethod'] 
+       #Check the validity of the distType
+       if self.p==1:
+          distType_=[self.distType]
+       else:
+          distType_=self.distType
+       for distType__ in distType_:   
+          if distType__ not in self.availDist:
+             raise ValueError("Invalid 'distType'! Availabe list: ",self.availDist) 
 
    @classmethod
    def mapToUnit(self,x_,xBound_):
       R"""
-      Linearly map x\in[xBound] to \xi\in[-1,1]
-      x can be either scalar or a vector
+      Linearly map `x_` in `[xBound_]` to `xi_` in `[-1,1]`
+      `x_` can be either scalar or a array
       """
       xi_=(2.*(x_-xBound_[0])/(xBound_[1]-xBound_[0])-1.)
       return xi_
@@ -109,8 +117,8 @@ class pce:
    @classmethod
    def mapFromUnit(self,xi_,xBound_):
       R"""
-      Linearly map \xi\in[-1,1] to x\in[xBound]
-      x can be either scalar or a vector
+      Linearly map `xi_`  in `[-1,1]` to `x` in `[xBound_]`
+      `xi_` can be either scalar or an array
       """
       xi_ = np.array(xi_, copy=False, ndmin=1)
       x_=(0.5*(xi_+1.0)*(xBound_[1]-xBound_[0])+xBound_[0])
@@ -119,8 +127,8 @@ class pce:
    @classmethod
    def gqPtsWts(self,n_,type_):
       """
-      Gauss quadrature nodes and weights associated to distribution type type_    
-      (Based on the gPCE rule)
+      Gauss quadrature nodes and weights associated to distribution type `type_`
+      (based on the gPCE rule).
       """
       if type_=='Unif':
          x_=np.polynomial.legendre.leggauss(n_)
@@ -133,11 +141,12 @@ class pce:
    @classmethod
    def map_xi2q(self,xi_,xAux_,distType_):
       R"""
-      Map \xi\in\Gamma to q \in Q, where \Gamma is the space corresponding to standard gPCE
-        * xAux=xBound if distType='Unif', \xi\in[-1,1]
-        * xAux=[m,v] if disType='Norm' where x~N(m,v), \xi\in[-\infty,\infty]
+      Map `xi_` in :math:`\Gamma` to `q` in :math:`\mathbb{Q}`, where :math:`\Gamma` is the 
+      space corresponding to the standard gPCE. 
+      'distType_': string, distribution type of the parameter
+      `xAux`= `xBound` if 'distType'=='Unif' and :math:`\xi\in[-1,1]`
+            = `[m,sdev]` if 'disType'=='Norm' where x~N(m,sdev^2) and :math:`\xi\in[-\infty,\infty]`
       """
-#      xi = np.array(xi, copy=False, ndmin=1)
       if distType_=='Unif':
          x_=mapFromUnit(xi_,xAux_)
       elif distType_=='Norm':
@@ -147,7 +156,7 @@ class pce:
    @classmethod
    def basis(self,n_,xi_,distType_):
       R"""
-      Evaluate gPCE polynomial basis of order n at \xi\in\Gamma
+      Evaluates gPCE polynomial basis of order `n_` at `xi_` points taken from :math:`\Gamma`.
       The standard polynomials are choosen based on the gPCE rules. 
       """
       if distType_=='Unif':
@@ -159,8 +168,8 @@ class pce:
    @classmethod
    def basisNorm(self,k_,distType_,nInteg=10000):
       R"""
-      Evaluates the L2-norm of the gPCE polynomial basis of order `k_` at `nInteg` points on the 
-      mapped space :math:`\Gamma`, where :math:`\Gamma` is the standard polynomials are choosen based on the gPCE rules. 
+      Evaluates the L2-norm of the gPCE polynomial basis of order `k_` at `nInteg` points taken from the 
+      mapped space :math:`\Gamma`.
       """
       if distType_=='Unif':
          xi_=np.linspace(-1,1,nInteg)
@@ -173,7 +182,7 @@ class pce:
    @classmethod
    def density(self,xi_,distType_):
       R"""
-      Evaluate the PDF of the standard gPCE random variables with distribution 
+      Evaluates the PDF of the standard gPCE random variables with distribution 
       type `distType_` at points `xi_` where :math:`\xi\in\Gamma`. 
       """
       if distType_=='Unif':
@@ -184,7 +193,7 @@ class pce:
 
    def _gqInteg_fac(self,distType_):
       """
-      Multipliers for the GQ rule given the weights provided by numpy
+      Multipliers for the GQ integration rule, when using the weights provided by `numpy`
       """
       if distType_=='Unif':
          fac_=0.5
@@ -194,7 +203,7 @@ class pce:
   
    def cnstrct(self):
        """
-       Construct a PCE over a p-D parameter space
+       Constructs a PCE over a p-D parameter space (`p=1,2,...`)
        """
        if self.p==1:
           self.cnstrct_1d() 
@@ -203,10 +212,10 @@ class pce:
 
    def cnstrct_1d(self):
       R""" 
-      Construct a PCE over a 1D parameter space. (p=1) 
+      Construct a PCE over a 1D parameter space. (`p=1`) 
 
-      Find :math:`{f_k}_{0:K}` in :math:`f(q)=\sum_k f_k psi_k(\xi)`, 
-           where, K=truncation of the sum
+      Find :math:`{\hat{f}_k}_{k=0^K}` in :math:`f(q)=\sum_{k=0}^K f_k psi_k(\xi)`, 
+           where, `K` is the truncation of the sum
 
       Parameters
       ----------
@@ -214,25 +223,25 @@ class pce:
           Simulator's response values at `n` training samples
       `xi`: 1D numpy array 
           Training parameter samples over the mapped space.
-          NOTE: Always had to be provided unless `'sampleType'`=`'GQ'` 
-      `pceDict`: dictionary 
-          containing different options for constructing the PCE with these keys:   
+          NOTE: Always had to be provided unless `'sampleType':'GQ'` 
+      `pceDict`: dict
+          Containing different options for constructing the PCE, with the following keys:   
           `'p'`: int, dimension of the parameter
-          `'distType'`: distribution type of the parameter based on gPCE rule
+          `'distType'`: distribution type of the parameter based on the gPCE rule
           `'pceSolveMethod'`: method of solving for PCE coefficients
-             `'Projection'`: Projection method; samples have to be Gauss-quadrature nodes.
-             `'Regression'`: Regression method for uniquely-, over-, and under-determined systems.
-             If under-determined, compressed sensing with L1/L2 regularization is automatically used.
+             * `'Projection'`: Projection method; samples have to be Gauss-quadrature nodes.
+             * `'Regression'`: Regression method for uniquely-, over-, and under-determined systems.
+               If under-determined, compressed sensing with L1/L2 regularization is automatically used.
           'sampleType'`: type of parameter samples at which observations are made
-             ='GQ' (Gauss quadrature nodes)
-             =' '  (other nodal sets, see `class trainSample` in `sampling.py`)
+             * `'GQ'` (Gauss quadrature nodes)
+             * `' '`  (other nodal sets, see `class trainSample` in `sampling.py`)
           `LMax`: int (Optional)
              Maximum order of PCE. `LMax` can be used only with `'pceSolveMethod':'Regression'`
              If `LMax` is not provided, it will be assumed to be equal to `n`.
 
       Attributes
       ----------
-      `coefs`: Coefficients in the PCE, length=K
+      `coefs`: Coefficients in the PCE, `numpy` array of size K
       `fMean`: PCE estimation for E[f(q)]
       `fVar`:  PCE estimation for V[f(q)]
       """
@@ -249,23 +258,23 @@ class pce:
 
    def cnstrct_GQ_1d(self):
       R""" 
-      Construct a PCE over a 1D parameter space using Projection method with Gauss-quadrature nodes.
+      Constructs a PCE over a 1D parameter space using Projection method with Gauss-quadrature nodes.
 
       Parameters
       ----------
       `fVal`: 1D numpy array of size `n`
               Simulator's response values at `n` training samples
-      `'distType'`: distribution type of the parameter based on gPCE rule
+      `'distType'`: distribution type of the parameter based on the gPCE rule
 
       Attributes
       ----------
-      `coefs`: Coefficients in the PCE, length =K
+      `coefs`: Coefficients in the PCE, `numpy` array of size K
       `fMean`: PCE estimation for E[f(q)]
       `fVar`:  PCE estimation for V[f(q)]       
       """
-      nQ=len(self.fVal) #number of quadratures (collocation samples)
+      nQ=len(self.fVal) 
       xi,w=self.gqPtsWts(nQ,self.distType)
-      K=nQ  #upper bound of sum in PCE
+      K=nQ  
       #Find the coefficients in the expansion
       fCoef=np.zeros(nQ)
       sum2=[]
@@ -285,23 +294,23 @@ class pce:
 
    def cnstrct_nonGQ_1d(self):
       R""" 
-      Construct a PCE over a 1D parameter space using Regression method 
-          with arbitrary truncaton K=LMax to compute the PCE coefficients for arbitrary
+      Constructs a PCE over a 1D parameter space using 'Regression' method 
+          with arbitrary truncaton `K=LMax` to compute the PCE coefficients for arbitrary
           chosen parameter samples.
 
       Parameters
       ----------
       `fVal`: 1D numpy array of size `n`
               Simulator's response values at `n` training samples
-      `'distType'`: distribution type of the parameter based on gPCE rule
+      `'distType'`: distribution type of the parameter based on the gPCE rule
       `xi`: 1D numpy array 
-          Training parameter samples over the mapped space.
+          Training parameter samples over the mapped space :math:`\Gamma`.
       `LMax`: int 
           Maximum order of PCE. `LMax` is required since `'pceSolveMethod':'Regression'`.
 
       Attributes
       ----------
-      `coefs`: Coefficients in the PCE, length =K
+      `coefs`: Coefficients in the PCE, numpy array of size K
       `fMean`: PCE estimation for E[f(q)]
       `fVar`:  PCE estimation for V[f(q)]       
       """
@@ -311,9 +320,7 @@ class pce:
       nData=len(self.fVal)   #number of observations
       print('...... Number of Data point, n= ',nData)
       #(2) Find the coefficients in the expansion:Only Regression method can be used. 
-      #    Also we need to compute gamma_k (=sum2) required to estimate the variance by PCE.
-      #    For this we create an auxiliary Gauss-Quadrature grid to compute intgerals
-      A=np.zeros((nData,K))    #Matrix of known coeffcient for regression to compute PCE coeffcients
+      A=np.zeros((nData,K))    
       sum2=[]
       xi_aux,w_aux=self.gqPtsWts(K+1,self.distType)  #auxiliary GQ rule for computing gamma_k
       fac_=self._gqInteg_fac(self.distType)
@@ -323,8 +330,8 @@ class pce:
               A[j,k]=self.basis(k,self.xi[j],self.distType)
           sum2.append(np.sum((psi_aux[:K+1])**2.*w_aux[:K+1]*fac_))
       #Find the PCE coeffs by Linear Regression 
-      fCoef=linAlg.myLinearRegress(A,self.fVal)   #This can be over-, under-, or uniquely- determined systetm.
-      #(3) Find the mean and variance of f(q) as estimated by PCE
+      fCoef=linAlg.myLinearRegress(A,self.fVal) 
+      #(3) Find the mean and variance of f(q) estimated by PCE
       fMean=fCoef[0]
       fVar=np.sum(fCoef[1:]**2.*sum2[1:])
       self.coefs=fCoef
@@ -334,7 +341,8 @@ class pce:
    def cnstrct_pd(self):
       R""" 
       Construct a PCE over a p-D parameter space, where p>1. 
-      Find :math:`{f_k}_{0:K}` in :math:`f(q)=\sum_k f_k psi_k(\xi)`, 
+
+      Find :math:`{f_k}_{k=0}^K` in :math:`f(q)=\sum_{k=0}^K f_k psi_k(\xi)`, 
            where, K=truncation of the sum
                   :math:`psi_k(\xi)=\psi_{k_1}(\xi_1)\psi_{k_2}(\xi_2)\cdots\psi_{k_p}(\xi_p)`
                  
@@ -342,72 +350,75 @@ class pce:
       ----------
       `fVal`: 1D numpy array of size `n`
               Simulator's response values at `n` training samples
-      `xi`: a 2D numpy array of shpae [n,p]
+      `xi`: 2D numpy array of shape `(n,p)`
           Training parameter samples over the mapped space.
-          NOTE: Always had to be provided unless `'sampleType'`=`'GQ'` 
-      `pceDict`: dictionary 
-          containing different options for constructing the PCE with these keys:             
+          NOTE: Always had to be provided unless `'sampleType':'GQ'` 
+      `pceDict`: dict
+          Containing different options for constructing the PCE with the following keys:             
           `'p'`: int, dimension of the parameter
-          `'distType'`: distribution type of the parameter based on gPCE rule
+          `'distType'`: distribution type of the parameter based on the gPCE rule
           `'truncMethod'`: method of truncating PCE
-              ='TP' (tensor product method)         
-              ='TO' (total order method)
+             * `'TP'`: tensor-product method     
+             * `'TO'`: total-order method
           `'pceSolveMethod'`: method of solving for PCE coefficients
-             `'Projection'`: Projection method; samples have to be Gauss-quadrature nodes.
-             `'Regression'`: Regression method for uniquely-, over-, and under-determined systems.
+             * `'Projection'`: Projection method; samples have to be Gauss-quadrature nodes.
+             * `'Regression'`: Regression method for uniquely-, over-, and under-determined systems.
                If under-determined, compressed sensing with L1/L2 regularization is automatically used.
           'sampleType'`: type of parameter samples at which observations are made
-             ='GQ' (Gauss quadrature nodes)
-             =' '  (other nodal sets, see `class trainSample` in `sampling.py`)
+             * `'GQ'` (Gauss quadrature nodes)
+             * `' '`  (other nodal sets, see `class trainSample` in `sampling.py`)
           `LMax`: int (Optional)
-             Maximum order of PCE. `LMax` can be used only with `'pceSolveMethod':'Regression'`
-             If `LMax` is not provided, it will be assumed to be equal to `n`.
-       `nQList`: if 'truncMethod':'TP', then nQList=[nQ1,nQ2,...,nQp], 
-                 where nQi: number of samples in i-th direction
-                 if 'truncMethod':'TO': nQlist=[] (default)
+             Maximum order of the PCE in each of the parameter dimensions. 
+             `LMax` can be used only with `'pceSolveMethod':'Regression'`
+             If `LMax` is not provided, it will be assumed to be equal to a default value.
+       `nQList`: 
+             * if `'truncMethod':'TP'`, then `nQList=[nQ1,nQ2,...,nQp]`, 
+                 where `nQi` is the number of samples in i-th direction
+             * if 'truncMethod':'TO': nQlist=[] (default)
       
       Attributes
       ----------
       `coefs`: Coefficients in the PCE, a 1d numpy array of size K
-      `kSet`:  Index set, list (size K) of p-D lists [[k1,1,k2,1,...kp,1],...,[k1,K,k2,K,..,kp,K]]
+      `kSet`:  Index set, list (size K) of p-D lists :math:`[[k_{1,1},k_{2,1},...k_{p,1}],...,[k_{1,K},k_{2,K},..,k_{p,K}]]`
       `fMean`: PCE estimation for E[f(q)]
       `fVar`:  PCE estimation for V[f(q)]
       """
-      if self.sampleType=='GQ' and self.truncMethod=='TP':   #'GQ'+'TP': use either 'Projection' or 'Regression'
+      if self.sampleType=='GQ' and self.truncMethod=='TP':   
+           #'GQ'+'TP': use either 'Projection' or 'Regression'
          self.cnstrct_GQTP_pd()
-      else:                  #Any other type of samples (structured/unstructured): 'Regression' 
+      else: #'Regression'
          self.cnstrct_nonGQTP_pd()
 
    def cnstrct_GQTP_pd(self):
       R"""
-      Construct a PCE over a pD parameter space, for the following settings:
-         * Type of parameter samples: 'GQ' (Gauss-Quadrature nodes)
-         * Method of truncating PCE: 'TP' (Tnsor-product)
-         * Method of solving for PCE coefficients: Projection or Regression
+      Constructs a PCE over a pD parameter space, for the following settings:
+         * `'sampType':'GQ'` (Gauss-Quadrature nodes)
+         * `'truncMethod': 'TP'` (Tensor-product)
+         * `'pceSolveMethod':'Projection'` or 'Regression'
 
       Parameters
       ----------
       `fVal`: 1D numpy array of size `n`
               Simulator's response values at `n` training samples
-      `pceDict`: dictionary 
+      `pceDict`: dict 
           containing different options for constructing the PCE with these keys:   
           `'p'`: int, dimension of the parameter
-          `'distType'`: distribution type of the parameter based on gPCE rule
+          `'distType'`: distribution type of the parameter based on the gPCE rule
           `'truncMethod'`: method of truncating PCE
               ='TP' (tensor product method)         
           `'pceSolveMethod'`: method of solving for PCE coefficients
-             `'Projection'`: Projection method; samples have to be Gauss-quadrature nodes.
-             `'Regression'`: Regression method for uniquely-, over-, and under-determined systems.
+             * `'Projection'`: Projection method; samples have to be Gauss-quadrature nodes.
+             * `'Regression'`: Regression method for uniquely-, over-, and under-determined systems.
                If under-determined, compressed sensing with L1/L2 regularization is automatically used.
           'sampleType'`: type of parameter samples at which observations are made
              ='GQ' (Gauss quadrature nodes)
-       `nQList`: nQList=[nQ1,nQ2,...,nQp], 
-                 where nQi: number of samples in i-th direction
+       `nQList`: `nQList=[nQ1,nQ2,...,nQp]`, 
+                 where `nQi`: number of samples in i-th direction
               
       Attributes
       ----------
       `coefs`: Coefficients in the PCE, a 1d numpy array of size K
-      `kSet`:  Index set, list (size K) of p-D lists [[k1,1,k2,1,...kp,1],...,[k1,K,k2,K,..,kp,K]]
+      `kSet`:  Index set, list (size K) of p-D lists :math:`[[k_{1,1},k_{2,1},...k_{p,1}],...,[k_{1,K},k_{2,K},..,k_{p,K}]]`
       `fMean`: PCE estimation for E[f(q)]
       `fVar`:  PCE estimation for V[f(q)]
       """
@@ -433,7 +444,6 @@ class pce:
       print('...... Number of Data point, n= ',nData)
       if K!=nData:
          raise ValueError("K=%d is not equal to nData=%d"%(K,nData)) 
-         print('ERROR in pce_2d_GQTP_cnstrct(): ')
       #(2) Index set
       kSet=[]    #index set for the constructed PCE
       kGlob=np.arange(K)   #Global index
@@ -481,40 +491,42 @@ class pce:
 #
    def cnstrct_nonGQTP_pd(self):
       R"""
-      Construct a PCE over a pD parameter space, for the following settings:
+      Constructs a PCE over a pD parameter space, for the following settings:
          * Method of truncating PCE: Total Order or Tensor Product
          * Method of solving for PCE coefficients: ONLY Regression
-         * Use this method for any combination of 'sampleType' and
-           'truncMethod' but 'GQ'+'TP'
+         * Use this method for any combination of `'sampleType'` and
+           `'truncMethod'` but `'GQ'`+`'TP'`
 
       Parameters
       ----------
       `fVal`: 1D numpy array of size `n`
               Simulator's response values at `n` training samples
-      `xi`: a 2D numpy array of shpae [n,p]
+      `xi`: a 2D numpy array of shape (n,p)
           Training parameter samples over the mapped space.
-          NOTE: Always had to be provided unless `'sampleType'`=`'GQ'` 
-      `pceDict`: dictionary 
+          NOTE: Always had to be provided unless `'sampleType'='GQ'` 
+      `pceDict`: dict
           containing different options for constructing the PCE with these keys:   
           `'p'`: int, dimension of the parameter
           `'distType'`: distribution type of the parameter based on gPCE rule
           `'truncMethod'`: method of truncating PCE
-             ='TP' (tensor product method)
-             ='TO' (total order method)
+              * `'TP'` (tensor product method)
+              * `'TO'` (total order method)
           `'pceSolveMethod'`: method of solving for PCE coefficients
              `'Projection'`: Projection method; samples have to be Gauss-quadrature nodes.
              `'Regression'`: Regression method for uniquely-, over-, and under-determined systems.
                If under-determined, compressed sensing with L1/L2 regularization is automatically used.
           'sampleType'`: type of parameter samples at which observations are made
-             ='GQ' (Gauss quadrature nodes)
-             =' '  (other nodal sets, see `class trainSample` in `sampling.py`)
-       `nQList`: if 'truncMethod':'TP', then nQList=[nQ1,nQ2,...,nQp], 
-                 where nQi: number of samples in i-th direction
-                 if 'truncMethod':'TO': nQlist=[] (default)
+              * `'GQ'` (Gauss quadrature nodes)
+              * `' '`  (other nodal sets, see `class trainSample` in `sampling.py`)
+       `nQList`: 
+             * if `'truncMethod':'TP'`, then `nQList=[nQ1,nQ2,...,nQp]`, 
+                 where `nQi` is the number of samples in i-th direction
+             * if 'truncMethod':'TO': nQlist=[] (default)
+
       Attributes
       ----------
       `coefs`: Coefficients in the PCE, a 1d numpy array of size K
-      `kSet`:  Index set, list (size K) of p-D lists [[k1,1,k2,1,...kp,1],...,[k1,K,k2,K,..,kp,K]]
+      `kSet`:  Index set, list (size K) of p-D lists :math:`[[k_{1,1},k_{2,1},...k_{p,1}],...,[k_{1,K},k_{2,K},..,k_{p,K}]]`
       `fMean`: PCE estimation for E[f(q)]
       `fVar`:  PCE estimation for V[f(q)]
       """
@@ -563,9 +575,7 @@ class pce:
       nData=len(self.fVal)   #number of observations
       print('...... Number of Data point, n= ',nData)
       #(2) Find the coefficients in the expansion:Only Regression method can be used.
-      #    Also we need to compute gamma_k (=sum2) required to estimate the variance by PCE.
-      #    For this we create an auxiliary Gauss-Quadrature grid to compute intgerals
-      A=np.zeros((nData,K))    #Matrix of known coeffcient for regression to compute PCE coeffcients
+      A=np.zeros((nData,K))    
       sum2=[]
       for k in range(K):
           psi_k_=self.basis(kSet[k][0],xiAux[0],distType[0])
@@ -578,17 +588,16 @@ class pce:
           A[:,k]=aij_
           sum2.append(sum2_)
       #Find the PCE coeffs by Linear Regression
-      fCoef=linAlg.myLinearRegress(A,self.fVal)   #This can be over-, under-, or uniquely- determined systetm.
+      fCoef=linAlg.myLinearRegress(A,self.fVal) 
       #(3) Find the mean and variance of f(q) as estimated by PCE
       fMean=fCoef[0]
       fVar=0.0
       for k in range(1,K):
-          fVar+=fCoef[k]*fCoef[k]*sum2[k]   #0.5:PDF of Uniform on [-1,1]
+          fVar+=fCoef[k]*fCoef[k]*sum2[k]   
       self.coefs=fCoef
       self.fMean=fMean
       self.fVar=fVar
       self.kSet=kSet
-#      
 #
 class pceEval:
    R"""
@@ -610,6 +619,15 @@ class pceEval:
        self.p=p   #param dimension
        K=len(self.coefs)
        self.K=K   #PCE truncation 
+       self.availDist=['Unif','Norm'] #available distributions
+       #Check the validity of the distType
+       if self.p==1:
+          distType_=[self.distType]
+       else:
+          distType_=self.distType
+       for distType__ in distType_:   
+          if distType__ not in self.availDist:
+             raise ValueError("Invalid 'distType'! Availabe list: ",self.availDist) 
           
    def eval(self):    
       if self.p==1:
@@ -619,24 +637,22 @@ class pceEval:
 
    def eval_1d(self):
       R""" 
-      Evaluate a PCE over a 1D parameter space at a set of test points \xi 
-         taken from \Gamma, the mapped parameter space.
+      Evaluate a PCE over a 1D parameter space at a set of test points `xi` 
+         taken from :math:`\Gamma`, the mapped parameter space.
 
       Parameters
       ----------
       `coefs`: 1D numpy array of length K
-               PCE coefficients
-      `xi`: 1D numpy array of size nTest
+          PCE coefficients
+      `xi`: 1D numpy array of size `nTest`
           Test parameter samples taken from the mapped space
       `distType`: string
-          distribution type of the parameter based on the gPCE rule
-          'Unif', 'Norm'
+          Distribution type of the parameter based on the gPCE rule
 
       Attribute   
       ---------
-      `pceVal`: response values predicted (interpolated) by the PCE at `xi` test samples
+      `pceVal`: Response values predicted (interpolated) by the PCE at test samples `xi`
       """
-#    xi = np.array(xi, copy=False, ndmin=1)
       fpce=[]
       for i in range(self.xi.size):
           sum1=0.0
@@ -647,29 +663,28 @@ class pceEval:
 
    def eval_pd(self):
       R""" 
-      Evaluate a PCE built over a pD (p>1) parameter space at a set of test samples taken from the
+      Evaluate a PCE constructed over a pD (p>1) parameter space at a set of test samples taken from the
       parameter mapped space. 
 
       Parameters
       ----------
       `coefs`: 1D numpy array of length K
-               PCE coefficients
+          PCE coefficients
       `xi`: A list of length p
-            containing the test points in each dimension of the mapped pD
-                parameter space. xi=[xi_1,xi_2,..,xi_pp], where 
-                xi_k is a 1d numpy array containing the test samples from the mapped space of the
-                k-th parameter.
-                Always a tensor product grid of test samples is constructed.
+          Containing the test points in each dimension of the mapped pD parameter 
+          space. `xi=[xi_1,xi_2,..,xi_p]`, where `xi_k` is a 1D numpy array containing 
+          the test samples from the mapped space of the `k`-th parameter.
+          Always a tensor product grid of the test samples is constructed over the pD space
+          using the p 1D numpy arrays of uni-directional samples.
       `distType`: string
           distribution type of the parameter based on the gPCE rule
-          'Unif', 'Norm'
-      `kSet`: List of length K of lists of length p
-          kSet=[[k1,1,k2,1,...,kp,1],[k1,2,k2,2,...,kp,2],...,[k1,K,k2,K,...,kp,K]] is 
-          produced based on the truncation scheme employed when constructing the PCE.
+      `kSet`: List of length `K` of lists of length `p`
+          :math:`kSet=[[k_{1,1},k_{2,1},...k_{p,1}],...,[k_{1,K},k_{2,K},..,k_{p,K}]]`
+          is produced based on the truncation scheme employed when constructing the PCE.
           
       Attribute
       ---------
-      `pceVal`: response values predicted (interpolated) by the PCE at `xi` test samples
+      `pceVal`: response values predicted (interpolated) by the PCE at test samples `xi`
       """
       p=self.p
       K=self.K
@@ -689,7 +704,7 @@ class convPlot:
    def __init__(self,coefs,distType,kSet=[],convPltOpts=[]):
       R"""
       Plot convergence of the PCE terms. 
-      The indicator ::math::`||fk*Psi_k||/||f0*Psi_0||` is plotted versus 
+      The indicator ::math::`||f_k*Psi_k||/||f0*Psi_0||` is plotted versus 
       :math:`|k|=\sum_{i=1}^p k_i`          
 
       Parameters
@@ -697,23 +712,22 @@ class convPlot:
       `coefs`: 1D numpy array of length K
                PCE coefficients
       `kSet`: 
-         if p>1: List of length K of lists of length p
-            kSet=[[k1,1,k2,1,...,kp,1],[k1,2,k2,2,...,kp,2],...,[k1,K,k2,K,...,kp,K]] is 
-            produced based on the truncation scheme employed when constructing the PCE.
-         elif p==1:
-            kset=[]
+         if `p>1`: List of length K of lists of length p
+            :math:`kSet=[[k_{1,1},k_{2,1},...k_{p,1}],...,[k_{1,K},k_{2,K},..,k_{p,K}]]`
+            is produced based on the truncation scheme employed when constructing the PCE.
+         elif `p==1`:
+            `kSet=[]`
       `distType`: string (if p==1) or List (size p) of strings
            distribution type of the parameter based on the gPCE rule
-          'Unif', 'Norm'
       `convPltOpts`: (optional) options to save the figure, 
           keys: 'figDir', 'figName'           
       
       Attributes
       ----------
-      kMag: list of K int
-          =|k|
-      pceTermNorm= numpy array of size K
-          =PCE convergence indicator
+      `kMag`: List of K int
+          `=|k|`
+      `pceTermNorm` numpy array of size K
+          The PCE convergence indicator
       """
       self.coefs=coefs
       self.distType=distType
@@ -731,6 +745,15 @@ class convPlot:
        self.p=p   #param dimension
        K=len(self.coefs)
        self.K=K   #PCE truncation 
+       self.availDist=['Unif','Norm'] #available distributions
+       #Check the validity of the distType
+       if self.p==1:
+          distType_=[self.distType]
+       else:
+          distType_=self.distType
+       for distType__ in distType_:   
+          if distType__ not in self.availDist:
+             raise ValueError("Invalid 'distType'! Availabe list: ",self.availDist) 
 
    def pceConv(self):
        """
@@ -751,8 +774,6 @@ class convPlot:
            PsiNorm=1.0
            for ip in range(self.p):   #over parameter dimension 
                k_=kSet_[ik][ip]
-               if distType_[ip] not in ['Unif','Norm']:
-                  raise ValueError('Distribution %s is not available!'%distType_[ip])
                PsiNorm*=pce.basisNorm(k_,distType_[ip])
            termNorm.append(abs(self.coefs[ik])*PsiNorm)
            termNorm0=termNorm[0]
@@ -792,7 +813,7 @@ class convPlot:
 #
 def pce_1d_test():
     """
-    Test PCE for 1d uncertain parameter 
+    Test PCE for 1D uncertain parameter 
     """
     #--- settings -------------------------
     #Parameter settings
@@ -816,7 +837,7 @@ def pce_1d_test():
     #(0) Make the pceDict
     pceDict={'p':1,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,'LMax':LMax_,
              'distType':distType}
-    #
+
     #(1) Generate training data
     samps=sampling.trainSample(sampleType=sampleType,GQdistType=distType,qInfo=qInfo,nSamp=n)
     q=samps.q
@@ -824,27 +845,25 @@ def pce_1d_test():
     qBound=samps.qBound
     fEx=analyticTestFuncs.fEx1D(q,fType,qInfo)   
     f=fEx.val
-    #
+
     #(2) Compute the exact moments (as the reference data)
-    #fMean_ex,fVar_ex=analyticTestFuncs.fEx1D(q,fType,qInfo)
     fEx.moments(qInfo)
     fMean_ex=fEx.mean
     fVar_ex=fEx.var
 
-    #
     #(3) Construct the PCE
     pce_=pce(fVal=f,xi=xi,pceDict=pceDict)
     fMean=pce_.fMean  #mean, var estimated by the PCE and PCE coefficients
     fVar=pce_.fVar
     pceCoefs=pce_.coefs
-    #
+    
     #(4) Compare moments: exact vs. PCE estimations
     print(writeUQ.printRepeated('-',70))
     print('-------------- Exact -------- PCE --------- Error % ')
     print('Mean of f(q) = %g\t%g\t%g' %(fMean_ex,fMean,(fMean-fMean_ex)/fMean_ex*100.))
     print('Var  of f(q) = %g\t%g\t%g' %(fVar_ex,fVar,(fVar-fVar_ex)/fVar_ex*100.))
     print(writeUQ.printRepeated('-',70))
-    #
+    
     #(5) Plots
     # Plot convergence of the PCE
     convPlot(coefs=pceCoefs,distType=distType)
@@ -880,7 +899,7 @@ def pce_1d_test():
 #    
 def pce_2d_test():
     """
-    Test PCE for 2 uncertain parameters 
+    Test PCE for 2D uncertain parameter
     """
     #---- SETTINGS------------
     distType=['Unif','Norm']   #distribution type of the parameters
@@ -923,7 +942,7 @@ def pce_2d_test():
            fVal=analyticTestFuncs.fEx2D(q[0],q[1],fType,'comp').val  
            xiGrid=xi
         else:  
-           print("LHS works only when all q have 'Unif' distribution.") 
+           raise ValueError("LHS works only when all q have 'Unif' distribution.") 
     #Make the pceDict       
     pceDict={'p':2,'truncMethod':truncMethod,'sampleType':sampleType,'pceSolveMethod':pceSolveMethod,
              'distType':distType}
@@ -947,6 +966,7 @@ def pce_2d_test():
         qTest.append(qTest_)
         xiTest.append(xiTest_)
     fTest=analyticTestFuncs.fEx2D(qTest[0],qTest[1],fType,'tensorProd').val
+
     #Evaluate PCE at the test samples
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType,kSet=kSet)
     fPCE=pcePred_.pceVal
@@ -987,7 +1007,7 @@ def pce_2d_test():
 #     
 def pce_3d_test():
     """
-    Test PCE for 3 uncertain parameters
+    Test PCE for 3D uncertain parameter
     """
     #----- SETTINGS------------
     distType=['Unif','Unif','Unif']
