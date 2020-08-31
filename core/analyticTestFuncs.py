@@ -18,7 +18,7 @@ class fEx1D:
        Function type, available: 'type1', 'type2'
        Note: 'type1' for `q~Uniform`
              'type2' for `q~Normal`
-    `qInfo`: List (Needed for the moments or if q is Gaussian)
+    `qInfo`: (optional) List (Required for the moments or if q is Gaussian)
        `qInfo=[qMin,qMax]` if `q~U[qMin,qMax]`
        `qInfo=[m,sdev]` if `q~N(m,sdev)` 
      
@@ -31,15 +31,14 @@ class fEx1D:
     `var`: float
        V[f(q)] for q
     """
-    def __init__(self,q,typ,qInfo):
+    def __init__(self,q,typ,qInfo=[]):
         self.q=q
         self.typ=typ
         self.qInfo=qInfo
         self._check()
         self.eval()
-        self.moments()
 
-    def _check():
+    def _check(self):
         if self.typ not in ['type1','type2']:
            raise ValueError("Invalid 'typ'. Choose 'type1' (for q~Uniform) or 'type2' (for q~Normal)")
     
@@ -74,11 +73,11 @@ class fEx1D:
         t_=(m*v)**2
         return(0.5*(1+mt.exp(-2*t_))-mt.exp(-t_))
 
-    def moments(self):
+    def moments(self,qInfo):
         """
         Analytical Mean and variance of f(q)
         """
-        Q=self.qInfo
+        Q=qInfo
         if self.typ=='type1':
            fMean=(self._mean1(Q[1])-self._mean1(Q[0]))/(Q[1]-Q[0])                 
            fVar =(self._var1(Q[1])-self._var1(Q[0]))/(Q[1]-Q[0])-fMean**2.
@@ -122,7 +121,7 @@ class fEx2D:
         method_valid=['comp','tensorProd']
         if self.method not in method_valid:
            raise ValueError("Invalid 'method'. Choose from ",method_valid) 
-        typ_valid=['type1','typ2','type3','Rosenbrock']
+        typ_valid=['type1','type2','type3','Rosenbrock']
         if self.typ not in typ_valid:
            raise ValueError("Invalid 'typ'. Choose from ",typ_valid) 
 
@@ -167,6 +166,78 @@ class fEx2D:
               tmp=self._funVal(z1_,z2_,self.typ)
               f.append(tmp)
         self.val=np.asarray(f)
+
+    def moments(self):
+        """
+        Mean and variance of f(q)
+        """
+        pass
+
+    def sobol(self,qBound):
+        """
+        Sobol sensitivity indices of f(q) wrt q1 and q2
+
+        Parameters
+        ---------
+        qBound=[qBound1,qBound2] admissible range of parameters 1, 2, 3         
+
+        Attributes
+        ----------
+        Si: =[S1,S2], where Si is the Sobol index wrt the i-th par, i=1,2
+        Sij =[S12], dual interaction
+        """
+        if self.typ=='type3':
+           #Exact sobol indices for f(q1,q2)=q1^2+q1*q2
+           #->Take a,b according to eval() for 'type3'
+           def _D1_Ex(a,b,q1):
+              """
+              a,b: terms in derived expression f1(q1)=q1^2+a*q1+b
+              q1: sample for q1 at which the expression is evaluated
+              """
+              return(0.2*q1**5.+0.5*a*q1**4.+(a**2.+2.*b)/3.*q1**3.+a*b*q1**2.+b**2.*q1)
+           def _D2_Ex(a,b,q2):
+              """
+              a,b: terms in derived expression f2(q2)=a*q2+b
+              q2: sample for q2 at which the expression is evaluated
+              """
+              return((a**2./3.)*q2**3.+a*b*q2**2.+b**2.*q2)
+           def _D12_Ex(a,b,c,q1Bound,q2Bound):
+              """
+              a,b,c: terms in derived expression f12(q1,q2)=q1*q2+a*q1+b*q2+c
+              """
+              q1_1=q1Bound[1]-q1Bound[0]
+              q1_2=q1Bound[1]**2.-q1Bound[0]**2.
+              q1_3=q1Bound[1]**3.-q1Bound[0]**3.
+              q2_1=q2Bound[1]-q2Bound[0]
+              q2_2=q2Bound[1]**2.-q2Bound[0]**2.
+              q2_3=q2Bound[1]**3.-q2Bound[0]**3.
+              return(q1_3*q2_3/9.+a/3.*q1_3*q2_2+b*q1_2*q2_3/3.+
+                      0.5*(c+a*b)*q1_2*q2_2+a**2.*q1_3*q2_1/3.+b**2.*q1_1*q2_3/3.+
+                      a*c*q1_2*q2_1+b*c*q1_1*q2_2+c**2.*q1_1*q2_1)
+           #Variances in Sobol decomposition
+           a1=qBound[0][0]
+           b1=qBound[0][1]
+           a2=qBound[1][0]
+           b2=qBound[1][1]
+           f0=(a1**2.+b1**2.+a1*b1)/3.+0.25*(a1+b1)*(a2+b2)
+           a=(a2+b2)/2.0
+           b=-f0
+           D1_ex=(_D1_Ex(a,b,b1)-_D1_Ex(a,b,a1))/(b1-a1)
+           a=(a1+b1)/2.0
+           b=(a1**2.+a1*b1+b1**2.)/3.-f0
+           D2_ex=(_D2_Ex(a,b,b2)-_D2_Ex(a,b,a2))/(b2-a2)
+           a=-(a2+b2)/2.
+           b=-(a1+b1)/2.
+           c=f0-(a1**2.+a1*b1+b1**2.)/3.
+           D12_ex=(_D12_Ex(a,b,c,qBound[0],qBound[1]))/((b1-a1)*(b2-a2))
+           #Sensitivity indices
+           D_ex=D1_ex+D2_ex+D12_ex
+           Si=[D1_ex/D_ex,D2_ex/D_ex]
+           Sij=[D12_ex/D_ex]
+           self.Si=Si
+           self.Sij=Sij
+        else:
+           print("No Exact Sobol indices for 'typ' else than 'type3'") 
 #
 class fEx3D:
     """
@@ -253,6 +324,8 @@ class fEx3D:
         ----------
         `qInfo`: List of length 
            If 'Ishigami', qInfo=[qBound_1,qBoun_2,qBound3_] where qBound_i: admissible range of the i-th parameter
+        `mean`: Expected value of f(q)   
+        `var`: Variance of f(q)   
         """
         if self.typ=='Ishigami':
            #Analytical values of mean and variance of Ishigami function f(q1,q2,q3)
@@ -280,4 +353,41 @@ class fEx3D:
            v=v/(a1_*a2_*a3_) - m**2.  
         self.mean=m
         self.var=v
+
+    def sobol(self,qBound):    
+        """
+        Sobol sensitivity indices of f(q) wrt q1, q2, qnd q3
+
+        Parameters
+        ---------
+        qBound=[qBound1,qBound2,qBound3] admissible range of parameters 1, 2, 3         
+
+        Attributes
+        ----------
+        Si: =[S1,S2,S3], where Si is Sobol indices with respect to qi
+        Sij =[S12,S13,S23]: dual interactions
+        """
+        pi=mt.pi
+        iFac=0
+        for i in range(3):
+            if qBound[i][0]!=-pi or qBound[i][1]!=pi:
+               iFac=1
+
+        if iFac==1:
+           raise ValueError("qBound should be [-pi,pi] in all 3-directions.")
+        
+        # Exact Sobol indices for Ishigami function for q_i\in[-pi,pi], i=1,2,3
+        a=self.opts['a']
+        b=self.opts['b']
+        D1=b*pi**4./5.+b**2.*pi**8./50. + 0.5
+        D2=a**2./8.0
+        D3=0.0
+        D13=b**2.*pi**8./50.0+7.*b**2.*pi**8./450
+        D12=0.0
+        D23=0.0
+        D123=0.0
+
+        D=D1+D2+D3+D12+D13+D23+D123
+        self.Si=[D1/D,D2/D,D3/D]
+        self.Sij=[D12/D,D13/D,D23/D]
 #
