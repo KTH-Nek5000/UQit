@@ -6,7 +6,7 @@
 # Saleh Rezaeiravesh, salehr@kth.se
 #----------------------------------------------------------------
 #1. Add header notes
-#2. Remove the multi-task routines
+#2. Remove (?) the multi-task routines
 #----------------------------------------------------------------
 """
    >>> Tricks I learned about GpyTorch by experience:
@@ -44,9 +44,11 @@ import analyticTestFuncs
 import reshaper
 import sampling
 #
-#//
-#Multitask output, 1D input: y=f(x) \in R^m, m>1, x\in R
 class MultitaskGPModel(gpytorch.models.ExactGP):
+    """
+    Multitask output, 1D input: y=f(x) in R^m, m>1, x in R
+    Based on `GPyTorch`
+    """
     def __init__(self, train_x, train_y, likelihood, num_tasks, rank=0):
         super(MultitaskGPModel, self).__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.MultitaskMean(
@@ -59,9 +61,12 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultitaskMultivariateNormal(mean_x, covar_x)
-
-#Singletask output, 1D input: y=f(x) \in R, x\in R
+#
 class SingletaskGPModel(gpytorch.models.ExactGP):
+    """
+    Single-task output, 1D input: y=f(x) in R, x in R
+    Based on `GPyTorch`
+    """
     def __init__(self, train_x, train_y, likelihood):
         super(SingletaskGPModel, self).__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.ConstantMean()
@@ -72,19 +77,22 @@ class SingletaskGPModel(gpytorch.models.ExactGP):
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
-
-#Singletask output, multi-D input: y=f(x) \in R, x\in R^p, p>1
+#
 class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
+    """
+    Single-task output, p-D input: y=f(x)  in R, x in R^p, p>1
+    Based on `GPyTorch`
+    """
     def __init__(self, train_x, train_y, likelihood):
         super(SingletaskGPModel_mIn, self).__init__(train_x, train_y, likelihood)
         num_dims = train_x.size(-1)
         self.mean_module = gpytorch.means.ConstantMean()
         self.covar_module = gpytorch.kernels.ScaleKernel(
-#            gpytorch.kernels.RBFKernel(ard_num_dims=num_dims)   
+            #gpytorch.kernels.RBFKernel(ard_num_dims=num_dims)   
             ##different length scales in different dimentions, RBF
             gpytorch.kernels.MaternKernel(nu=2.5,ard_num_dims=num_dims)   
             ##different length scales in different dimentions, Matern nu
-#            gpytorch.kernels.RBFKernel()   #equal length scales in all input dimensions
+            #gpytorch.kernels.RBFKernel()   #equal length scales in all input dimensions
         )
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -93,8 +101,7 @@ class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
 #
 class gpr:
     """
-    GPR over the space of uncertain parameter
-    * GpyTorch is employed for GPR.
+    Construct and evaluate a GPR over the space of uncertain parameter
     """
     def __init__(self,xTrain,yTrain,noiseV,xTest,gprOpts):
         self.xTrain=xTrain
@@ -102,14 +109,17 @@ class gpr:
         self.noiseV=noiseV
         self.xTest=xTest
         self.gprOpts=gprOpts
-        self.info()
+        self._info()
         self.train_pred()
     
-    def info(self):
-       self.p=self.xTrain.ndim 
-       self.nResp=len(self.yTrain)
+    def _info(self):
+       self.p=self.xTrain.shape[-1]
+       self.nResp=self.yTrain.shape[-1]
 
     def train_pred(self):    
+        """
+        Constructor of the GPR
+        """
         if self.p==1:
            self.gprTorch_1d() 
         elif self.p>1:
@@ -117,18 +127,10 @@ class gpr:
 
     def gprTorch_1d(self):
         """
-        GPR for one uncertain parameter, and single/multi-D response y, where y=f(x)+e, with Known noise
-        - Observations (X_i,Y_i) are assumed to be independent but their noise variance can be either the same (iid= homoscedastic) or different (heteroscedastic).
-        - Supports both homo- and hetero-scedastic noise models
-        Inputs:          
-               xTrain: Training model input, 1D numpy array of size n
-               yTrain: Training model output, (Single Task): 1D numpy array of size n, (Multi Task) 2D numpy array of size nxm (m: dimensionality of Y)
-               noiseSdev: A 1D numpy vecor of size n, standard deviation of the the Gaussian noise in each of the observations
-               xTest: Test model inputs, 1d numpy array of size nTest
-               gprOpts: GPR options
-        Outputs: 
-               post_f: posterior gpr for f(q) at qTest
-               post_obs: predictive posterior (likelihood) at qTest
+        GPR for one uncertain parameter, and single/multi-variate response y, where y=f(x)+e, 
+        with known noise e. 
+        Observations :math:`{(x_i,y_i)}_{i=1}^n` are assumed to be independent but their noise 
+        variance can be either the same (iid= homoscedastic) or non-identical (heteroscedastic).
         """ 
         if self.nResp==1:   #single-task (=single-response)
            self.gprTorch_1d_singleTask()
@@ -151,7 +153,7 @@ class gpr:
                post_obs: predictive posterior (likelihood) at qTest
         """
         xTrain=self.xTrain
-        yTrain=self.yTrain
+        yTrain=self.yTrain[:,0]
         noiseSdev=self.noiseV
         xTest=self.xTest
         gprOpts=self.gprOpts
@@ -161,7 +163,7 @@ class gpr:
         torch.set_printoptions(precision=8)  #to avoid losing accuracy in print after converting to torch
         #(1) convert numpy arrays to torch tensors
         xTrain=torch.from_numpy(xTrain)
-        yTrain=torch.from_numpy(yTrain[0])
+        yTrain=torch.from_numpy(yTrain)
         yLogVar=torch.from_numpy(np.log(noiseSdev**2.))
 
         #(2) Construct GPR for noise
@@ -254,7 +256,7 @@ class gpr:
                post_obs: predictive posterior (likelihood) at qTest
         """
         xTrain=self.xTrain
-        yTrain=self.yTrain[0]
+        yTrain=self.yTrain[:,0]
         noiseSdev=self.noiseV
         xTest=self.xTest
         gprOpts=self.gprOpts
@@ -766,7 +768,7 @@ def gprTorch_1d_singleTask_test():
       
     print("... gprTorch_1d_test()")
     #----- SETTINGS ----------------
-    n=127   #number of training data
+    n=120   #number of training data
     nTest=100   #number of test data
     xBound=[0.,1]   #range of input
     #type of the noise in the data
@@ -783,7 +785,7 @@ def gprTorch_1d_singleTask_test():
     #xTest = torch.linspace(xBound[0], xBound[1], nTest)   #if torch is used for training
      
     #(2) Construct the GPR using the training data
-    gpr_=gpr(xTrain=xTrain,yTrain=[yTrain],noiseV=noiseSdev,xTest=xTest,gprOpts=gprOpts)
+    gpr_=gpr(xTrain=xTrain[:,None],yTrain=yTrain[:,None],noiseV=noiseSdev,xTest=xTest[:,None],gprOpts=gprOpts)
     post_f=gpr_.post_f
     post_obs=gpr_.post_y
 
@@ -901,7 +903,7 @@ def gprTorch_2d_singleTask_test():
     xTest=reshaper.vecs2grid(testGrid)
 
     #(3) construct the GPR based on the training data and make predictions at test inputs
-    gpr_=gpr(xTrain,[yTrain],noiseSdev,xTest,gprOpts)
+    gpr_=gpr(xTrain,yTrain[:,None],noiseSdev,xTest,gprOpts)
     post_f=gpr_.post_f
     post_obs=gpr_.post_y
 
