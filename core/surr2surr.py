@@ -105,7 +105,7 @@ def pce2pce_GQ(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType):
     qM2,xiGridM2,fVal2Interp=lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType)
     #(3) Construct PCE2 over spaceM2
     if ndim==1:
-        pceDict={'p':ndim,'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType} 
+        pceDict={'p':ndim,'sampleType':'GQ','pceSolveMethod':'Projection','distType':[distType]} 
         pce_=pce(fVal=fVal2Interp,xi=[],pceDict=pceDict)    
         kSet2=[]
     elif (ndim>1): #multi-dimensional param space
@@ -139,7 +139,7 @@ def pce2pce_GQ_1d_test():
     q1_=pce.mapFromUnit(xi1,space1[0])    #map Gauss points to param space
     q1.append(q1_)
     fVal1=analyticTestFuncs.fEx1D(q1[0],'type1',space1).val  #function value at the parameter samples (Gauss quads)
-    pceDict={'p':1,'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType} 
+    pceDict={'p':1,'sampleType':'GQ','pceSolveMethod':'Projection','distType':[distType]} 
     pce_=pce(fVal=fVal1,xi=[],pceDict=pceDict)    
     fMean1=pce_.fMean  
     fVar1=pce_.fVar
@@ -152,13 +152,13 @@ def pce2pce_GQ_1d_test():
     qTest1=np.linspace(space1[0][0],space1[0][1],nTest)  #test points in param space
     fTest1=analyticTestFuncs.fEx1D(qTest1,'type1',space1).val   #exact response at test points
     xiTest1=pce.mapToUnit(qTest1,space1[0])
-    pcePred_=pceEval(coefs=fCoef1,xi=xiTest1,distType=distType)
+    pcePred_=pceEval(coefs=fCoef1,xi=[xiTest1],distType=distType)
     fPCETest1=pcePred_.pceVal
 
     qTest2=np.linspace(space2[0][0],space2[0][1],nTest)  #test points in param space
     fTest2=analyticTestFuncs.fEx1D(qTest2,'type1',space2).val   #exact response at test points
     xiTest2=pce.mapToUnit(qTest2,space2[0])
-    pcePred_=pceEval(coefs=fCoef2,xi=xiTest2,distType=distType)
+    pcePred_=pceEval(coefs=fCoef2,xi=[xiTest2],distType=distType)
     fPCETest2=pcePred_.pceVal
 
     #(4) Plot
@@ -208,7 +208,7 @@ def pce2pce_GQ_2d_test():
     pceDict={'p':p,'sampleType':'GQ','pceSolveMethod':'Projection','truncMethod':'TP','LMax':10,
              'distType':distType}
     xiGridM1=reshaper.vecs2grid(xiM1)
-    pce_=pce(fVal=fValM1,xi=xiM1,pceDict=pceDict,nQList=nSampM1)
+    pce_=pce(fVal=fValM1,xi=[],pceDict=pceDict,nQList=nSampM1)
     fMeanM1=pce_.fMean
     fVarM1=pce_.fVar
     fCoefM1=pce_.coefs
