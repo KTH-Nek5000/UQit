@@ -1,6 +1,12 @@
-######################################################################
-# Test Functions for gPCE (different paramter space dimensions)
-######################################################################
+################################################################
+#     Analytical model functions to test implementation of 
+#       different techniques
+################################################################
+#--------------------------------------------
+# Saleh Rezaeiravesh, salehr@kth.se
+#--------------------------------------------
+#TODO: Generalize Sobol of Ishigami to [ai,bi]
+#--------------------------------------------
 #
 import numpy as np
 import math as mt
@@ -10,26 +16,28 @@ class fEx1D:
     """
     Analytical test functions and their exact moments for 1D parameter
 
-    Parameters
-    ----------
-    `q`: List or 1D numpy array of size n
-       Samples of the parameter
-    `typ`: string
-       Function type, available: 'type1', 'type2'
-       Note: 'type1' for `q~Uniform`
-             'type2' for `q~Normal`
-    `qInfo`: (optional) List (Required for the moments or if q is Gaussian)
-       `qInfo=[qMin,qMax]` if `q~U[qMin,qMax]`
-       `qInfo=[m,sdev]` if `q~N(m,sdev)` 
-     
-    Attributes
-    ----------
-    `val`: 1D numpy array of size n,
-       values of f(q) at q
-    `mean`: float
-       E[f(q)] for q
-    `var`: float
-       V[f(q)] for q
+    Args:
+      `q`: List or 1D numpy array of size n
+         Samples of the parameter
+      `typ`: string
+         Function type, available: 'type1', 'type2':
+           * 'type1' for `q~Uniform`
+           * 'type2' for `q~Normal`
+      `qInfo`: (optional) List (Required for the moments or if q is Gaussian)
+           * `qInfo=[qMin,qMax]` if `q~U[qMin,qMax]`
+           * `qInfo=[m,sdev]` if `q~N(m,sdev^2)` 
+
+    Methods:
+      `eval()`: Evaluates f(q) at `q`
+      `moments(qInfo)`: Mean and variance of f(q)
+
+    Returns:        
+      `val`: 1D numpy array of size n,
+         Values of f(q) at `q`
+      `mean`: float
+         E[f(q)] for `q`
+      `var`: float
+         V[f(q)] for `q`
     """
     def __init__(self,q,typ,qInfo=[]):
         self.q=q
@@ -91,23 +99,29 @@ class fEx2D:
     """
     Analytical test functions for 2D parameter
 
-    Parameters
-    ----------
-    `q1', 'q2': Two lists or 1D numpy arrays of size n1, n2, respectively
-       Samples of the parameters `q1` and `q2`
-    `typ`: string
-       Function type, available: 'type1', 'type2', 'type3', 'Rosenbrock'
-    `method`: string
-       Method for handling the multi-dimensionality: 'comp' or 'tensorProd'
-       If 'comp' (component): n1 must be equal to n2 to make pairs of samples: q=(q1,q2)
-       If 'tensorProd' (tensor-product):size of `val` is n=n1*n2. 
-            
-    Attributes
-    ----------
-    `val`: 1D numpy array of size n,
-       values of f(q) at q
-       If 'comp': n=n1=n2
-       If 'tensorProd': n=n1*n2
+    Args:  
+      `q1', 'q2': Two lists or 1D numpy arrays of size n1, n2, respectively
+         Samples of the parameters q1 and q2
+      `typ`: string
+         Function type, available: 'type1', 'type2', 'type3', 'Rosenbrock'
+      `method`: string
+         Method for handling the multi-dimensionality: 'comp' or 'tensorProd'
+           * If 'comp' (component): n1 must be equal to n2 to make pairs of samples: q=(q1,q2)
+           * If 'tensorProd' (tensor-product): size of `val` is n=n1*n2. 
+
+    Methods:
+      `eval()`: Evaluates f(q) at (q1,q2)
+      `sobol(qBound)`: Sobol indices if `typ`=='type3'
+          qBound: List of length 2, qBound=[qBound1,qBound2] where qBound_i is range of qi
+
+    Returns:               
+      `val`: 1D numpy array of size n
+          Values of f(q) at q=(q1,q2)
+            * If 'comp': n=n1=n2
+            * If 'tensorProd': n=n1*n2
+      `Si` : [S1,S2], where Si is the Sobol index wrt the i-th par, i=1,2
+      `Sij`: [S12], dual interaction
+         Only if `typ`=='type3':     
     """
     def __init__(self,q1,q2,typ,method):
         self.q1=q1
@@ -143,7 +157,7 @@ class fEx2D:
     
     def eval(self):
         """
-        Evaluate f(q) at given q1, q2
+        Evaluates f(q) at given q1, q2
         """
         z1 = np.array(self.q1, copy=False, ndmin=1)
         z2 = np.array(self.q2, copy=False, ndmin=1)
@@ -176,15 +190,13 @@ class fEx2D:
     def sobol(self,qBound):
         """
         Sobol sensitivity indices of f(q) wrt q1 and q2
+        
+        Args:
+          `qBound`: =[qBound1,qBound2] admissible range of q1, q2
 
-        Parameters
-        ---------
-        qBound=[qBound1,qBound2] admissible range of parameters 1, 2, 3         
-
-        Attributes
-        ----------
-        Si: =[S1,S2], where Si is the Sobol index wrt the i-th par, i=1,2
-        Sij =[S12], dual interaction
+        Returns:   
+          `Si`:  =[S1,S2], where Si is the Sobol index wrt the i-th par, i=1,2
+          `Sij`: =[S12], dual interaction
         """
         if self.typ=='type3':
            #Exact sobol indices for f(q1,q2)=q1^2+q1*q2
@@ -238,30 +250,35 @@ class fEx2D:
            self.Sij=Sij
         else:
            print("No Exact Sobol indices for 'typ' else than 'type3'") 
+           self.Si=[]
+           self.Sij=[]
 #
 class fEx3D:
     """
     Analytical test functions for 3D parameter
 
-    Parameters
-    ----------
-    `q1', 'q2', `q3`: Three lists or 1D numpy arrays of size n1, n2, n3, respectively
-       Samples of the parameters `q1`, `q2` and `q3`
-    `typ`: string
-       Function type, available: 'Ishigami'
-    `method`: string
-       Method for handling the multi-dimensionality: 'comp' or 'tensorProd'
-       If 'comp' (component): n1 must be equal to n2. Pair of samples: q=(q1,q2,q3)
-       If 'tensorProd' (tensor-product): size of `val` is n=n1*n2*n3. 
-    `opts`: options
-       If 'Ishigami': opts=['a':a_val,'b':b_val]
+    Args:
+      `q1', 'q2', `q3`: Three lists or 1D numpy arrays of size n1, n2, n3, respectively
+         Samples of the parameters `q1`, `q2` and `q3`
+      `typ`: string
+         Function type, available: 'Ishigami'
+      `method`: string
+         Method for handling the multi-dimensionality: 'comp' or 'tensorProd'
+         If 'comp' (component): n1 must be equal to n2. Pair of samples: q=(q1,q2,q3)
+         If 'tensorProd' (tensor-product): size of `val` is n=n1*n2*n3. 
+      `opts`: options 
+         If 'Ishigami': opts=['a':a_val,'b':b_val]
+
+    Methods:
+      `eval()`: Evaluates f(q) at (q1,q2,q3)
+      `moments(qInfo)`: Analytical values of mean and variance of f(q)
+      `sobol(qBound)`: Analytical Sobol indices
             
-    Attributes
-    ----------
-    `val`: 1D numpy array of size n,
-       values of f(q) at q
-       If 'comp': n=n1=n2=n3
-       If 'tensorProd': n=n1*n2*n3
+    Returns:
+      `val`: 1D numpy array of size n
+         Values of f(q) at q
+           * If 'comp': n=n1=n2=n3
+           * If 'tensorProd': n=n1*n2*n3
     """
     def __init__(self,q1,q2,q3,typ,method,opts):
         self.q1=q1
@@ -320,12 +337,13 @@ class fEx3D:
         """ 
         Analytical Mean and variance of f(q)
 
-        Parameters
-        ----------
-        `qInfo`: List of length 
-           If 'Ishigami', qInfo=[qBound_1,qBoun_2,qBound3_] where qBound_i: admissible range of the i-th parameter
-        `mean`: Expected value of f(q)   
-        `var`: Variance of f(q)   
+        Args:
+          `qInfo`: List of length 3
+             qInfo=[qBound_1,qBoun_2,qBound_3] where qBound_i: admissible range of the i-th parameter
+
+        Returns:     
+          `mean`: Expected value of f(q)   
+          `var`: Variance of f(q)   
         """
         if self.typ=='Ishigami':
            #Analytical values of mean and variance of Ishigami function f(q1,q2,q3)
@@ -357,15 +375,13 @@ class fEx3D:
     def sobol(self,qBound):    
         """
         Sobol sensitivity indices of f(q) wrt q1, q2, qnd q3
+        
+        Args: 
+          `qBound`: =[qBound1,qBound2,qBound3] admissible range of q1, q2, q3
 
-        Parameters
-        ---------
-        qBound=[qBound1,qBound2,qBound3] admissible range of parameters 1, 2, 3         
-
-        Attributes
-        ----------
-        Si: =[S1,S2,S3], where Si is Sobol indices with respect to qi
-        Sij =[S12,S13,S23]: dual interactions
+        Returns:
+          `Si`:  =[S1,S2,S3], where Si is Sobol indices with respect to qi
+          `Sij`: =[S12,S13,S23], dual interactions
         """
         pi=mt.pi
         iFac=0
