@@ -111,7 +111,7 @@ class ppce:
           qTest=pce.pce.mapFromUnit(xiGQ,qBound) #qTest\in qBound
 
        #(2) Construct GPR surrogate based on training data
-       gpr_=gpr_torch.gpr(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
+       gpr_=gpr_torch.gpr(qTrain[:,None],yTrain[:,None],noiseSdev,qTest[:,None],gprOpts)
        post_f=gpr_.post_f
        post_obs=gpr_.post_y
 
@@ -119,7 +119,7 @@ class ppce:
        #    nMC independent samples are drawn from the GPR surrogate
        fMean_list=[]      #list of estimates for E[f(q)] 
        fVar_list =[]      #list of estimates for V[f(q)]
-       pceDict={'p':p,'sampleType':'GQ','pceSolveMethod':'Projection','distType':distType}
+       pceDict={'p':p,'sampleType':'GQ','pceSolveMethod':'Projection','distType':[distType]}
        for j in range(nMC):
            # draw a sample for f(q) from GPR surrogate
            f_=post_obs.sample().numpy()
@@ -192,7 +192,7 @@ class ppce:
        qTest=reshaper.vecs2grid(qTestGrid)
 
        #(2) Construct GPR surrogate based on training data
-       gpr_=gpr_torch.gpr(qTrain,[yTrain],noiseSdev,qTest,gprOpts)
+       gpr_=gpr_torch.gpr(qTrain,yTrain[:,None],noiseSdev,qTest,gprOpts)
        post_f=gpr_.post_f
        post_obs=gpr_.post_y
 
@@ -316,7 +316,6 @@ def ppce_1d_test():
 def ppce_2d_test():
     """
         Test for ppce_pd_cnstrct()
-        Note: some functions are taken from /gpr_torch.py/gprTorch_2d_singleTask_test()
     """
     ##
     def trainDataGen(p,sampleType,n,qBound,fExName,noiseType):
