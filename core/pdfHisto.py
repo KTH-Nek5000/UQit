@@ -8,17 +8,23 @@ import numpy as np
 import statsmodels.api as sm
 import matplotlib
 import matplotlib.pyplot as plt
-UQit=os.getenv("UQit")
 import writeUQ
 #
 #
-#////////////////////////////////
 def pdfFit_uniVar(f,doPlot,pwOpts):
     """
-        Fit a PDF to data f and plot both histogram and continuous PDF. 
-        f: 1d(=uniVar) numpy array of size n 
-        doPlot=False or True
-        pwOpts: (optional) options for plotting and dumping the data
+    Fits a PDF to samples f and plots both histogram and the fitted PDF. 
+    As an option, the plots and data can be saved on the disk.
+    
+    Args:
+      `f`: 1D numpy array of size n 
+      `doPlot`: bool      
+      `pwOpts`: dict (optional) options for plotting and dumping the data. 
+        Keys:
+          * 'figDir': Directory top save the figure and dump the data
+          * 'figName': Name of the figure
+          * 'header': String as the header of the dumped file
+          * 'iLoc': int, After converting to string is added to the `figName`
     """
     if f.ndim>1:
        print('Note: input f to pdfFit_uniVar(f) must be a 1D numpy array. We reshape f!')
@@ -73,12 +79,16 @@ def pdfFit_uniVar(f,doPlot,pwOpts):
           plt.show()
     return kde
 
-#///////////////////////////////
 def pdfPredict_uniVar(f,fTest,doPlot):
     """
-       Evaluate continuous PDF fitted to f at fTest. 
-       f: 1D numpy array
-       f0: 1D list
+    Evaluates the continuous PDF fitted to f at fTest. 
+
+    Args:
+      `f`: 1D numpy array
+      `fTest`: List of length m
+    
+    Returns:
+      `pdfPred`: 1D numpy array of size m       
     """
     #Fit the PDF to f
     kde=pdfFit_uniVar(f,doPlot,{})
@@ -88,11 +98,10 @@ def pdfPredict_uniVar(f,fTest,doPlot):
         pdfPred.append(kde.evaluate(fTest[i])[0])
     pdfPred=np.asarray(pdfPred)
     return pdfPred
- 
-##################
+# 
 # TEST
-##################
-#/////////////////////////
+#
+#
 from scipy import stats
 from statsmodels.distributions.mixture_rvs import mixture_rvs
 def pdf_uniVar_test():
@@ -103,7 +112,8 @@ def pdf_uniVar_test():
     def bimodal_samples(n):
         """
            Samples from a bimodal distribution
-           The script in this function is taken from: https://www.statsmodels.org/stable/examples/notebooks/generated/kernel_density.html
+           The script in this function is taken from
+           https://www.statsmodels.org/stable/examples/notebooks/generated/kernel_density.html
         """
         # Location, scale and weight for the two distributions
         dist1_loc, dist1_scale, weight1 = -1 , .4, .3
