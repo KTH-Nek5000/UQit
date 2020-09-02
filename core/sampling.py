@@ -4,6 +4,8 @@
 #--------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
 #--------------------------------------------
+
+#--------------------------------------------
 #
 import sys
 import os
@@ -13,21 +15,27 @@ sys.path.append(os.getenv("UQit"))
 import nodes
 import pce
 #
-def LHS_sampling(n,range_):
+def LHS_sampling(n,xBound):
     """
         LHS (Latin Hypercube) sampler from a p-D random variable distributed uniformly
-        credit: https://zmurchok.github.io/2019/03/15/Latin-Hypercube-Sampling.html
-        Inputs:
-              n: number of samples
-              range_: Admissible orange of the samples,list of size p, =[[x1L,x1U],...[xpL,xpU]]
-        Outputs:
-              x: n-by-p numpy array, x\in range_
+        credits: https://zmurchok.github.io/2019/03/15/Latin-Hypercube-Sampling.html
+
+        Args:
+          `n`: int
+             Number of samples to be taken
+          `xBound`: list of length p
+             =[[min(x1),max(x1)],...[min(xp),max(xp)]], where [min(xi),max(xi)] specifies
+              the range of the i-th parameter
+
+        Returns:
+          `x`: 2D numpy array of size (n,p)
+             Samples takren from the p-D space with ranges `xBound`
     """
-    p=len(range_)
+    p=len(xBound)
     x = np.random.uniform(size=[n,p])
     for i in range(0,p):
         x_ = (np.argsort(x[:,i])+0.5)/float(n)
-        x[:,i]=x_*(range_[i][1]-range_[i][0])+range_[i][0]
+        x[:,i]=x_*(xBound[i][1]-xBound[i][0])+xBound[i][0]
     return x
 #
 def sampler_1d(range_,nSamp,sampType):
@@ -68,43 +76,41 @@ def sampler_1d(range_,nSamp,sampType):
 
 class trainSample:
     R"""
-    Generating training samples from 1D paramter space using different methods.
-    Samples of \xi\in\Gamma (mapped space) are drawn which then mapped to q\in Q
+    Generating training samples from a 1D paramter space using different methods.
+    Samples of `xi` are drawn from the mapped space (Gamma) and are then mapped to the parameter space.
 
-    Parameters
-    ----------
-    sampleType: string
-        Type of sample:
-        'GQ': Gauss-Quadrature nodes 
-        'GLL': Gauss-Lobatto-Lgendre nodes
-        'unifSpaced': Uniformly-spaced
-        'unifRand': Uniformly distributed random
-        'normRand': Gaussian distributed random
-        'Clenshaw': Clenshaw points
-        'Clenshaw-Curtis': Clenshaw-Curtis points
-    GQdistType: string
-        Type of standard distribution in gPCE; Only needed if sampleType:'GQ'
-        'Unif': Uniform distribution, Gamma=[-1,1]            
-        'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
-    qInfo: List of length 2
-        Information on the parameter.
-        If q is Gaussian ('Norm' or 'normRand') => qInfo=[mean,sdev]
-        Otherwise, qInfo=[min(q),max(q)]=admissible range of q
-    nSamp: Integer
-        Number of samples to draw
-    
-    Attributes
-    ----------
-    xi: 1d numpy array of size nSamp
-        Samples \xi from the mapped space \Gamma    
-    xiBound: List of length 2
-        Admissible range of xi
-    q: 1d numpy array of size nSamp
-        Samples q from the mapped space Q    
-    qBound: List of length 2
-        Admissible range of q
-    w: 1d numpy array of size nSamp    
-       Weights in Gauss-Quadrature rule (only if sampleType='GQ')
+    Args:
+      `sampleType`: string
+         Smaple type, chosen from the following list:
+           * 'GQ': Gauss-Quadrature nodes 
+           * 'GLL': Gauss-Lobatto-Lgendre nodes
+           * 'unifSpaced': Uniformly-spaced
+           * 'unifRand': Uniformly distributed random
+           * 'normRand': Gaussian distributed random
+           * 'Clenshaw': Clenshaw points
+           * 'Clenshaw-Curtis': Clenshaw-Curtis points
+      `GQdistType`: string (optional)
+         Specifies type of gPCE standard distribution if `sampleType`=='GQ'
+           * 'Unif': Uniform distribution, Gamma=[-1,1]            
+           * 'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
+      `qInfo`: List of length 2 (optional)
+         Information about the parameter range or distribution.
+           * If q is Gaussian ('Norm' or 'normRand') => `qInfo`=[mean,sdev]
+           * Otherwise, `qInfo`=[min(q),max(q)]=admissible range of q
+      `nSamp`: Integer
+             Number of samples to draw
+
+    Attributes:     
+      `xi`: 1D numpy array of size nSamp
+         Samples drawn from the mapped space Gamma    
+      `xiBound`: List of length 2
+         Admissible range of `xi`
+      `q`: 1D numpy array of size `nSamp`
+         Samples over the parameter space Q    
+      `qBound`: List of length 2
+         Admissible range of `q`
+      `w`: 1D numpy array of size `nSamp`
+         Weights in Gauss-Quadrature rule only if `sampleType`='GQ'         
     """
     def __init__(self,sampleType='',GQdistType='',qInfo=[],nSamp=0):
         self.info()
@@ -198,45 +204,44 @@ class trainSample:
            qBound_=self.qBound
            self.q=(xi_-xiBound_[0])/(xiBound_[1]-xiBound_[0])*\
                   (qBound_[1]-qBound_[0])+qBound_[0]
-
+#
 class testSample:
     R"""
-    Generating test samples from 1D paramter space using different methods.
-    Samples of q\in Q are drawn which then mapped to \xi\in\Gamma (mapped space)
+    Generating test samples from a 1D paramter space using different methods.
+    Samples of q in parameter space Q are drawn and then mapped to xi in the mapped space Gamma.
 
-    Parameters
-    ----------
-    sampleType: string
-        Type of sample:
-        'GLL': Gauss-Lobatto-Lgendre nodes
-        'unifSpaced': Uniformly-spaced
-        'unifRand': Uniformly distributed random
-        'normRand': Gaussian distributed random
-    GQdistType: string
-        Type of standard distribution in gPCE; default='Unif'
-        'Unif': Uniform distribution, Gamma=[-1,1]            
-        'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
-    qInfo: List of length 2
-        Information on the parameter.
-        If q is Gaussian ('Norm') => qInfo=[mean,sdev]
-        Otherwise, qInfo=[] and providing it is optional
-    nSamp: Integer
-        Number of samples to draw
+    Args:
+      `sampleType`: string 
+         Type of sample, chosen from the following list:
+           * 'GLL': Gauss-Lobatto-Lgendre nodes
+           * 'unifSpaced': Uniformly-spaced
+           * 'unifRand': Uniformly distributed random
+           * 'normRand': Gaussian distributed random
+      `GQdistType`: string
+         Type of standard distribution in gPCE; default is 'Unif'
+           * 'Unif': Uniform distribution, Gamma=[-1,1]            
+           * 'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
+      `qInfo`: List of length 2 (optional)         
+         `qInfo`=[mean,sdev] only if `GQdistType`=='Norm'
+      `qBound`: List of length 2 
+         Admissible range of `q`
+      `nSamp`: int
+         Number of samples to draw
     
-    Attributes
-    ----------
-    xi: 1d numpy array of size nSamp
-        Samples \xi from the mapped space \Gamma    
-    xiBound: List of length 2
-        Admissible range of xi
-    q: 1d numpy array of size nSamp
-        Samples q from the mapped space Q    
-    qBound: List of length 2
-        Admissible range of q
-    w: 1d numpy array of size nSamp    
-       Weights in Gauss-Quadrature rule (only if sampleType='GQ')
+    Attributes:
+      `xi`: 1D numpy array of size `nSamp`
+         Samples on the mapped space Gamma    
+      `xiBound`: List of length 2
+         Admissible range of `xi`
+      `q`: 1D numpy array of size `nSamp`
+         Samples `q` from the mapped space Q    
+      `qBound`: List of length 2 
+         Admissible range of `q`. It will be the same as the Arg `qBound` if `GQdistType`=='Unif'
+      `w`: 1d numpy array of size `nSamp`
+         If `sampleType`=='GQ': Weights in Gauss-Quadrature rule 
+         Otherwise: `w`=[]
     """
-    def __init__(self,sampleType='',GQdistType='Unif',qInfo=[],qBound=[],nSamp=0):
+    def __init__(self,sampleType,qBound,nSamp,GQdistType='Unif',qInfo=[]):
         self.info()
         self.sampleType=sampleType
         self.GQdistType=GQdistType
@@ -303,7 +308,6 @@ class testSample:
            xi_=(self.xiBound[1]-self.xiBound[0])*(q_-qBound_[0])\
                /(qBound_[1]-qBound_[0])+self.xiBound[0]
         self.xi=xi_    
-
 #
 #
 # Tests
