@@ -15,65 +15,6 @@ sys.path.append(os.getenv("UQit"))
 import nodes
 import pce
 #
-def LHS_sampling(n,xBound):
-    """
-        LHS (Latin Hypercube) sampler from a p-D random variable distributed uniformly
-        credits: https://zmurchok.github.io/2019/03/15/Latin-Hypercube-Sampling.html
-
-        Args:
-          `n`: int
-             Number of samples to be taken
-          `xBound`: list of length p
-             =[[min(x1),max(x1)],...[min(xp),max(xp)]], where [min(xi),max(xi)] specifies
-              the range of the i-th parameter
-
-        Returns:
-          `x`: 2D numpy array of size (n,p)
-             Samples takren from the p-D space with ranges `xBound`
-    """
-    p=len(xBound)
-    x = np.random.uniform(size=[n,p])
-    for i in range(0,p):
-        x_ = (np.argsort(x[:,i])+0.5)/float(n)
-        x[:,i]=x_*(xBound[i][1]-xBound[i][0])+xBound[i][0]
-    return x
-#
-def sampler_1d(range_,nSamp,sampType):
-    """
-    Generating samples from a 1D parameter space
-    Inputs:
-       range_: list of length 2, admissible range of parameters
-       nSamp: Number of samples
-       sampType: The method to drawing the samples (nodes)
-                 'random', 'uniform', 'GL', 'Clenshaw', 'Clenshaw-Curtis'
-    Outputs:
-       qNodes: samples of size nSamp over range_ 
-    """
-    p=len(range_)
-    xi_len=1.
-    xi0=0.
-    if sampType=='random':
-       xi=np.random.uniform(0,1,size=[nSamp-2])
-       xi=np.concatenate([[0],xi,[1]])
-    elif sampType =='uniform':
-       xi=np.linspace(0,1,nSamp)
-    elif sampType =='GL':
-       xi,wXI=pce.gqPtsWts(nSamp,'Unif')  #on [-1,1]
-       xi_len=2.
-       xi0=-1.
-    elif sampType=='Clenshaw':
-       xi=nodes.Clenshaw_pts(nSamp)
-       xi_len=2.
-       xi0=-1.
-    elif sampType=='Clenshaw-Curtis':
-       l_=1+int(mt.log(nSamp-1)/mt.log(2))
-       xi=nodes.ClenshawCurtis_pts(l_)
-    else:
-       print('ERROR in sampler_1d(): Invalid sampType was chosen!')
-    #map from reference range to actual range
-    qNodes=(range_[1]-range_[0])*(xi-xi0)/xi_len+range_[0]
-    return qNodes
-
 class trainSample:
     R"""
     Generating training samples from a 1D paramter space using different methods.
@@ -308,6 +249,29 @@ class testSample:
            xi_=(self.xiBound[1]-self.xiBound[0])*(q_-qBound_[0])\
                /(qBound_[1]-qBound_[0])+self.xiBound[0]
         self.xi=xi_    
+#
+def LHS_sampling(n,xBound):
+    """
+        LHS (Latin Hypercube) sampler from a p-D random variable distributed uniformly
+        credits: https://zmurchok.github.io/2019/03/15/Latin-Hypercube-Sampling.html
+
+        Args:
+          `n`: int
+             Number of samples to be taken
+          `xBound`: list of length p
+             =[[min(x1),max(x1)],...[min(xp),max(xp)]], where [min(xi),max(xi)] specifies
+              the range of the i-th parameter
+
+        Returns:
+          `x`: 2D numpy array of size (n,p)
+             Samples takren from the p-D space with ranges `xBound`
+    """
+    p=len(xBound)
+    x = np.random.uniform(size=[n,p])
+    for i in range(0,p):
+        x_ = (np.argsort(x[:,i])+0.5)/float(n)
+        x[:,i]=x_*(xBound[i][1]-xBound[i][0])+xBound[i][0]
+    return x
 #
 #
 # Tests
