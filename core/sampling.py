@@ -52,6 +52,11 @@ class trainSample:
          Admissible range of `q`
       `w`: 1D numpy array of size `nSamp`
          Weights in Gauss-Quadrature rule only if `sampleType`='GQ'         
+    
+    Examples:
+      ts1=trainSample(sampleType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10)
+      ts2=trainSample(sampleType='NormRand',qInfo=[2,3],nSamp=10)
+      ts3=trainSample(sampleType='GLL',qInfo=[2,3],nSamp=10)
     """
     def __init__(self,sampleType='',GQdistType='',qInfo=[],nSamp=0):
         self.info()
@@ -163,7 +168,7 @@ class testSample:
            * 'Unif': Uniform distribution, Gamma=[-1,1]            
            * 'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
       `qInfo`: List of length 2 (optional)         
-         `qInfo`=[mean,sdev] only if `GQdistType`=='Norm'
+         qInfo=[mean,sdev] only if GQdistType=='Norm'
       `qBound`: List of length 2 
          Admissible range of `q`
       `nSamp`: int
@@ -177,10 +182,18 @@ class testSample:
       `q`: 1D numpy array of size `nSamp`
          Samples `q` from the mapped space Q    
       `qBound`: List of length 2 
-         Admissible range of `q`. It will be the same as the Arg `qBound` if `GQdistType`=='Unif'
+         Admissible range of `q`. It will be the same as the Arg `qBound` if GQdistType=='Unif'
       `w`: 1d numpy array of size `nSamp`
          If `sampleType`=='GQ': Weights in Gauss-Quadrature rule 
          Otherwise: `w`=[]
+
+    Examples:
+      ts1=testSample(sampleType='unifRand',GQdistType='Unif',qBound=[-1,3],nSamp=10)
+      ts2=testSample(sampleType='unifRand',qBound=[-1,3],nSamp=10)
+      ts3=testSample(sampleType='normRand',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
+      ts4=testSample(sampleType='unifSpaced',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
+      ts5=testSample(sampleType='unifSpaced',GQdistType='Unif',qBound=[-1,3],nSamp=10)
+      ts6=testSample(sampleType='GLL',qBound=[-1,3],nSamp=10)
     """
     def __init__(self,sampleType,qBound,nSamp,GQdistType='Unif',qInfo=[]):
         self.info()
