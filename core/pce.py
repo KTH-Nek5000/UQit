@@ -13,7 +13,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 sys.path.append(os.getenv("UQit"))
 import analyticTestFuncs
-import plot2d
 import writeUQ
 import reshaper
 import linAlg
