@@ -22,7 +22,7 @@ class trainSample:
 
     Args:
       `sampleType`: string
-         Smaple type, chosen from the following list:
+         Sample type, chosen from the following list:
            * 'GQ': Gauss-Quadrature nodes 
            * 'GLL': Gauss-Lobatto-Lgendre nodes
            * 'unifSpaced': Uniformly-spaced
@@ -31,15 +31,15 @@ class trainSample:
            * 'Clenshaw': Clenshaw points
            * 'Clenshaw-Curtis': Clenshaw-Curtis points
       `GQdistType`: string (optional)
-         Specifies type of gPCE standard distribution if `sampleType`=='GQ'
+         Specifies type of gPCE standard distribution if sampleType=='GQ'
            * 'Unif': Uniform distribution, Gamma=[-1,1]            
            * 'Norm': Gaussian distribution, Gamma=[-\infty,\infty]            
       `qInfo`: List of length 2 (optional)
          Information about the parameter range or distribution.
-           * If q is Gaussian ('Norm' or 'normRand') => `qInfo`=[mean,sdev]
-           * Otherwise, `qInfo`=[min(q),max(q)]=admissible range of q
+           * If `q` is Gaussian ('Norm' or 'normRand') => qInfo=[mean,sdev]
+           * Otherwise, `qInfo`=[min(q),max(q)]=admissible range of `q`
       `nSamp`: Integer
-             Number of samples to draw
+         Number of samples to draw
 
     Attributes:     
       `xi`: 1D numpy array of size nSamp
@@ -51,7 +51,7 @@ class trainSample:
       `qBound`: List of length 2
          Admissible range of `q`
       `w`: 1D numpy array of size `nSamp`
-         Weights in Gauss-Quadrature rule only if `sampleType`='GQ'         
+         Weights in Gauss-Quadrature rule only if sampleType='GQ'         
     
     Examples:
       ts1=trainSample(sampleType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10)
@@ -184,8 +184,8 @@ class testSample:
       `qBound`: List of length 2 
          Admissible range of `q`. It will be the same as the Arg `qBound` if GQdistType=='Unif'
       `w`: 1d numpy array of size `nSamp`
-         If `sampleType`=='GQ': Weights in Gauss-Quadrature rule 
-         Otherwise: `w`=[]
+         * If sampleType=='GQ': Weights in Gauss-Quadrature rule 
+         * Otherwise: `w=[]`
 
     Examples:
       ts1=testSample(sampleType='unifRand',GQdistType='Unif',qBound=[-1,3],nSamp=10)
