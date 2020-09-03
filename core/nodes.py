@@ -1,5 +1,5 @@
 ######################################################
-# Spectral nodes from differenttypes of polynomials
+# Spectral nodes from different types of polynomials
 ######################################################
 # Saleh Rezaeiravesh, salehr@kth.se
 #-----------------------------------------------------
