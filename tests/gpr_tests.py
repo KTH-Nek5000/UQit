@@ -77,7 +77,6 @@ def gprTorch_1d_singleTask_test():
     pltOpts={'title':'Single-task GP, 1d param, %s-scedastic noise'%noiseType}
     gprPlot(pltOpts).torch1d(post_f,post_obs,xTrain,yTrain,xTest,fExTest)
 #
-from mpl_toolkits.mplot3d import Axes3D    #for 3d plot
 def gprTorch_2d_singleTask_test():
     """
         Test for GPR for 2d input

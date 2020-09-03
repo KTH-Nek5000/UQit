@@ -30,6 +30,7 @@ import sys
 import numpy as np
 import math as mt
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  #for 3d plot
 import torch
 import gpytorch
 from gpytorch.likelihoods import (
