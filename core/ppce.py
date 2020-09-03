@@ -50,6 +50,9 @@ class ppce:
               Number of iterations for optimization of the GPR hyper-parameters
            * 'lr_gpr': float
               Learning rate for optimization of the GPR hyper-parameters
+           * 'convPlot_gpr': bool
+              If true, optimized values of the hyper-parameters is plotted vs. iteration.
+              
     Attributes:
        `fMean_list`: 1D numpy array of size `nMC`
           PCE estimates for the mean of f(q)
