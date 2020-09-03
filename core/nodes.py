@@ -96,11 +96,3 @@ def gllPts(n,eps=10**-8,maxIter=1000):
     w=2./(n*(n-1)*V[:,n-1]**2.)
     return xi,w
 #
-#
-# Tests
-#
-def gllPts_test():
-    xi,w=gllPts(8)
-    print('GLL nodes:',xi)
-    print('GLL weights:',w)
-
