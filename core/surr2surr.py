@@ -1,5 +1,5 @@
 ###############################################################
-#     Interpolate from a Surrogate To Another Surrogate
+#     Interpolate from a Surrogate to Another surrogate
 ###############################################################
 # We have a surrogate that is over Q1 admissibile space. We want
 #    to use it to construct a new surrogate over Q2\subsetQ1. 
@@ -21,7 +21,6 @@ from pce import pce, pceEval
 import analyticTestFuncs
 from lagInt import lagInt
 import reshaper
-import plot2d
 #
 #
 def lagIntAtGaussPts(fValM1,qM1,spaceM1,nM2,spaceM2,pDmethod,distType):
