@@ -1,8 +1,8 @@
-#######################################################################
-#    Different nodes to be used in quadrature rules and interpolation
-#######################################################################
+######################################################
+# Spectral nodes from differenttypes of polynomials
+######################################################
 # Saleh Rezaeiravesh, salehr@kth.se
-#----------------------------------------------------------------------
+#-----------------------------------------------------
 #
 import numpy as np
 import math as mt
@@ -10,7 +10,15 @@ import math as mt
 #
 def Clenshaw_pts(n):
     """ 
-       Returns n Clenshaw points over [-1,1]
+    Generates Clenshaw points over [-1,1]
+
+    Args: 
+      `n`: int
+         Number of nodes
+
+    Returns 
+       `x_`: 1D numpy array of size `n`
+         Clenshaw points
     """
     x=np.zeros(n)
     for i in range(n):
@@ -20,7 +28,15 @@ def Clenshaw_pts(n):
 #
 def ClenshawCurtis_pts(l):
     """
-        Generates Clenshaw-Curtis nodes at level l over [0,1]
+    Generates Clenshaw-Curtis nodes at level l over [0,1]
+
+    Args:
+      `l`: int
+         Level
+
+    Returns:
+      `x`: 1D numpy array of size `n`
+         Contains Clenshaw-Curtis points
     """
     if l>1:
        n=2**(l-1)+1
@@ -35,24 +51,26 @@ def ClenshawCurtis_pts(l):
 #
 def gllPts(n,eps=10**-8,maxIter=1000):
     """
-    Iterative solution to get Gauss-Lobatto-Legendre (GLL) nodes of order n
-    Newton-Raphson iteration is used.
+    Generating Gauss-Lobatto-Legendre (GLL) nodes of order n using the 
+    Newton-Raphson iteration.
 
-    Parameters
-    ----------
-    n: number of GLL nodes
-    eps (optional) iteration max error
-    maxIter (optional): max iteration
+    Args:    
+      `n`: int
+         Number of GLL nodes
+      `eps`: float (optional) 
+         Min error to keep the iteration running
+      `maxIter`: float (optional)
+         Max number of iterations
 
-    Outputs
-    -------
-    xi: 1d numpy array of size n, GLL nodes
-    w: 1d numpy array of size n, GLL weights
+    Outputs:
+      `xi`: 1D numpy array of size `n`
+         GLL nodes
+      `w`: 1D numpy array of size `n`
+         `GLL weights
 
-    Reference
-    ---------
-    Canuto C., Hussaini M. Y., Quarteroni A., Tang T. A., "Spectral Methods
-       in Fluid Dynamics," Section 2.3. Springer-Verlag 1987.
+    Reference:
+       Canuto C., Hussaini M. Y., Quarteroni A., Tang T. A., 
+       "Spectral Methods in Fluid Dynamics," Section 2.3. Springer-Verlag 1987.
        https://link.springer.com/book/10.1007/978-3-642-84108-8
     """
     V=np.zeros((n,n))  #Legendre Vandermonde Matrix
@@ -68,7 +86,7 @@ def gllPts(n,eps=10**-8,maxIter=1000):
         V[:,1]=xi
         for j in range(2,n):
             V[:,j]=((2.*j-1)*xi*V[:,j-1] - (j-1)*V[:,j-2])/float(j)
-        #Newton-Raphson solver
+        #Newton-Raphson iteration 
         xi=xi_old-(xi*V[:,n-1]-V[:,n-2])/(n*V[:,n-1])
         err=max(abs(xi-xi_old).flatten())
         xi_old=xi
