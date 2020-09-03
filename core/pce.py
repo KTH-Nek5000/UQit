@@ -953,24 +953,23 @@ def pce_2d_test():
     fErrorGrid=(abs(fTestGrid-fPCE))         
     #2d grid from the sampled parameters
     if sampleType=='LHS':
-        q1Grid=q[0]
-        q2Grid=q[1]
+       qGrid=reshaper.vecsGlue(q[0],q[1])
     else:
-        q1Grid,q2Grid=plot2d.plot2D_grid(q[0],q[1])
+       qGrid=reshaper.vecs2grid(q)
     #plot 2d contours
     plt.figure(figsize=(21,8));
     plt.subplot(1,3,1)
     ax=plt.gca()
     CS1 = plt.contour(qTest[0],qTest[1],fTestGrid.T,40)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS1, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
-    plt.plot(q1Grid,q2Grid,'o',color='r',markersize=7)
+    plt.plot(qGrid[:,0],qGrid[:,1],'o',color='r',markersize=7)
     plt.xlabel('q1');plt.ylabel('q2')
     plt.title('Exact Response')
     plt.subplot(1,3,2)
     ax=plt.gca()
     CS2 = plt.contour(qTest[0],qTest[1],fPCE.T,40)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS2, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
-    plt.plot(q1Grid,q2Grid,'o',color='r',markersize=7)
+    plt.plot(qGrid[:,0],qGrid[:,1],'o',color='r',markersize=7)
     plt.xlabel('q1');plt.ylabel('q2')
     plt.title('Surrogate Response')
     plt.subplot(1,3,3)
@@ -978,7 +977,7 @@ def pce_2d_test():
     CS3 = plt.contour(qTest[0],qTest[1],fErrorGrid.T,40)#,cmap=plt.get_cmap('viridis'))
     plt.clabel(CS3, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     plt.xlabel('q1');plt.ylabel('q2')
-    plt.plot(q1Grid,q2Grid,'o',color='r',markersize=7)
+    plt.plot(qGrid[:,0],qGrid[:,1],'o',color='r',markersize=7)
     plt.title('|Exact-Surrogate|')
     plt.show()
 #     
