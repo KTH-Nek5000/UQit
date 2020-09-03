@@ -42,6 +42,9 @@ Refer to sec??? for the details on how PCE is implemented in :code:`UQit`.
 
 Lagrange Interpolation
 ----------------------
+
+Theory
+~~~~~~
 As another form of SC-based surrogate, Lagrange interpolation can be considered:
 
 .. math::
@@ -97,14 +100,50 @@ There are three methods available:
 
   - :code:`Q` is a 2D :code:`numpy` array of size :math:`m \times p` containing :math:`m` test samples over the :math:`p`-D parameter space. The constructed Lagrange interpolation is evaluated at these test samples. 
 
+Implementation
+~~~~~~~~~~~~~~
+.. automodule:: lagInt
+   :members:
 
-.. tip::
-   Try this `notebook <../examples/lagrangeInterp.ipynb>`_ to see how to use :code:`UQit` for Lagrange interpolation over a parameter space. 
+Example
+~~~~~~~
+* For :math:`p=1` (one-dimensional parameter :math:`q`):
+
+.. code-block::
+
+    fInterp=lagInt(fNodes=fNodes,qNodes=[qNodes],qTest=[qTest]).val
+
+* For :math:`p>1` (multi-dimensional parameter :math:`q`):
+
+.. code-block::
+
+    fInterp=lagInt(fNodes=fNodes,qNodes=qNodes,qTest=qTestList,liDict={'testRule':'tensorProd'}).val
+
+
+
+Notebook
+~~~~~~~~
+Try this `notebook <../examples/lagrangeInterp.ipynb>`_ to see how to use :code:`UQit` for Lagrange interpolation over a parameter space. 
 
 
 
 Gaussian Process Regression
 ---------------------------
+Theory
+~~~~~~
+
+Implementation
+~~~~~~~~~~~~~~
+.. automodule:: gpr_torch
+   :members:
+
+Example
+~~~~~~~
+
+
+Notebook
+~~~~~~~~
+
 
 
 

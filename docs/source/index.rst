@@ -3,9 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-====
-UQit 
-====
+.. image:: ./_static/uqit_logo.png
+   :scale: 70%
+   :align: center
+   :alt: A Python Toolbox for Uncertainty Quantification in CFD
+
 A Python Toolbox for Uncertainty Quantification in CFD
 ------------------------------------------------------
 
@@ -55,7 +57,7 @@ Examples and Documentation
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    ./UQit_core_/instl_dep

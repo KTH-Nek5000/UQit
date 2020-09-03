@@ -62,18 +62,51 @@ where :math:`\gamma_k` is the inner-product of the polynomail basis.
 
 
 
+   
+
+
 Implementation
 ~~~~~~~~~~~~~~
 In :code:`UQit`, the methods required for standard PCE are implemented in :code:`pce.py`. 
 
 
+.. automodule:: pce
+   :members:
 
 
 
+Example
+~~~~~~~
+To construct and estimate expected value and variance of :math:`f(q)` for :math:`q\in\mathbb{Q}\subset \mathbb{R}`:
+
+.. code-block:: python
+
+   pce_=pce(fVal=fVal,xi=xiGrid,pceDict=pceDict,nQList=nQ)
+   fMean=pce_.fMean       #E[f(q)]
+   fVar=pce_.fVar         #V[f(q)]
+   pceCoefs=pce_.coefs    
+   kSet=pce_.kSet
+
+Notebook
+~~~~~~~~
+Try this `PCE notebook <../examples/pce.ipynb>`_ to see how to use :code:`UQit` to perform standard polynomial chaos expansion (PCE). The provided examples can also be seen as a way to validate the implementation of the methods in :code:`UQit`.
 
 
-.. tip::
-   Try this `PCE notebook <../examples/pce.ipynb>`_ to see how to use :code:`UQit` to perform standard polynomial chaos expansion (PCE). The provided examples can also be seen as a way to validate the implementation of the methods in :code:`UQit`.
+
 
 Probabilistic Polynomial Chaos Expansion
 ----------------------------------------
+
+Theory
+~~~~~~
+
+Implementation
+~~~~~~~~~~~~~~
+.. automodule:: ppce
+   :members:
+
+Example
+~~~~~~~
+
+Notebook
+~~~~~~~~
