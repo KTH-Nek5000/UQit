@@ -1,5 +1,5 @@
 ###############################################################
-#     Interpolate from a Surrogate to Another surrogate
+#     Interpolation from a surrogate to another surrogate
 ###############################################################
 # We have a surrogate that is over Q1 admissibile space. We want
 #    to use it to construct a new surrogate over Q2\subsetQ1. 
