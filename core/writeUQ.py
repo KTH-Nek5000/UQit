@@ -5,6 +5,8 @@
 #----------------------------------------------------
 #
 def printRepeated(string_to_expand, length):
-    """ Repeat string_to_extend up to a certain length """
+    """ 
+    Repeats the string `string_to_extend` `length` times 
+    """
     return (string_to_expand * (int(length/len(string_to_expand))+1))[:length]
 #
