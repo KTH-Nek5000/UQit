@@ -1,5 +1,5 @@
 ##########################################################
-#   Tools for converting, reshaping, ... arrays
+#   Tools for converting and reshaping arrays and lists
 ##########################################################
 # Saleh Rezaeiravesh, salehr@kth.se
 #---------------------------------------------------------
@@ -7,29 +7,32 @@
 import numpy as np
 #
 #
-#///////////////////
 def lengthVector(x):
     """ 
-        Returns length of vector x that is a list or 1D numpy array or ...
+    Returns the length of vector x that is a list or a numpy array
     """
     if (isinstance(x,np.ndarray)):
        nx=x.size
     elif (isinstance(x,(list))):
        nx=len(x)
     else:
-       print("ERROR in lengthVector: Unknown object x")
+       raise ValueError("ERROR in lengthVector: Unknown object x")
     return int(nx)
 #
-#///////////////////
 def vecs2grid(x):
     """
-       Make a pD tensor-product grid out of p 1D vectors x 
-          x: a p-size list of 1D numpy arrays 
-          z: a numpy pD array (n1*n2,...*np,p) 
+    Makes a p-D (p>1) tensor-product grid from a list of length p containg 1D numpy arrays
+
+    Args:
+       `x`: A list of length p>1
+          x=[x1,x2,...,xp] where xi is a 1D numpy array of size ni
+    
+    Returns:
+       'z': A numpy array of shape (n1*n2*...*np,p) 
     """
     p=len(x)
     if p<=1:
-       print("ERROR in vecs2grid(): more than one vector should be imported.")
+       raise ValueError("Import a list of length p>1.")
     z_=np.meshgrid(*x,copy=True,sparse=False,indexing='ij')    
     n=z_[-1].size
     z=np.zeros((n,p))
@@ -37,21 +40,25 @@ def vecs2grid(x):
         z[:,i]=z_[i].reshape((n,1),order='F')[:,0]
     return z
 #
-#///////////////////
 def vecsGlue(*x):
     """
-       Glue p 1D vectors x0, x1, ...,xp of the same length (= n) together as they are p components of the same nxp numpy array.
-          xi: a numpy 1D array or a 1D list of length n, i=1,2,...,p
-          z: numpy 2D array (n,p) 
+    Makes a set by gluing p>1 1D numpy arrays x0,x1,...,xp of the same size (=n)
+
+    Args:
+       `x`: 1D numpy arrays each having the size of n
+
+    Return:   
+       `z`: numpy array of shape (n,p) 
+          z[:,i]=xi
     """
     p=len(x)
     if p<=1:
-       print("ERROR in vecsGlue(): more than one vector should be imported.")
+       raise ValueError("More then one numpy array must be imported.")
     n=lengthVector(x[0])
     for i in range(1,p):
         n_=len(x[i])
         if n_!=n:
-           print('ERROR in vecsGlue(): input vectors should be of the same size.')
+           raise ValueError("Imported numpy arrays should have the same size.")
     z=np.zeros((n,p))
     for j in range(p):
        for i in range(n):
