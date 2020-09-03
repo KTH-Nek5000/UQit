@@ -1,29 +1,34 @@
-##########################################################
-#   Linear Algebra tools
-##########################################################
+###########################################
+#     Tools for Linear Algebra 
+###########################################
 #  Saleh Rezaeiravesh, salehr@kth.se
-#---------------------------------------------------------
-
+#------------------------------------------
+#
 import numpy as np
 import cvxpy as cvx
 #
-#/////////////////////////////
 def myLinearRegress(A,R,L_=1,max_iter_=100000):
-    """
-       Solve a linear system of equations.
-       This solver works for uniquely-, over-, and under-determined linear system. 
-       If system is under-determined we use compressed sensing with L1 or L2 regularization. Library cvxpy is used for this purpose.  https://www.cvxpy.org
-          Input:
-             Af=R => At*A f = At*R (normal system)
-             A:nxK (n:no of data, K: no of PCE terms), f: unknown coefs:Kx1, R: Responses nx1
-             L_: =1 or 2: Regularization Order
-             max_iter_: maximum number of iterations to find the optimum
-          Output:
-             set of coeffcients f: 1d array of length K
+    """    
+    Solves a linear system of equations Af=R with the normalized form A'Af=A'R
+      This solver works for uniquely-, over-, and under-determined linear systems.
+      If system is under-determined, the compressed sensing method with L1 or L2 regularization is used.
+      For this purpose, the library cvxpy is used (https://www.cvxpy.org)
+    
+    Args:
+      `A`: numpy array of shape (n,K) 
+      `R`: numpy array of size n
+      `L_`: int (optional)
+         Specifies the regularization order, L_=1 or 2
+      `max_iter_`: int (optional)   
+         Maximum number of iterations to find the optimal solution when doing compressed sensing
+
+    Returns:     
+       `f`: 1D numpy array of size K
+         The solution of the linear system A.f=R 
     """
     def linearSysSolver(A,R,L_=1):
         """
-           Linear Regression
+        Linear Regression
         """
         n=A.shape[0]   #number of data
         K=A.shape[1]   #number of unknowns
@@ -37,7 +42,7 @@ def myLinearRegress(A,R,L_=1,max_iter_=100000):
            constraints = [M*f == R]
            prob = cvx.Problem(objective, constraints)
            object_value = prob.solve(verbose=True,max_iter=max_iter_)
-           print('...... Compressed sensing (regularization) is done to compute PCE coeffcients, fHat.')
+           print('...... Compressed sensing (regularization) is done.')
            print('       Min objective value=||fHat||= %g in L%d-sense.'%(object_value,L_))
            fHat=f.value
         else:
