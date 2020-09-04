@@ -119,7 +119,8 @@ class fEx2D:
           Values of f(q) at q=(q1,q2)
             * If 'comp': n=n1=n2
             * If 'tensorProd': n=n1*n2
-      `Si` : [S1,S2], where Si is the Sobol index wrt the i-th par, i=1,2
+      `Si` : [S1,S2], where Si is the main Sobol index wrt the i-th par, i=1,2
+      `STi` : [ST1,ST2], where Si is the total Sobol index wrt the i-th par, i=1,2
       `Sij`: [S12], dual interaction
          Only if `typ`=='type3':     
     """
@@ -195,7 +196,8 @@ class fEx2D:
           `qBound`: =[qBound1,qBound2] admissible range of q1, q2
 
         Returns:   
-          `Si`:  =[S1,S2], where Si is the Sobol index wrt the i-th par, i=1,2
+          `Si`:  =[S1,S2], where Si is the main Sobol index wrt the i-th par, i=1,2
+          `STi` : [ST1,ST2], where Si is the total Sobol index wrt the i-th par, i=1,2
           `Sij`: =[S12], dual interaction
         """
         if self.typ=='type3':
@@ -246,12 +248,15 @@ class fEx2D:
            D_ex=D1_ex+D2_ex+D12_ex
            Si=[D1_ex/D_ex,D2_ex/D_ex]
            Sij=[D12_ex/D_ex]
+           STi=[Si[0]+Sij[0],Si[1]+Sij[0]]
            self.Si=Si
            self.Sij=Sij
+           self.STi=STi
         else:
            print("No Exact Sobol indices for 'typ' else than 'type3'") 
            self.Si=[]
            self.Sij=[]
+           self.STi=[]
 #
 class fEx3D:
     """
@@ -404,6 +409,10 @@ class fEx3D:
         D123=0.0
 
         D=D1+D2+D3+D12+D13+D23+D123
-        self.Si=[D1/D,D2/D,D3/D]
-        self.Sij=[D12/D,D13/D,D23/D]
+        Si=[D1/D,D2/D,D3/D]
+        Sij=[D12/D,D13/D,D23/D]
+        self.Si=Si
+        self.Sij=Sij
+        STi=[Si[0]+Sij[0]+Sij[1],Si[1]+Sij[0]+Sij[2],Si[2]+Sij[1]+Sij[2]]
+        self.STi=STi
 #
