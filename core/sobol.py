@@ -10,7 +10,7 @@
 
   1. Extend to more than dual interactions 
   2. Move sobol_pd_test() to fExPD
-  3. Add total Sobol to fEx funcs to validate the implementation
+  3. checkout scipy.integrate for other methods than simp, maybe GQ
 """
 #
 import os
@@ -182,6 +182,7 @@ class sobol:
         2nd-order HDMR decomposition
         """
         pairIndex,compIndex=self._dualInteractIndex()
+        print(pairIndex,compIndex)
         self.dualInteractIndex=pairIndex
         pairNum=len(pairIndex)  #number of dual interaction pairs
         compLen=len(compIndex[0])  #number of indices in each complement set
@@ -301,6 +302,7 @@ def sobol_2par_unif_test():
     distType_=['Unif']*2
     sobol_=sobol(q,fEx,sampleType=sampleType_,distType=distType_)
     Si=sobol_.Si
+    STi=sobol_.STi
     Sij=sobol_.Sij
 
     #(4) Construct a gPCE and then use the predictions of the gPCE in numerical integration for computing Sobol indices.
@@ -335,12 +337,15 @@ def sobol_2par_unif_test():
     if fType=='type3':
        fEx_.sobol(qBound)
        Si_ex=fEx_.Si
+       STi_ex=fEx_.STi
        Sij_ex=fEx_.Sij
 
     #(6) Write results on screen
-    print(' > Indices by UQit:\n\t S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
-    print(' > gPCE+Numerical Integration:\n\t S1=%g, S2=%g, S12=%g' %(Si_pce[0],Si_pce[1],Sij_pce[0]))
-    print(' > Analytical Reference:\n\t S1=%g, S2=%g, S12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
+    print(' > Main Indices by UQit:\n\t S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
+    print(' > Main indice by gPCE+Numerical Integration:\n\t S1=%g, S2=%g, S12=%g' %(Si_pce[0],Si_pce[1],Sij_pce[0]))
+    print(' > Main Analytical Reference:\n\t S1=%g, S2=%g, S12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
+    print(' > Total Indices by UQit:\n\t ST1=%g, ST2=%g' %(STi[0],STi[1]))
+    print(' > Total Analytical Reference:\n\t ST1=%g, ST2=%g' %(STi_ex[0],STi_ex[1]))
 
 
 #//////////////////////////
@@ -388,9 +393,11 @@ def sobol_3par_unif_test():
     #(4) Exact Sobol indices (analytical expressions)
     fEx_.sobol(qBound)
     Si_ex=fEx_.Si
+    STi_ex=fEx_.STi
     Sij_ex=fEx_.Sij
     print(' > Main Analytical Reference: S1=%g, S2=%g, S3=%g' %(Si_ex[0],Si_ex[1],Si_ex[2]))
     print(' >                           S12=%g, S13=%g, S23=%g' %(Sij_ex[0],Sij_ex[1],Sij_ex[2]))
+    print(' > Total                : ST1=%g, ST2=%g, ST3=%g' %(STi_ex[0],STi_ex[1],STi_ex[2]))
          
 def sobol_pd_test():
     #---SETTINGS ---------------

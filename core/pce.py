@@ -614,19 +614,13 @@ class pceEval:
       self.eval()
    
    def _info(self):
-       if len(self.kSet)==0:
-          p=1
-       else:
-          p=len(self.distType)
+       p=len(self.distType)
        self.p=p   #param dimension
        K=len(self.coefs)
        self.K=K   #PCE truncation 
        self.availDist=['Unif','Norm'] #available distributions
        #Check the validity of the distType
-       if self.p==1:
-          distType_=[self.distType]
-       else:
-          distType_=self.distType
+       distType_=self.distType
        for distType__ in distType_:   
           if distType__ not in self.availDist:
              raise ValueError("Invalid 'distType'! Availabe list: ",self.availDist) 
@@ -647,7 +641,7 @@ class pceEval:
       for i in range(xi_.size):
           sum1=0.0
           for k in range(self.K):
-              sum1+=self.coefs[k]*pce.basis(k,xi_[i],self.distType)
+              sum1+=self.coefs[k]*pce.basis(k,xi_[i],self.distType[0])
           fpce.append(sum1)
       self.pceVal=np.asarray(fpce)
 
