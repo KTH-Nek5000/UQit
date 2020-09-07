@@ -5,13 +5,15 @@
 # Saleh Rezaeiravesh, salehr@kth.se
 #------------------------------------------
 """
-  Assumptions:
-    * parameters are independent from each other
+  * Parameters are assumed to be independent from each other
+  * Parameters can have any arbitrary distribution. The PDF should be provided to Sobol().
 
-  1. Extend to more than dual interactions 
-  2. Move sobol_pd_test() to fExPD
-  3. checkout scipy.integrate for other methods than simp, maybe GQ
 """
+#-----------------------------------------
+#  ToDo
+#  1. Extend to triple interactions
+#  2. Move sobol_pd_test() to fExPD
+#-----------------------------------------
 #
 import os
 import sys
@@ -21,6 +23,7 @@ sys.path.append(os.getenv("UQit"))
 import analyticTestFuncs
 import pce
 import reshaper
+import matplotlib.pyplot as plt
 #
 class sobol:
     """
@@ -34,10 +37,8 @@ class sobol:
          q=[q1,q2,...,qp] where qi: 1D numpy array of size ni containing parameter samples
       'f': 1d numpy array of size (n1*n2*...*np) 
          Response values at samples `q`. The tensor product with ordering='F' (Fortran-like) is considered.
-      'sampleType': List of length p of strings   
-         The i-th value specifies the type of samples qi
-      'distType': List of length p of strings   
-         The i-th value specifies the type of distribution of the i-th parameter
+      'pdf': List of length p of 1D numpy arrays
+         The i-th array in the list contains the values of the PDF of q_i, where i=1,2,...,p
     
     Methods:
        compute():
@@ -53,11 +54,10 @@ class sobol:
        `STi`: A 1D numpy array of size p
           Total Sobol indices
     """
-    def __init__(self,q,f,sampleType,distType):
+    def __init__(self,q,f,pdf):
         self.q=q
         self.f=f
-        self.sampleType=sampleType
-        self.distType=distType
+        self.pdf=pdf
         self._info()
         self.comp()
 
@@ -69,19 +69,6 @@ class sobol:
         if self.p<2:
            raise ValueError("For Sobol indices at Least p==2 is required.")
         self.n=[self.q[i].shape[0] for i in range(self.p)] 
-        self.L=[abs(max(self.q[i])-min(self.q[i])) for i in range(self.p)] #support
-        self.distTypeList=['Unif','Norm']  #available distType
-        #check disType & set integration method in the i-th dim
-        integMethod=[]
-        for i in range(self.p):
-            if self.distType[i] not in self.distTypeList:
-               print("Availble 'distType':",disTTypeList) 
-               raise KeyError("Invalid distType for %d-D parameter." %self.p) 
-            if self.sampleType[i]=='unifSpaced':
-               integMethod.append('simps') 
-            elif self.sampleType[i]=='GQ':
-               integMethod.append('gq') 
-        self.integMethod=integMethod       
 
     def _permuteIndex(self,i):
         """
@@ -156,7 +143,7 @@ class sobol:
         """
         p=self.p
         q=self.q
-        L=self.L
+        pdf=self.pdf
 
         fi=[]
         for i in range(p):
@@ -167,12 +154,18 @@ class sobol:
             while I_permute.size>0:
                 iInteg_=I_permute[0]
                 iAxis_=np.where(parIndexList==iInteg_)[0][0]
-                f_=simps(f_,q[iInteg_],axis=iAxis_)/L[iInteg_]
+                #reshape the pdf for multiplying it with f_
+                n_=[1]*f_.ndim
+                n_[iAxis_]=pdf[iInteg_].shape[0]
+                pdf_=pdf[iInteg_].reshape(n_)  
+
+                f_=f_*pdf_
+                f_=simps(f_,q[iInteg_],axis=iAxis_)
                 parIndexList=np.delete(parIndexList,iAxis_)
                 I_permute=np.delete(I_permute,0)
             fi.append(f_)    
         #compute the mean
-        f0=simps(fi[0],q[0],axis=0)/L[0]
+        f0=simps(fi[0]*pdf[0],q[0],axis=0)
         fi=[fi[i]-f0 for i in range(p)]
         self.f0=f0
         self.fi=fi
@@ -182,12 +175,11 @@ class sobol:
         2nd-order HDMR decomposition
         """
         pairIndex,compIndex=self._dualInteractIndex()
-        print(pairIndex,compIndex)
         self.dualInteractIndex=pairIndex
         pairNum=len(pairIndex)  #number of dual interaction pairs
         compLen=len(compIndex[0])  #number of indices in each complement set
         q=self.q
-        L=self.L
+        pdf=self.pdf
         fij=[]
         for k in range(pairNum):
             indexList=np.arange(self.p)
@@ -196,9 +188,14 @@ class sobol:
                 iInteg_=compIndex[k][l]
                 iAxis_=np.where(indexList==iInteg_)[0][0]
                 if (self.p>2):
-                   f_=simps(f_,q[iInteg_],axis=iAxis_)/L[iInteg_]
+                   #reshape the pdf for multiplying it with f_
+                   n_=[1]*f_.ndim
+                   n_[iAxis_]=pdf[iInteg_].shape[0]
+                   pdf_=pdf[iInteg_].reshape(n_)  
+                   f_=f_*pdf_
+                   f_=simps(f_,q[iInteg_],axis=iAxis_)
                 else:
-                   f_=self.p  
+                   f_=self.f
                 indexList=np.delete(indexList,iAxis_)
             i=pairIndex[k][0]
             j=pairIndex[k][1]
@@ -222,13 +219,14 @@ class sobol:
         Partial variances and Sobol indices
         """
         q=self.q
+        pdf=self.pdf
         fi=self.fi
         fij=self.fij
-        L=self.L
         #1st-order terms, Di
         Di=[]
         for i in range(self.p):
-            Di.append(simps(fi[i]**2.,q[i])/L[i])
+            Di_=simps(fi[i]**2.*pdf[i],q[i])
+            Di.append(Di_)
         D=sum(Di)    
         #2nd-order terms, Dij
         Dij=[]
@@ -237,7 +235,8 @@ class sobol:
         for k in range(len(fij)):
             i=self.dualInteractIndex[k][0]
             j=self.dualInteractIndex[k][1]
-            Dij.append(self.doubleInteg(fij[k]**2.,q[i],q[j])/(L[i]*L[j]))
+            pdf_=pdf[i][:,None]*pdf[j]
+            Dij.append(self.doubleInteg(np.multiply(fij[k]**2.,pdf_),q[i],q[j]))
             SijName.append('S'+str(i+1)+str(j+1))
         D+=sum(Dij)    
         self.Si=Di/D
@@ -290,22 +289,21 @@ def sobol_2par_unif_test():
     distType=['Unif']*p
     #(1) Samples from parameters space
     q=[]
+    pdf=[]
     for i in range(p):
         q.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
-
+        pdf.append(np.ones(n[i])/(qBound[i][1]-qBound[i][0]))
     #(2) Compute function value at the parameter samples
     fEx_=analyticTestFuncs.fEx2D(q[0],q[1],fType,'tensorProd')
     fEx=np.reshape(fEx_.val,n,'F')
-
     #(3) Compute Sobol indices direct numerical integration
-    sampleType_=['unifSpaced']*2
-    distType_=['Unif']*2
-    sobol_=sobol(q,fEx,sampleType=sampleType_,distType=distType_)
+    sobol_=sobol(q,fEx,pdf)
     Si=sobol_.Si
     STi=sobol_.STi
     Sij=sobol_.Sij
 
-    #(4) Construct a gPCE and then use the predictions of the gPCE in numerical integration for computing Sobol indices.
+    #(4) Construct a gPCE and then use the predictions of the gPCE in numerical integration 
+    #for computing Sobol indices.
     #Generate observations at Gauss-Legendre points
     xi=[]
     qpce=[]
@@ -329,7 +327,7 @@ def sobol_2par_unif_test():
     fPCETest_=pce.pceEval(coefs=pce_.coefs,kSet=pce_.kSet,xi=xiTest,distType=distType)
     fPCETest=fPCETest_.pceVal
     #compute Sobol indices
-    sobolPCE_=sobol(qpceTest,fPCETest,sampleType=sampleType_,distType=distType_)
+    sobolPCE_=sobol(qpceTest,fPCETest,pdf)
     Si_pce=sobolPCE_.Si
     Sij_pce=sobolPCE_.Sij
 
@@ -347,6 +345,54 @@ def sobol_2par_unif_test():
     print(' > Total Indices by UQit:\n\t ST1=%g, ST2=%g' %(STi[0],STi[1]))
     print(' > Total Analytical Reference:\n\t ST1=%g, ST2=%g' %(STi_ex[0],STi_ex[1]))
 
+
+#//////////////////////////
+import math as mt
+def sobol_2par_norm_test():
+    """
+    Sobol indices for two parameters with Gaussian distributions
+    """
+    #--------------------------
+    #------- SETTINGS
+    n=[101, 100]       #number of samples for q1 and q2, Method1
+    qBound=[[-20,20],   #admissible range of parameters
+            [-20,20]]
+#    nQpce=[5,6]      #number of GQ points for Method2
+    sig=[1.,3.]
+    c=[2,1]
+    #--------------------------
+    p=len(n)
+    #(1) Samples from parameters space + the PDFs
+    q=[]
+    pdf=[]
+    for i in range(p):
+        q.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
+        pdf_=np.exp(-q[i]**2/(2*sig[i]**2))/(sig[i]*mt.sqrt(2*mt.pi))
+        pdf.append(pdf_)
+        plt.plot(q[i],pdf[i],label='pdf of q'+str(i+1))
+    plt.legend(loc='best')
+    plt.show()
+
+    #(2) Compute function value at the parameter samples
+    fEx=np.zeros(n)
+    for j in range(n[1]):
+        for i in range(n[0]):
+            fEx[i,j]=c[0]*q[0][i]+c[1]*q[1][j]
+
+    #(3) Compute Sobol indices direct numerical integration
+    sobol_=sobol(q,fEx,pdf=pdf)
+    Si=sobol_.Si
+    STi=sobol_.STi
+    Sij=sobol_.Sij
+
+    #(5) Exact Sobol indices (analytical expressions)
+    Si_ex=[(c[0]*sig[0])**2./(c[0]**2*sig[0]**2+c[1]**2*sig[1]**2),
+           (c[1]*sig[1])**2./(c[0]**2*sig[0]**2+c[1]**2*sig[1]**2)]
+    Sij_ex=[0]
+
+    #(6) Write results on screen
+    print(' > Main Indices by UQit:\n\t S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
+    print(' > Main Analytical Reference:\n\t S1=%g, S2=%g, S12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
 
 #//////////////////////////
 from math import pi
@@ -368,18 +414,17 @@ def sobol_3par_unif_test():
     #(1) Samples from parameters space
     p=len(n)
     q=[]
+    pdf=[]
     for i in range(p):
         q.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
+        pdf.append(np.ones(n[i])/(qBound[i][1]-qBound[i][0]))
 
     #(2) Compute function value at the parameter samples
     fEx_=analyticTestFuncs.fEx3D(q[0],q[1],q[2],'Ishigami','tensorProd',{'a':a,'b':b})
     fEx=np.reshape(fEx_.val,n,'F')
 
     #(3) Compute Sobol indices (method of choice in this library)
-#    Si,Sij=sobol_unif(q,fEx)
-    sampleType_=['unifSpaced']*3
-    distType_=['Unif']*3
-    sobol_=sobol(q,fEx,sampleType=sampleType_,distType=distType_)
+    sobol_=sobol(q,fEx,pdf)
     Si=sobol_.Si
     Sij=sobol_.Sij
     SijName=sobol_.SijName
@@ -398,19 +443,21 @@ def sobol_3par_unif_test():
     print(' > Main Analytical Reference: S1=%g, S2=%g, S3=%g' %(Si_ex[0],Si_ex[1],Si_ex[2]))
     print(' >                           S12=%g, S13=%g, S23=%g' %(Sij_ex[0],Sij_ex[1],Sij_ex[2]))
     print(' > Total                : ST1=%g, ST2=%g, ST3=%g' %(STi_ex[0],STi_ex[1],STi_ex[2]))
-         
-def sobol_pd_test():
+#         
+def sobol_pd_unif_test():
     #---SETTINGS ---------------
     a=[0.5,0.2,1.2,0.4]
     p=len(a)
     qBound=[[0,1]]*p
-    nSamp=[20,21,22,23]
+    nSamp=[20,20,21,22]
     #---------------------------
     #Exact model functin
     q=[]
+    pdf=[]
     for i in range(p):
         q_=np.linspace(qBound[i][0],qBound[i][1],nSamp[i])
         q.append(q_)
+        pdf.append(np.ones(nSamp[i])/(qBound[i][1]-qBound[i][0]))
         fEx_=(abs(4*q_-2)+a[i])/(1+a[i])
         if i==0:
            fEx=fEx_
@@ -437,11 +484,66 @@ def sobol_pd_test():
     print('Exact Sobol:',Sij)
 
     #Computed Sobol indices
-    sampleType_=['unifSpaced']*p
-    distType_=['Unif']*p
-    sobol_=sobol(q,fEx,sampleType=sampleType_,distType=distType_)
+    sobol_=sobol(q,fEx,pdf)
     print('computed sobol:')
     print(sobol_.Si)
     print(sobol_.SijName)
     print(sobol_.Sij)
     print(sobol_.STi)
+
+def sobol_4par_norm_test():
+    """
+    Sobol indices for 4 parameters with Gaussian distributions
+    Ex.15.8, UQ- R. Smith
+    q1~N(0,sig1^2), q2~N(0,sig2^2)
+    q3~N(c3,sig3^2), q2~N(c4,sig4^2)    
+    """
+    #--------------------------
+    #------- SETTINGS
+    n=[60,60,60,60]       #number of samples for q1 and q2, Method1
+    qBound=[[-30,30]]*4   #admissible range of parameters            
+    c3=0.
+    c4=0.
+    sig=[2.,3.,2,4]    #sdev of q's
+    m=[0.0,0.0,c3,c4]  #mean of q's
+    #--------------------------
+    p=len(n)
+    #(1) Samples from parameters space + the PDFs
+    q=[]
+    pdf=[]
+    for i in range(p):
+        q.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
+        pdf_=np.exp(-(q[i]-m[i])**2/(2*sig[i]**2))/(sig[i]*mt.sqrt(2*mt.pi))
+        pdf.append(pdf_)
+    #plot PDfs
+    for i in range(p):
+        plt.plot(q[i],pdf[i],label='pdf of q'+str(i+1))
+    plt.legend(loc='best')
+    plt.show()
+
+    #(2) Compute function value at the parameter samples
+    fEx=np.zeros(n)
+    for i3 in range(n[3]):
+        for i2 in range(n[2]):
+            for i1 in range(n[1]):
+                for i0 in range(n[0]):
+                    fEx[i0,i1,i2,i3]=q[0][i0]*q[2][i2]+q[1][i1]*q[3][i3]
+
+    #(3) Compute Sobol indices direct numerical integration
+    sobol_=sobol(q,fEx,pdf=pdf)
+    Si=sobol_.Si
+    STi=sobol_.STi
+    Sij=sobol_.Sij
+    #print(sobol_.SijName)
+
+    #(5) Exact Sobol indices (analytical expressions)
+    Si_ex=[0]*p
+    Sij_ex=[0,(sig[0]*sig[2])**2./((sig[0]*sig[2])**2.+(sig[1]*sig[3])**2.),0,0,
+            (sig[1]*sig[3])**2./((sig[1]*sig[3])**2.+(sig[0]*sig[2])**2.),0]
+
+    #(6) Write results on screen
+    print('> Main Indices by UQit:\n\t S1=%g, S2=%g, S3=%g, S4=%g' %(Si[0],Si[1],Si[2],Si[3]))
+    print('  \tS12=%g, S13=%g, S14=%g, S23=%g, S24=%g, S34=%g' %(Sij[0],Sij[1],Sij[2],Sij[3],Sij[4],Sij[5]))
+    print('> Main Analytical reference:\n\t S1=%g, S2=%g, S3=%g, S4=%g' %(Si_ex[0],Si_ex[1],Si_ex[2],Si_ex[3]))
+    print('  \tS12=%g, S13=%g, S14=%g, S23=%g, S24=%g, S34=%g' %(Sij_ex[0],Sij_ex[1],Sij_ex[2],Sij_ex[3],Sij_ex[4],Sij_ex[5]))
+
