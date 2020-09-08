@@ -5,21 +5,22 @@ import os
 import sys
 import numpy as np
 import math as mt
+import matplotlib.pyplot as plt
 sys.path.append(os.getenv("UQit"))
 from sobol import sobol
 import analyticTestFuncs
 import pce
 import reshaper
-import matplotlib.pyplot as plt
+import sampling
 #
 def sobol_2par_unif_test():
     """
-      Test for sobol_unif() when we have 2 uncertain parameters q1, q2.
+      Test for sobol when we have 2 uncertain parameters q1, q2.
       Sobol indices are computed for f(q1,q2)=q1**2.+q1*q2 that is analyticTestFuncs.fEx2D('type3').
       Indices are computed from the following methods:
-       * Method1: The Simpson numerical integration is used for the integrals in the definition of the indices (method of choise in myUQtoolbox).
-       * Method2: First a PCE is constructed and then its predicitons at test points are used in Simpson integral of the Sobol indices.
-       * Method3: Analytical expressions (see my notes)
+       * Method1: Direct computation by UQit
+       * Method2: First a PCE is constructed and then its values are used to compute Sobol indices
+       * Method3: Analytical expressions (reference values)
     """
     #--------------------------
     #------- SETTINGS
@@ -46,28 +47,29 @@ def sobol_2par_unif_test():
     STi=sobol_.STi
     Sij=sobol_.Sij
 
-    #(4) Construct a gPCE and then use the predictions of the gPCE in numerical integration
+    #(4) Construct a PCE and then use the predictions of that in numerical integration
     #for computing Sobol indices.
     #Generate observations at Gauss-Legendre points
     xi=[]
     qpce=[]
     for i in range(p):
-        xi_,w_=pce.pce.gqPtsWts(nQpce[i],distType[i])
-        qpce.append(pce.pce.mapFromUnit(xi_,qBound[i]))
-        xi.append(xi_)
+        samps=sampling.trainSample(sampleType='GQ',GQdistType=distType[i],qInfo=qBound[i],nSamp=nQpce[i])
+        xi.append(samps.xi)
+        qpce.append(samps.q)
     fVal_pceCnstrct=analyticTestFuncs.fEx2D(qpce[0],qpce[1],fType,'tensorProd').val
-    #Construct the gPCE
+    #Construct the PCE
     xiGrid=reshaper.vecs2grid(xi)
     pceDict={'p':2,'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection',
              'distType':distType}
     pce_=pce.pce(fVal=fVal_pceCnstrct,nQList=nQpce,xi=xiGrid,pceDict=pceDict)
 
-    #Use gPCE to predict at test samples from parameter space
+    #Use the PCE to predict at test samples from parameter space
     qpceTest=[]
     xiTest=[]
     for i in range(p):
-        qpceTest.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
-        xiTest.append(pce.pce.mapToUnit(qpceTest[i],qBound[i]))
+        testSamps=sampling.testSample('unifSpaced',GQdistType=distType[i],qBound=qBound[i],nSamp=n[i])
+        xiTest.append(testSamps.xi)
+        qpceTest.append(testSamps.q)
     fPCETest_=pce.pceEval(coefs=pce_.coefs,kSet=pce_.kSet,xi=xiTest,distType=distType)
     fPCETest=fPCETest_.pceVal
     #compute Sobol indices
@@ -82,7 +84,7 @@ def sobol_2par_unif_test():
        STi_ex=fEx_.STi
        Sij_ex=fEx_.Sij
 
-    #(6) Write results on screen
+    #(6) results
     print(' > Main Indices by UQit:\n\t S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
     print(' > Main indice by gPCE+Numerical Integration:\n\t S1=%g, S2=%g, S12=%g' %(Si_pce[0],Si_pce[1],Sij_pce[0]))
     print(' > Main Analytical Reference:\n\t S1=%g, S2=%g, S12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
@@ -91,14 +93,14 @@ def sobol_2par_unif_test():
 #
 def sobol_2par_norm_test():
     """
-    Sobol indices for two parameters with Gaussian distributions
+    Sobol indices for two parameters with Gaussian distributions, 
+    Example 15.7, p, 328 in Smith:13
     """
     #--------------------------
     #------- SETTINGS
-    n=[101, 100]       #number of samples for q1 and q2, Method1
+    n=[101, 100]       #number of samples for q1 and q2
     qBound=[[-20,20],   #admissible range of parameters
             [-20,20]]
-#    nQpce=[5,6]      #number of GQ points for Method2
     sig=[1.,3.]
     c=[2,1]
     #--------------------------
@@ -131,7 +133,7 @@ def sobol_2par_norm_test():
            (c[1]*sig[1])**2./(c[0]**2*sig[0]**2+c[1]**2*sig[1]**2)]
     Sij_ex=[0]
 
-    #(6) Write results on screen
+    #(6) Results
     print(' > Main Indices by UQit:\n\t S1=%g, S2=%g, S12=%g' %(Si[0],Si[1],Sij[0]))
     print(' > Main Analytical Reference:\n\t S1=%g, S2=%g, S12=%g' %(Si_ex[0],Si_ex[1],Sij_ex[0]))
 #
@@ -170,10 +172,10 @@ def sobol_3par_unif_test():
     SijName=sobol_.SijName
     STi=sobol_.STi
 
-    print('sobol_3par_unif_test(): Sobol Sensitivity Indices for fEx3D("Ishigami")')
+    print('Sobol Sensitivity Indices for fEx3D("Ishigami")')
     print(' > Main Indices by UQit : S1=%g, S2=%g, S3=%g' %(Si[0],Si[1],Si[2]))
     print(' >                        S12=%g, S13=%g, S23=%g' %(Sij[0],Sij[1],Sij[2]))
-    print(' > Total                : ST1=%g, ST2=%g, ST3=%g' %(STi[0],STi[1],STi[2]))
+    print(' > Total Indices        : ST1=%g, ST2=%g, ST3=%g' %(STi[0],STi[1],STi[2]))
 
     #(4) Exact Sobol indices (analytical expressions)
     fEx_.sobol(qBound)
@@ -182,7 +184,7 @@ def sobol_3par_unif_test():
     Sij_ex=fEx_.Sij
     print(' > Main Analytical Reference: S1=%g, S2=%g, S3=%g' %(Si_ex[0],Si_ex[1],Si_ex[2]))
     print(' >                           S12=%g, S13=%g, S23=%g' %(Sij_ex[0],Sij_ex[1],Sij_ex[2]))
-    print(' > Total                : ST1=%g, ST2=%g, ST3=%g' %(STi_ex[0],STi_ex[1],STi_ex[2]))
+    print(' > Total Indices            : ST1=%g, ST2=%g, ST3=%g' %(STi_ex[0],STi_ex[1],STi_ex[2]))
 #
 def sobol_pd_unif_test():
     """
@@ -239,16 +241,13 @@ def sobol_4par_norm_test():
     Sobol indices for 4 parameters with Gaussian distributions
     Ex.15.8, UQ- R. Smith
     q1~N(0,sig1^2), q2~N(0,sig2^2)
-    q3~N(c3,sig3^2), q2~N(c4,sig4^2)
+    q3~N(0,sig3^2), q2~N(0,sig4^2)
     """
     #--------------------------
     #------- SETTINGS
     n=[60,60,60,60]       #number of samples for q1 and q2, Method1
     qBound=[[-30,30]]*4   #admissible range of parameters
-    c3=0.
-    c4=0.
     sig=[2.,3.,2,4]    #sdev of q's
-    m=[0.0,0.0,c3,c4]  #mean of q's
     #--------------------------
     p=len(n)
     #(1) Samples from parameters space + the PDFs
@@ -256,14 +255,13 @@ def sobol_4par_norm_test():
     pdf=[]
     for i in range(p):
         q.append(np.linspace(qBound[i][0],qBound[i][1],n[i]))
-        pdf_=np.exp(-(q[i]-m[i])**2/(2*sig[i]**2))/(sig[i]*mt.sqrt(2*mt.pi))
+        pdf_=np.exp(-q[i]**2/(2*sig[i]**2))/(sig[i]*mt.sqrt(2*mt.pi))
         pdf.append(pdf_)
     #plot PDfs
     for i in range(p):
         plt.plot(q[i],pdf[i],label='pdf of q'+str(i+1))
     plt.legend(loc='best')
     plt.show()
-
     #(2) Compute function value at the parameter samples
     fEx=np.zeros(n)
     for i3 in range(n[3]):
@@ -271,22 +269,17 @@ def sobol_4par_norm_test():
             for i1 in range(n[1]):
                 for i0 in range(n[0]):
                     fEx[i0,i1,i2,i3]=q[0][i0]*q[2][i2]+q[1][i1]*q[3][i3]
-
     #(3) Compute Sobol indices direct numerical integration
     sobol_=sobol(q,fEx,pdf=pdf)
     Si=sobol_.Si
     STi=sobol_.STi
     Sij=sobol_.Sij
-    #print(sobol_.SijName)
-
     #(5) Exact Sobol indices (analytical expressions)
     Si_ex=[0]*p
     Sij_ex=[0,(sig[0]*sig[2])**2./((sig[0]*sig[2])**2.+(sig[1]*sig[3])**2.),0,0,
             (sig[1]*sig[3])**2./((sig[1]*sig[3])**2.+(sig[0]*sig[2])**2.),0]
-
-    #(6) Write results on screen
-    print('> Main Indices by UQit:\n\t S1=%g, S2=%g, S3=%g, S4=%g' %(Si[0],Si[1],Si[2],Si[3]))
-    print('  \tS12=%g, S13=%g, S14=%g, S23=%g, S24=%g, S34=%g' %(Sij[0],Sij[1],Sij[2],Sij[3],Sij[4],Sij[5]))
-    print('> Main Analytical reference:\n\t S1=%g, S2=%g, S3=%g, S4=%g' %(Si_ex[0],Si_ex[1],Si_ex[2],Si_ex[3]))
-    print('  \tS12=%g, S13=%g, S14=%g, S23=%g, S24=%g, S34=%g' %(Sij_ex[0],Sij_ex[1],Sij_ex[2],Sij_ex[3],Sij_ex[4],Sij_ex[5]))
-#
+    #(6) Results
+    print('> Main Indices Si by UQit:',Si)
+    print('  Sij',Sij)
+    print('> Reference Analytical Si:',Si_ex)
+    print('  Sij',Sij_ex)
