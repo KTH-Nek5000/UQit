@@ -7,6 +7,7 @@
 """
   * Parameters are assumed to be independent from each other
   * Parameters can have any arbitrary distribution. The PDF should be provided to Sobol().
+  * Samples generated from each of the parameters must be UNIFORMLY-Spaced.
 """
 #-----------------------------------------
 #  ToDo
@@ -28,7 +29,7 @@ class sobol:
      
     Args:
       `q`: A list of length p
-         q=[q1,q2,...,qp] where qi: 1D numpy array of size ni containing parameter samples
+         q=[q1,q2,...,qp] where qi: 1D numpy array of size ni containing uniformly-spaced parameter samples
       'f': 1d numpy array of size (n1*n2*...*np) 
          Response values at samples `q`. The tensor product with ordering='F' (Fortran-like) is considered.
       'pdf': List of length p of 1D numpy arrays
