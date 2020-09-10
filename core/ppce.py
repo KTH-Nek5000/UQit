@@ -14,7 +14,7 @@ import numpy as np
 sys.path.append(os.getenv("UQit"))
 import pce
 import gpr_torch
-import pdfHisto
+import statsUQit
 import reshaper
 #
 #
