@@ -14,8 +14,8 @@ List of core files
   Spectral nodes from different types of polynomials
 * **pce.py**: 
   generalized Polynomial Chaos Expansion
-* **pdfHisto.py**:
-  Fit PDF to data samples  
+* **stats.py**:
+  Statistical tools
 * **ppce.py**:
   Probabilistic generalized Polynomial Chaos Expansion (PPCE)
 * **reshaper.py**:
