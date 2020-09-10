@@ -188,15 +188,15 @@ def sobol_3par_unif_test():
 #
 def sobol_pd_unif_test():
     """
-    Sobol indices for a p-D parameter. Based on Example 15.17
+    Sobol indices for a p-D parameter. Based on Example 15.17, Smith, p.336
     """
     #---SETTINGS ---------------
-    a=[0.5,0.2,1.2,0.4]   #coeffcients in the model
+    a=[0.5,0.2,1.2,0.4]   #coefficients in the model
     p=len(a)
     qBound=[[0,1]]*p
     nSamp=[20,20,21,22]
     #---------------------------
-    #Exact model functin
+    #Generate samples, compute PDFs and evaluate model response at the samples
     q=[]
     pdf=[]
     for i in range(p):
@@ -208,8 +208,9 @@ def sobol_pd_unif_test():
            fEx=fEx_
         else:
            fEx=np.tensordot(fEx,fEx_,0)
-
-    #Exact Sobol indices (Smith, p.336)
+    #Computed Sobol indices
+    sobol_=sobol(q,fEx,pdf)
+    #Exact reference Sobol indices (Smith, p.336)
     Di=[]
     Dsum=1
     for i in range(p):
@@ -225,16 +226,14 @@ def sobol_pd_unif_test():
                Dij.append(Di[i]*Di[j])
     Dij=np.asarray(Dij)
     Sij=Dij/Dsum
-    print('Exact Sobol, Si:',Si)
-    print('Exact Sobol, Sij:',Sij)
-
-    #Computed Sobol indices
-    sobol_=sobol(q,fEx,pdf)
-    print('Computed sobol:')
-    print('Si:',sobol_.Si)
-    print('Sij-Name:',sobol_.SijName)
-    print('Sij:',sobol_.Sij)
-    print('STi:',sobol_.STi)
+    print('Computed Indices by UQit:')
+    print(' Si:',sobol_.Si)
+    print(' Sij-Name:',sobol_.SijName)
+    print(' Sij:',sobol_.Sij)
+    print(' STi:',sobol_.STi)
+    print('Exact Sobol Indices:')
+    print(' Si:',Si)
+    print(' Sij:',Sij)
 #
 def sobol_4par_norm_test():
     """
