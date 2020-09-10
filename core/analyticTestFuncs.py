@@ -263,7 +263,7 @@ class fEx3D:
     Analytical test functions for 3D parameter
 
     Args:
-      `q1', 'q2', `q3`: Three lists or 1D numpy arrays of size n1, n2, n3, respectively
+      `q1`, `q2`, `q3`: Three lists or 1D numpy arrays of size n1, n2, n3, respectively
          Samples of the parameters `q1`, `q2` and `q3`
       `typ`: string
          Function type, available: 'Ishigami'
