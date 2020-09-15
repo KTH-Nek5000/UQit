@@ -279,7 +279,7 @@ def LHS_sampling(n,xBound):
     """
     p=len(xBound)
     x = np.random.uniform(size=[n,p])
-    for i in range(0,p):
+    for i in range(p):
         x_ = (np.argsort(x[:,i])+0.5)/float(n)
         x[:,i]=x_*(xBound[i][1]-xBound[i][0])+xBound[i][0]
     return x
