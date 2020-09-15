@@ -131,9 +131,22 @@ Gaussian Process Regression
 ---------------------------
 Theory
 ~~~~~~
+Consider the simulator :math:`f(q)` where :math:`q\in \mathbb{Q}`. The observations can be generated from,
+
+.. math::
+   y_i = \tilde{f}(q_i) + \varepsilon_i \,, i=1,2,... \,.
+
+where :math:`\tilde{f}(q)` is a GP acting as a surrogate of $f(q)$ and :math:`\varepsilon` is the observatio noise. 
+Without loss of generality we assume :math:`\varepsilon\sim\mathcal(0,\sigma^2)`. 
+Contrary to the common use of GPR, see [Rasmuseen], where :math:`\sigma` is assumed to be fixed for all observations (homoscedastic noise), we are interested in cases where :math:`sigma` is observation dependent (heteroscedastic noise).
+The latter can be read-up from [???].
+At the first step, given the training data :math:`\mathcal{D}`, a GPR is constructed for :math:`\tilde{f}(q)`.
+Then, the posterior and posterior predictive of :math:`\tilde{f}(q)` and response :math:`y` can be sampled over the parameter space at test samples. 
 
 Implementation
 ~~~~~~~~~~~~~~
+In :code:`UQit`, the GPR is implemented using the existing library :code:`GPyTorch` [????]. A user can similarly use any other available library for GPR. 
+
 .. automodule:: gpr_torch
    :members:
 
@@ -143,6 +156,8 @@ Example
 
 Notebook
 ~~~~~~~~
+Try `gpr_notebook <../examples/gpr.ipynb>`_ to see how to use :code:`UQit` for Lagrange interpolation over a parameter space. 
+
 
 
 
