@@ -156,7 +156,7 @@ Example
 
 Notebook
 ~~~~~~~~
-Try `gpr_notebook <../examples/gpr.ipynb>`_ to see how to use :code:`UQit` for Lagrange interpolation over a parameter space. 
+Try `gpr_notebook <../examples/gpr.ipynb>`_ to see how to use :code:`UQit` for Gaussian process regression over a parameter space. 
 
 
 
