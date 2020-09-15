@@ -491,12 +491,12 @@ class gprPlot:
              lower_obs, upper_obs = post_obs.confidence_region()
              plt.figure(figsize=(10,6))
              plt.plot(xTest,fExTest,'--b',label='Exact Output')
-             plt.plot(xTrain, yTrain, 'ok',markersize=4,label='Training observations')
+             plt.plot(xTrain, yTrain, 'ok',markersize=4,label='Training obs. y')
              plt.plot(xTest, post_f.mean[:].numpy(), '-r',lw=2,label='Mean Model')
-             plt.plot(xTest, post_obs.mean[:].numpy(), ':m',lw=2,label='Mean Posterior Prediction')
-             plt.plot(xTest, post_obs.sample().numpy(), '-k',lw=1,label='Sample Posterior Prediction')
-             plt.fill_between(xTest, lower_f.numpy(), upper_f.numpy(), alpha=0.3,label='Confidence f(q)')
-             plt.fill_between(xTest, lower_obs.numpy(), upper_obs.numpy(), alpha=0.15, color='r',label='Confidence Yobs')
+             plt.plot(xTest, post_obs.mean[:].numpy(), ':m',lw=2,label='Mean Posterior Pred')
+             plt.plot(xTest, post_obs.sample().numpy(), '-k',lw=1,label='Sample Posterior Pred')
+             plt.fill_between(xTest, lower_f.numpy(), upper_f.numpy(), alpha=0.3,label='CI for f(q)')
+             plt.fill_between(xTest, lower_obs.numpy(), upper_obs.numpy(), alpha=0.15, color='r',label='CI for obs. y')
              plt.legend(loc='best',fontsize=self.legFS)
              #NOTE: confidence = 2* sdev, see
              #https://github.com/cornellius-gp/gpytorch/blob/4a1ba02d2367e4e9dd03eb1ccbfa4707da02dd08/gpytorch/distributions/multivariate_normal.py             
@@ -544,7 +544,7 @@ class gprPlot:
            self._figSaver()
         plt.show()
              
-    def torch2d_3dSurf(self,xTrain,yTrain,qTest,post_obs,post_f):
+    def torch2d_3dSurf(self,xTrain,yTrain,qTest,post_):
         """
         3D plot of the GPR surface (mean+CI) constructed for a 2D input (parameter).
 
@@ -556,36 +556,26 @@ class gprPlot:
           `qTest`: List of length 2
              =[qTest_1,qTest2], qTest_i: 1D array of size nTest_i of the test 
               samples taken from the space of i-th input
-          `post_f`: GpyTorch object
-             Posterior density of model function f(q)
-          `post_obs`: GpyTorch object
-             Posterior density of the response y
+          `post_`: GpyTorch object
+             Posterior density of model function f(q) or observations y
         """
         nTest=[len(qTest[i]) for i in range(len(qTest))]
         #Predicted mean and variance at the test grid
-        fP_=gprPost(post_f,nTest)
+        fP_=gprPost(post_,nTest)
         fP_.torchPost()
-        post_f_mean=fP_.mean
-        post_f_sdev=fP_.sdev
-        lower_f=fP_.ciL
-        upper_f=fP_.ciU
-
-        obsP_=gprPost(post_obs,nTest)
-        obsP_.torchPost()
-        post_obs_mean=obsP_.mean
-        post_obs_sdev=obsP_.sdev
-        lower_obs=obsP_.ciL
-        upper_obs=obsP_.ciU
+        post_mean=fP_.mean
+        post_sdev=fP_.sdev
+        lower_=fP_.ciL
+        upper_=fP_.ciU
 
         xTestGrid1,xTestGrid2=np.meshgrid(qTest[0],qTest[1], sparse=False, indexing='ij')
-        fig = plt.figure()
+        fig = plt.figure(figsize=(10,10))
         ax = fig.gca(projection='3d')
-        mean_surf = ax.plot_surface(xTestGrid1, xTestGrid2, post_obs_mean,cmap='jet', antialiased=True,rstride=1,cstride=1,linewidth=0,alpha=0.4)
-        upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_obs, linewidth=1,alpha=0.25,color='r')
-        lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_obs, linewidth=1,alpha=0.25,color='b')
-        #upper_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_f, linewidth=1,alpha=0.5,color='r')
-        #lower_surf_f = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_f, linewidth=1,alpha=0.5,color='b')
-        plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok')
+        mean_surf = ax.plot_surface(xTestGrid1, xTestGrid2, post_mean,cmap='jet', 
+                antialiased=True,rstride=1,cstride=1,linewidth=0,alpha=0.4)
+        upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_, linewidth=1,alpha=0.25,color='r')
+        lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_, linewidth=1,alpha=0.25,color='b')
+        plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok',ms='5')
         if self.figSave:
            self._figSaver()
         plt.show()
