@@ -126,7 +126,7 @@ def ppce_2d_test():
               xTrain=np.zeros((nSamp,p))
               for i in range(p):
                   xTrain[:,i]=pce.pce.mapFromUnit(xi[:,i],qBound[i])
-              yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp').val
+              fEx_=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp')
            else:
               raise ValueError("LHS works only when all q have 'Unif' distribution.")
         else:
@@ -135,21 +135,22 @@ def ppce_2d_test():
                       qInfo=qInfo[i],nSamp=n[i])
                q.append(samps.q)
            xTrain=reshaper.vecs2grid(q)
-           yTrain=analyticTestFuncs.fEx2D(q[0],q[1],fExName,'tensorProd').val
-        return xTrain,yTrain
+           fEx_=analyticTestFuncs.fEx2D(q[0],q[1],fExName,'tensorProd')
+        return xTrain,fEx_
     #
     def trainDataGen(p,sampleType,n,qInfo,fExName,noiseType):
         """
         Generate synthetic training data
         """
         #  (a) xTrain and noise-free yTrain
-        xTrain,yTrain_noiseFree=fEx(p,sampleType,n,qInfo,fExName)
+        xTrain,fEx_=fEx(p,sampleType,n,qInfo,fExName)
+        yTrain_noiseFree=fEx_.val
         nSamp=xTrain.shape[0]
         #  (b) set the sdev of the observation noise
         noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
         #  (c) Training data
         yTrain=yTrain_noiseFree+noiseSdev*np.random.randn(nSamp)
-        return xTrain,yTrain,noiseSdev,yTrain_noiseFree
+        return xTrain,yTrain,noiseSdev,yTrain_noiseFree,fEx_
     #
     def noiseGen(n,noiseType,xTrain,fExName):
        """
@@ -186,7 +187,7 @@ def ppce_2d_test():
     #---------------------------------------------------------
     p=len(distType)  
     #(1) generate synthetic training data
-    qTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,trainSampleType,n,qInfo,fExName,noiseType)
+    qTrain,yTrain,noiseSdev,yTrain_noiseFree,fEx_=trainDataGen(p,trainSampleType,n,qInfo,fExName,noiseType)
     #(2) probabilistic PCE
     ppceDict={'nGQtest':nGQtest,'qInfo':qInfo,'distType':distType,'nIter_gpr':nIter_gpr,
               'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
@@ -195,19 +196,9 @@ def ppce_2d_test():
     fMean_samples=ppce_.fMean_samps
     fVar_samples=ppce_.fVar_samps
     #(3) estimate reference mean and varaiance of f(q) using Monte-Carlo approach
-    nMC2=100000 
-    qMC=[]
-    for i in range(p):
-        if distType[i]=='Unif':
-           sampleType_='unifRand' 
-        elif distType[i]=='Norm':
-           sampleType='normRand' 
-        samps=sampling.trainSample(sampleType=sampleType_,GQdistType=distType[i],
-                qInfo=qInfo[i],nSamp=nMC2)
-        qMC.append(samps.q)
-    fVal_mc=analyticTestFuncs.fEx2D(qMC[0],qMC[1],fExName,'comp').val  
-    fMean_mc=np.mean(fVal_mc)
-    fVar_mc=np.mean(fVal_mc**2.)-fMean_mc**2.
+    fEx_.moments(distType,qInfo)
+    fMean_mc=fEx_.mean
+    fVar_mc=fEx_.var
     #(4) postprocess
     #   (a) plot the exact and GPR response surfaces
     gpr_torch.gprPlot().torch2d_3dSurf(qTrain,yTrain,optOut['qTest'],optOut['post_obs'])

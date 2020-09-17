@@ -109,7 +109,7 @@ def pce_2d_test():
     #PCE Options
     truncMethod='TO'     #'TP'=Tensor Product
                          #'TO'=Total Order  
-    sampleType=['LHS','LHS']  #'GQ'=Gauss Quadrature nodes ('Projection' or 'Regression')
+    sampleType=['GQ','normRand']  #'GQ'=Gauss Quadrature nodes ('Projection' or 'Regression')
                              #For other type of samples, see sampling.py, trainSample => only 'Regression' can be used
                       #'LHS': Latin Hypercube Sampling (only when all distType='Unif')
     fType='type1'#Type of the exact model response, 'type1', 'type2', 'type3', 'Rosenbrock'
@@ -134,7 +134,7 @@ def pce_2d_test():
            xi=sampling.LHS_sampling(nQ[0]*nQ[1],[[-1,1]]*p)
            for i in range(p):
                q.append(pce.mapFromUnit(xi[:,i],qBound[i]))       
-           fVal=analyticTestFuncs.fEx2D(q[0],q[1],fType,'comp').val  
+           fEx_=analyticTestFuncs.fEx2D(q[0],q[1],fType,'comp')
            xiGrid=xi
         else:  
            raise ValueError("LHS works only when all q have 'Unif' distribution.") 
@@ -145,8 +145,9 @@ def pce_2d_test():
            q.append(samps.q)
            xi.append(samps.xi)
            qBound.append(samps.qBound)
-       fVal=analyticTestFuncs.fEx2D(q[0],q[1],fType,'tensorProd').val  
+       fEx_=analyticTestFuncs.fEx2D(q[0],q[1],fType,'tensorProd')
        xiGrid=reshaper.vecs2grid(xi)
+    fVal=fEx_.val
     #Construct the PCE
     pce_=pce(fVal=fVal,xi=xiGrid,pceDict=pceDict,nQList=nQ)
     fMean=pce_.fMean
@@ -170,18 +171,10 @@ def pce_2d_test():
     pcePred_=pceEval(coefs=pceCoefs,xi=xiTest,distType=distType,kSet=kSet)
     fPCE=pcePred_.pceVal
     #Use MC method to directly estimate reference values for the mean and varaiance of f(q) 
-    nMC=100000 #number of MC samples
-    qMC=[]
-    for i in range(p):
-        if distType[i]=='Unif':
-           sampleType_='unifRand' 
-        elif distType[i]=='Norm':
-           sampleType='normRand' 
-        samps=sampling.trainSample(sampleType=sampleType_,GQdistType=distType[i],qInfo=qInfo[i],nSamp=nMC)
-        qMC.append(samps.q)
-    fVal_mc=analyticTestFuncs.fEx2D(qMC[0],qMC[1],fType,'comp').val  
-    fMean_mc=np.mean(fVal_mc)
-    fVar_mc=np.mean(fVal_mc**2.)-fMean_mc**2.
+    fEx_.moments(distType,qInfo)
+    fMean_mc=fEx_.mean
+    fVar_mc=fEx_.var
+    
     #Compare the PCE estimates for moments of f(q) with the reference values from MC
     print(writeUQ.printRepeated('-',70))
     print('------------ MC -------- PCE --------- Error % ')
