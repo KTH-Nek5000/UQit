@@ -101,7 +101,7 @@ def pce_2d_test():
     """
     #---- SETTINGS------------
     #Parameters specifications
-    distType=['Unif','Unif']   #distribution type of the parameters q1, q2
+    distType=['Unif','Norm']   #distribution type of the parameters q1, q2
     qInfo=[[-2,3],             #info on parameters
            [-2,0.4]] 
     nQ=[10,12]                   #number of training samples of parameters 
@@ -175,7 +175,7 @@ def pce_2d_test():
     for i in range(p):
         if distType[i]=='Unif':
            sampleType_='unifRand' 
-        elif distType_[i]=='Norm':
+        elif distType[i]=='Norm':
            sampleType='normRand' 
         samps=sampling.trainSample(sampleType=sampleType_,GQdistType=distType[i],qInfo=qInfo[i],nSamp=nMC)
         qMC.append(samps.q)
