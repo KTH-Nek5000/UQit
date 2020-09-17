@@ -16,6 +16,7 @@ import pce
 import gpr_torch
 import statsUQit
 import reshaper
+import sampling
 #
 #
 class ppce:
@@ -34,8 +35,10 @@ class ppce:
          Dictionary containing controllers for PPCE, including:
            * 'nGQtest': List of length p
               Number of GQ test points in each of the p-directions 
-           * 'qBound': List of length p
-              =[qBound_1,...,qBound_p], where qBound_i is the admissible range of q_i
+           * 'qInfo': List of length p
+              =[qInfo_1,...,qInfo_p], where qInfo_i is the information about distribution of q_i
+              if q_i~'Unif', qInfo_i =[min(q_i),max(q_i)]
+              if q_i~'Norm', qInfo_i =[m,v] for q~N(m,v^2)
            * 'nMC': int
               Number of independent samples drawn from the GPR to construct PCE 
            * 'nIter_gpr': int
@@ -94,7 +97,7 @@ class ppce:
        noiseSdev=self.noiseV
        #(0) Assignments
        nGQ=ppceDict['nGQtest']       
-       qBound=ppceDict['qBound'] 
+       qInfo=ppceDict['qInfo'] 
        nMC=ppceDict['nMC']       
        distType=ppceDict['distType']
        #Make a dict for GPR
@@ -102,12 +105,10 @@ class ppce:
                 'lr':ppceDict['lr_gpr'],          
                 'convPlot':ppceDict['convPlot_gpr'] 
                }
-
        #(1) Generate test points that are Gauss quadratures chosen based on the 
        # distribution of q (gPCE rule) 
-       xiGQ,wGQ=pce.pce.gqPtsWts(nGQ,distType)  
-       if distType=='Unif':
-          qTest=pce.pce.mapFromUnit(xiGQ,qBound) 
+       sampsGQ=sampling.trainSample(sampleType='GQ',GQdistType=distType,qInfo=qInfo,nSamp=nGQ)
+       qTest=sampsGQ.q
 
        #(2) Construct GPR surrogate based on training data
        gpr_=gpr_torch.gpr(qTrain[:,None],yTrain[:,None],noiseSdev,qTest[:,None],gprOpts)
@@ -122,7 +123,7 @@ class ppce:
            # Draw a sample for f(q) from GPR surrogate
            f_=post_obs.sample().numpy()
            # Construct PCE for the drawn sample
-           pce_=pce.pce(fVal=f_,xi=[],pceDict=pceDict)
+           pce_=pce.pce(fVal=f_,xi=[],pceDict=pceDict)  #GP+TP
            fMean_list.append(pce_.fMean)
            fVar_list.append(pce_.fVar)
            if ((j+1)%50==0):
@@ -150,7 +151,7 @@ class ppce:
        noiseSdev=self.noiseV
        #(0) Assignments
        nGQ=ppceDict['nGQtest']       
-       qBound=ppceDict['qBound']     
+       qInfo=ppceDict['qInfo'] 
        nMC=ppceDict['nMC']           
        distType=ppceDict['distType']
        #Make a dict for gpr (do NOT change)
@@ -171,9 +172,9 @@ class ppce:
        # the distribution of q (gPCE rule) 
        qTestList=[]
        for i in range(p):
-           xiGQ_,wGQ_=pce.pce.gqPtsWts(nGQ[i],distType[i]) 
-           if distType[i]=='Unif':
-              qTestList.append(pce.pce.mapFromUnit(xiGQ_,qBound[i])) 
+           sampsGQ=sampling.trainSample(sampleType='GQ',GQdistType=distType[i],
+                   qInfo=qInfo[i],nSamp=nGQ[i])
+           qTestList.append(sampsGQ.q)
        qTestGrid=reshaper.vecs2grid(qTestList)
 
        #(2) Construct GPR surrogate based on training data
