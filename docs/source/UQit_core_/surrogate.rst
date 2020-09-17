@@ -123,7 +123,7 @@ Example
 
 Notebook
 ~~~~~~~~
-Try this `notebook <../examples/lagrangeInterp.ipynb>`_ to see how to use :code:`UQit` for Lagrange interpolation over a parameter space. 
+Try this `notebook <../examples/lagInt.ipynb>`_ to see how to use :code:`UQit` for Lagrange interpolation over a parameter space. 
 
 
 
@@ -137,7 +137,7 @@ Consider the simulator :math:`f(q)` where :math:`q\in \mathbb{Q}`. The observati
    y_i = \tilde{f}(q_i) + \varepsilon_i \,, i=1,2,... \,.
 
 where :math:`\tilde{f}(q)` is a GP acting as a surrogate of $f(q)$ and :math:`\varepsilon` is the observatio noise. 
-Without loss of generality we assume :math:`\varepsilon\sim\mathcal(0,\sigma^2)`. 
+Without loss of generality we assume :math:`\varepsilon\sim\mathcal{N}(0,\sigma^2)`. 
 Contrary to the common use of GPR, see [Rasmuseen], where :math:`\sigma` is assumed to be fixed for all observations (homoscedastic noise), we are interested in cases where :math:`sigma` is observation dependent (heteroscedastic noise).
 The latter can be read-up from [???].
 At the first step, given the training data :math:`\mathcal{D}`, a GPR is constructed for :math:`\tilde{f}(q)`.

@@ -89,7 +89,7 @@ To construct and estimate expected value and variance of :math:`f(q)` for :math:
 
 Notebook
 ~~~~~~~~
-Try this `PCE notebook <../examples/pce.ipynb>`_ to see how to use :code:`UQit` to perform standard polynomial chaos expansion (PCE). The provided examples can also be seen as a way to validate the implementation of the methods in :code:`UQit`.
+Try the `PCE notebook <../examples/pce.ipynb>`_ to see how to use :code:`UQit` to perform standard polynomial chaos expansion (PCE). The provided examples can also be seen as a way to validate the implementation of the methods in :code:`UQit`.
 
 
 
@@ -110,3 +110,5 @@ Example
 
 Notebook
 ~~~~~~~~
+Try this `PPCE notebook <../examples/ppce.ipynb>`_ to see how to use :code:`UQit` to perform probabilistic polynomial chaos expansion (PPCE). 
+
