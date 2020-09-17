@@ -99,6 +99,7 @@ class ppce:
        nGQ=ppceDict['nGQtest']       
        qInfo=ppceDict['qInfo'] 
        nMC=ppceDict['nMC']       
+       nw_=int(nMC/10)
        distType=ppceDict['distType']
        #Make a dict for GPR
        gprOpts={'nIter':ppceDict['nIter_gpr'],    
@@ -123,12 +124,12 @@ class ppce:
            # Draw a sample for f(q) from GPR surrogate
            f_=post_obs.sample().numpy()
            # Construct PCE for the drawn sample
-           pce_=pce.pce(fVal=f_,xi=[],pceDict=pceDict)  #GP+TP
+           pce_=pce.pce(fVal=f_,xi=[],pceDict=pceDict,verbose=False)  #GP+TP
            fMean_list.append(pce_.fMean)
            fVar_list.append(pce_.fVar)
-           if ((j+1)%50==0):
+           if ((j+1)%nw_==0):
               print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" 
-                      %(j,nMC))
+                      %(j+1,nMC))
 
        #(4) Outputs
        fMean_list=np.asarray(fMean_list)
@@ -153,6 +154,7 @@ class ppce:
        nGQ=ppceDict['nGQtest']       
        qInfo=ppceDict['qInfo'] 
        nMC=ppceDict['nMC']           
+       nw_=int(nMC/10)
        distType=ppceDict['distType']
        #Make a dict for gpr (do NOT change)
        gprOpts={'nIter':ppceDict['nIter_gpr'],    
@@ -189,12 +191,12 @@ class ppce:
            # Draw a sample for f(q) from GPR surrogate
            f_=post_obs.sample().numpy()
            # Construct PCE for the drawn sample
-           pce_=pce.pce(fVal=f_,nQList=nGQ,xi=[],pceDict=pceDict)
+           pce_=pce.pce(fVal=f_,nQList=nGQ,xi=[],pceDict=pceDict,verbose=False)
            fMean_list.append(pce_.fMean)
            fVar_list.append(pce_.fVar)
-           if ((j+1)%50==0):
+           if ((j+1)%nw_==0):
               print("...... ppce repetition for finding samples of the PCE coefficients, iter = %d/%d" 
-                      %(j,nMC))
+                      %(j+1,nMC))
 
        #(4) Outputs
        fMean_list=np.asarray(fMean_list)
