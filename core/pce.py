@@ -69,6 +69,8 @@ class pce:
                   - `'LMax'` can be used only with `'pceSolveMethod':'Regression'`
                   - If p==1 and `'LMax'` is not provided, it will be assumed to be equal to n.
                   - If p>1 and `'LMax'` is not provided, it will be assumed to a default value. 
+      `verbose`: bool (optional)
+          If True (default), info is provided about the PCE being constructed
 
    Attributes:
      `coefs`: 1D numpy array of size K 
@@ -81,11 +83,12 @@ class pce:
         Index set :math:`[[k_{1,1},k_{2,1},...k_{p,1}],...,[k_{1,K},k_{2,K},..,k_{p,K}]]`
          - If p==1: `kSet=[]`
    """
-   def __init__(self,fVal,xi,pceDict,nQList=[]):
+   def __init__(self,fVal,xi,pceDict,nQList=[],verbose=True):
        self.fVal=fVal
        self.xi=xi
        self.nQList=nQList
        self.pceDict=pceDict
+       self.verbose=verbose
        self._info()
        self._pceDict_corrector()
        self.cnstrct()
@@ -135,17 +138,20 @@ class pce:
              if self.pceDict['pceSolveMethod']=='Projection':
                 if self.pceDict['sampleType'] !='GQ':
                    self.pceDict['pceSolveMethod']='Regression'
-                   print("... Original 'Projection' method for PCE is replaced by 'Regression'.")
+                   if self.verbose:
+                      print("... Original 'Projection' method for PCE is replaced by 'Regression'.")
        else:
           if self.pceDict['p']>1:
              if self.pceDict['truncMethod']=='TO':
                 if 'pceSolveMethod' not in self.pceDict or self.pceDict['pceSolveMethod']!='Regression':
                    self.pceDict['pceSolveMethod']='Regression'
-                   print("... Original method for PCE is replaced by 'Regression'.")
+                   if self.verbose:
+                      print("... Original method for PCE is replaced by 'Regression'.")
              if self.pceDict['truncMethod']=='TP':
                 if 'sampleType' not in self.pceDict or self.pceDict['sampleType']!='GQ':
                    self.pceDict['pceSolveMethod']='Regression'
-                   print("... Original method for PCE is replaced by 'Regression'.")
+                   if self.verbose:
+                      print("... Original method for PCE is replaced by 'Regression'.")
              if self.pceDict['pceSolveMethod']=='Regression' and self.pceDict['truncMethod']!='TP':
                 if 'LMax' not in self.pceDict:
                    print("WARNING in pceDict: 'LMax' should be set when Total-Order method is used.")
@@ -344,7 +350,8 @@ class pce:
           else:
              self.LMax=len(self.fVal)
              self.pceDict['LMax']=self.LMax
-             print("...... No 'LMax' existed, so 'LMax=n='",self.LMax)
+             if self.verbose:
+                print("...... No 'LMax' existed, so 'LMax=n='",self.LMax)
           self.cnstrct_nonGQ_1d()
 
    def cnstrct_GQ_1d(self):
@@ -398,9 +405,11 @@ class pce:
        nQ=len(self.fVal) #number of quadratures (collocation samples)
        K=self.LMax      #truncation in the PCE
        distType_=self.distType[0]
-       print('...... Number of terms in PCE, K= ',K)
+       if self.verbose:
+          print('...... Number of terms in PCE, K= ',K)
        nData=len(self.fVal)   #number of observations
-       print('...... Number of Data point, n= ',nData)
+       if self.verbose:
+          print('...... Number of Data point, n= ',nData)
        #(2) Find the coefficients in the expansion:Only Regression method can be used. 
        A=np.zeros((nData,K))    
        sum2=[]
@@ -437,10 +446,11 @@ class pce:
           * `'truncMethod': 'TP'` (Tensor-product)
           * `'pceSolveMethod':'Projection'` or 'Regression'
        """
-       print('... A gPCE for a %d-D parameter space is constructed.'%self.p)
-       print('...... Samples in each direction are Gauss Quadrature nodes (User should check this!).')
-       print('...... PCE truncation method: TP')
-       print('...... Method of computing PCE coefficients: %s' %self.pceSolveMethod)
+       if self.verbose:
+          print('... A gPCE for a %d-D parameter space is constructed.'%self.p)
+          print('...... Samples in each direction are Gauss Quadrature nodes (User should check this!).')
+          print('...... PCE truncation method: TP')
+          print('...... Method of computing PCE coefficients: %s' %self.pceSolveMethod)
        distType=self.distType
        p=self.p
        #(1) Quadrature rule
@@ -454,9 +464,11 @@ class pce:
            w.append(w_)
            K*=self.nQList[i]
            fac.append(self._gqInteg_fac(distType[i]))
-       print('...... Number of terms in PCE, K= ',K)
+       if self.verbose:    
+          print('...... Number of terms in PCE, K= ',K)
        nData=len(self.fVal)   #number of observations
-       print('...... Number of Data point, n= ',nData)
+       if self.verbose:
+          print('...... Number of Data point, n= ',nData)
        if K!=nData:
           raise ValueError("K=%d is not equal to nData=%d"%(K,nData)) 
        #(2) Index set
@@ -515,12 +527,14 @@ class pce:
        p=self.p
        distType=self.distType
        xiGrid=self.xi
-       print('... A gPCE for a %d-D parameter space is constructed.' %p)
-       print('...... PCE truncation method: %s' %self.truncMethod)
-       print('...... Method of computing PCE coefficients: %s' %self.pceSolveMethod)
+       if self.verbose:
+          print('... A gPCE for a %d-D parameter space is constructed.' %p)
+          print('...... PCE truncation method: %s' %self.truncMethod)
+          print('...... Method of computing PCE coefficients: %s' %self.pceSolveMethod)
        if self.truncMethod=='TO':
           LMax=self.LMax   #max order of polynomial in each direction
-          print('         with LMax=%d as the max polynomial order in each direction.' %LMax)
+          if self.verbose:
+             print('         with LMax=%d as the max polynomial order in each direction.' %LMax)
        if self.pceSolveMethod!='Regression':
           raise ValueError("only Regression method can be used for PCE with Total Order truncation method.") 
        #(1) Preliminaries
@@ -553,9 +567,11 @@ class pce:
                kSet_.append(k_[j][0])
            if (self.truncMethod=='TO' and sum(kSet_)<=LMax) or self.truncMethod=='TP':
               kSet.append(kSet_)
-       print('...... Number of terms in PCE, K= ',K)
+       if self.verbose:       
+          print('...... Number of terms in PCE, K= ',K)
        nData=len(self.fVal)   #number of observations
-       print('...... Number of Data point, n= ',nData)
+       if self.verbose:
+          print('...... Number of Data point, n= ',nData)
        #(2) Find the coefficients in the expansion:Only Regression method can be used.
        A=np.zeros((nData,K))    
        sum2=[]
