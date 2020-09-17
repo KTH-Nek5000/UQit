@@ -9,8 +9,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 sys.path.append(os.getenv("UQit"))
 from ppce import ppce
+import pce
 import gpr_torch
-import pdfHisto
+import statsUQit
 import analyticTestFuncs
 import writeUQ
 import reshaper
@@ -18,77 +19,80 @@ import sampling
 #
 def ppce_1d_test():
     """
-        Test PPCE over 1D parameter space
+    Test PPCE over 1D parameter space
     """
-    def fEx(x):
+    def fEx(x,fType,qInfo):
         """
-           Exact simulator
+        Simulator
         """
-        #yEx=np.sin(2*mt.pi*x)
-        yEx=analyticTestFuncs.fEx1D(x,fType,qBound).val
+        yEx=analyticTestFuncs.fEx1D(x,fType,qInfo).val
         return yEx
     #
     def noiseGen(n,noiseType):
         """
-           Generate a 1D numpy array of standard deviations of independent Gaussian noises
+        Generate a 1D numpy array of the standard deviation of the observation noise
         """
         if noiseType=='homo': #homoscedastic noise
-           sd=0.1   #standard deviation (NOTE: cannot be zero, but can be very small)
+           sd=0.1   #(non-zero, to avoid instabilities)
            sdV=[sd]*n
            sdV=np.asarray(sdV)
         elif noiseType=='hetero': #heteroscedastic noise
            sdMin=0.02
            sdMax=0.2
            sdV=sdMin+(sdMax-sdMin)*np.linspace(0.0,1.0,n)
-        return sdV  #vector of standard deviations
+        return sdV  
     #
-    def trainData(xBound,n,noiseType):
+    def trainData(xInfo,n,noiseType,trainSamplyType,distType,fType):
         """
-          Create training data D={X,Y}
+        Create training data D={X,Y}
         """
-        x=np.linspace(xBound[0],xBound[1],n)
+        X_=sampling.trainSample(sampleType=trainSampleType,GQdistType=distType,qInfo=xInfo,nSamp=n)
+        x=X_.q
         sdV=noiseGen(n,noiseType)
-        y=fEx(x) + sdV * np.random.randn(n)
+        y=fEx(x,fType,xInfo) + sdV * np.random.randn(n)
         return x,y,sdV
     #
     #-------SETTINGS------------------------------
-    n=12       #number of training data
-    nGQtest=50   #number of test points (=Gauss Quadrature points)
-    qBound=[0,1]   #range of input
-    #type of the noise in the data
-    noiseType='hetero'   #'homo'=homoscedastic, 'hetero'=heterscedastic
-    distType='Unif'
+    distType='Norm'      #type of distribution of the parameter (Acc. gPCE rule)
+    trainSampleType='normRand'   #how to draw the trainining samples, see trainSample in sampling.py
+    qInfo=[0.5,0.9]     #info about the parameter
+                    #if 'Unif', qInfo =[min(q),max(q)]
+                    #if 'Norm', qInfo=[m,v] for q~N(m,v^2)
+    n=30            #number of training samples in GPR
+    noiseType='homo'   #'homo'=homoscedastic, 'hetero'=heterscedastic
+    nGQtest=10         #number of test points (=Gauss quadrature nodes)
     #GPR options
-    nIter_gpr=800      #number of iterations in optimization of hyperparameters
-    lr_gpr   =0.1      #learning rate for the optimizaer of the hyperparameters
-    convPlot_gpr=True  #plot convergence of optimization of GPR hyperparameters
-    #number of samples drawn from GPR surrogate to construct estimates for moments of f(q)
-    nMC=1000
+    nIter_gpr=1000      #number of iterations in optimization of hyperparameters
+    lr_gpr   =0.2       #learning rate for the optimization of the hyperparameters
+    convPlot_gpr=True  #plot convergence of the optimization of the GPR hyperparameters
+    nMC=1000           #number of samples drawn from GPR surrogate to construct estimates 
+                       #  for the moments of f(q)
     #---------------------------------------------
     if distType=='Unif':
        fType='type1'
-    #(1) Generate synthetic training data
-    qTrain,yTrain,noiseSdev=trainData(qBound,n,noiseType)
-    #(2) Probabilistic gPCE
-    #   (a) make the dictionary
-    ppceDict={'nGQtest':nGQtest,'qBound':qBound,'distType':distType,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
-    #   (b) call the method
+    elif distType=='Norm':
+       fType='type2'
+    #(1) generate synthetic training data
+    qTrain,yTrain,noiseSdev=trainData(qInfo,n,noiseType,trainSampleType,distType,fType)
+    #(2) assemble the ppceDict dictionary
+    ppceDict={'nGQtest':nGQtest,'qInfo':qInfo,'distType':distType,
+              'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
+    #(3) construct the ppce
     ppce_=ppce(qTrain,yTrain,noiseSdev,ppceDict)
     fMean_samples=ppce_.fMean_samps
     fVar_samples=ppce_.fVar_samps
     optOut=ppce_.optOut
-
-    #(3) postprocess
+    #(4) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator
     pltOpts={'title':'PPCE, 1d param, %s-scedastic noise'%noiseType}
-    gpr_torch.gprPlot(pltOpts).torch1d(optOut['post_f'],optOut['post_obs'],qTrain,yTrain,optOut['qTest'][0],fEx(optOut['qTest'][0]))
-
+    gpr_torch.gprPlot(pltOpts).torch1d(optOut['post_f'],optOut['post_obs'],qTrain,yTrain,
+            optOut['qTest'][0],fEx(optOut['qTest'][0],fType,qInfo))
     #   (b) plot histogram and pdf of the mean and variance distribution
-    pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
-    pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
+    statsUQit.pdfFit_uniVar(fMean_samples,True,[])
+    statsUQit.pdfFit_uniVar(fVar_samples,True,[])
     #   (c) compare the exact moments with estimated values by ppce
-    fEx=analyticTestFuncs.fEx1D(qTrain,fType,qBound)
-    fEx.moments(qBound)
+    fEx=analyticTestFuncs.fEx1D(qTrain,fType,qInfo)
+    fEx.moments(qInfo)
     fMean_ex=fEx.mean
     fVar_ex=fEx.var
 
@@ -104,94 +108,120 @@ def ppce_1d_test():
 #
 def ppce_2d_test():
     """
-        Test for ppce_pd_cnstrct()
+    Test for ppce for 2D parameter
     """
-    ##
-    def trainDataGen(p,sampleType,n,qBound,fExName,noiseType):
+    def fEx(p,sampleType,n,qInfo,fExName):
         """
-           Generate Training Data
+        Generate synthetic training data
         """
         #  (a) xTrain
-        if sampleType=='grid':
-          nSamp=n[0]*n[1]
-          gridList=[];
-          for i in range(p):
-              grid_=np.linspace(qBound[i][0],qBound[i][1],n[i])
-              gridList.append(grid_)
-          xTrain=reshaper.vecs2grid(gridList)
-        elif sampleType=='random':
-             nSamp=n
-             xTrain=sampling.LHS_sampling(nSamp,qBound)
+        nSamp=n[0]*n[1]
+        xi=[]
+        q=[]
+        qBound=[]
+        if sampleType[0]=='LHS' and sampleType[1]=='LHS':
+           if distType==['Unif']*p:
+              qBound=qInfo
+              xi=sampling.LHS_sampling(nSamp,[[-1,1]]*p)
+              xTrain=np.zeros((nSamp,p))
+              for i in range(p):
+                  xTrain[:,i]=pce.pce.mapFromUnit(xi[:,i],qBound[i])
+              yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp').val
+           else:
+              raise ValueError("LHS works only when all q have 'Unif' distribution.")
+        else:
+           for i in range(p):
+               samps=sampling.trainSample(sampleType=sampleType[i],GQdistType=distType[i],
+                      qInfo=qInfo[i],nSamp=n[i])
+               q.append(samps.q)
+           xTrain=reshaper.vecs2grid(q)
+           yTrain=analyticTestFuncs.fEx2D(q[0],q[1],fExName,'tensorProd').val
+        return xTrain,yTrain
+    #
+    def trainDataGen(p,sampleType,n,qInfo,fExName,noiseType):
+        """
+        Generate synthetic training data
+        """
+        #  (a) xTrain and noise-free yTrain
+        xTrain,yTrain_noiseFree=fEx(p,sampleType,n,qInfo,fExName)
+        nSamp=xTrain.shape[0]
         #  (b) set the sdev of the observation noise
         noiseSdev=noiseGen(nSamp,noiseType,xTrain,fExName)
         #  (c) Training data
-        yTrain=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp').val
-        yTrain_noiseFree=yTrain
         yTrain=yTrain_noiseFree+noiseSdev*np.random.randn(nSamp)
         return xTrain,yTrain,noiseSdev,yTrain_noiseFree
-    ##
+    #
     def noiseGen(n,noiseType,xTrain,fExName):
        """
-          Generate a 1D numpy array of standard deviations of independent Gaussian noises
+       Generate a 1D numpy array of standard deviation of the observation noise
        """
        if noiseType=='homo':
-          sd=0.2   #standard deviation (NOTE: cannot be zero)
+          sd=0.2   #(non-zero, to avoid instabilities)
           sdV=sd*np.ones(n)
        elif noiseType=='hetero':
           sdV=0.1*(analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp').val+0.001)
-       return sdV  #vector of standard deviations
-    ##
+       return sdV  
     #
     #----- SETTINGS -------------------------------------------
-    qBound=[[-2,2],[-2,2]]   #Admissible range of parameters
-    distType=['Unif','Unif']
-    #options for training data
-    fExName='type2'          #Name of Exact function to generate synthetic data
-                             #This is typ in fEx2D() in ../../analyticFuncs/analyticFuncs.py
-    trainSampleType='random'        #'random' or 'grid': type of samples
-    if trainSampleType=='grid':
-       n=[10,10]               #number of training observations in each input dimension
-    elif trainSampleType=='random':
-       n=100               #total number of training samples drawn randomly
-    #NOTE: there might be limitation for n*nGQtest because of torch, since we are not using batch
-    noiseType='homo'       #'homo'=homoscedastic, 'hetero'=heterscedastic
+    #settings for parameters and data
+    qInfo=[[-2,2],[-2,3]]    #info about the parameter
+                             #if 'Unif', qInfo =[min(q),max(q)]
+                             #if 'Norm', qInfo=[m,v] for q~N(m,v^2)
+    distType=['Unif','Unif']    #distribution type of parameters
+    fExName='type1'          #name of simulator to generate synthetic dat
+                             #see analyticTestFuncs.fEx2D()
+    trainSampleType=['LHS','LHS']   #sampling type, see trainSample in sampling.py
+    n=[10,12]               #number of training samples for each parameter.
+                            #note: n[0]*n[1]<128, due to GpyTorch
+    noiseType='hetero'      #type of observation noise
+                            #'homo'=homoscedastic, 'hetero'=heterscedastic
     #options for GPR
     nIter_gpr=1000      #number of iterations in optimization of hyperparameters
-    lr_gpr   =0.1      #learning rate for the optimizaer of the hyperparameters
-    convPlot_gpr=True  #plot convergence of optimization of GPR hyperparameters
-    #options for Gauss Quadrature test points
-    nGQtest=[18,18]     #number of test points in each param dimension
-    #number of samples drawn from GPR surrogate to construct estimates for moments of f(q)
-    nMC=200
+    lr_gpr   =0.1       #learning rate for the optimization of the hyperparameters
+    convPlot_gpr=True   #plot convergence of optimization of the GPR hyperparameters
+    #options for Gauss quadrature test nodes
+    nGQtest=[18,18]     #number of test samples in each param dimension
+    nMC=100            #number of samples drawn from GPR surrogate to construct estimates 
+                        # for the moments of f(q)
     #---------------------------------------------------------
-    p=len(distType)  #dimension of the input parameter q
-    #(1) Generate synthetic training data
-    qTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,trainSampleType,n,qBound,fExName,noiseType)
-    #(2) Probabilistic gPCE
-    #   (a) make the dictionary
-    ppceDict={'nGQtest':nGQtest,'qBound':qBound,'distType':distType,'nIter_gpr':nIter_gpr,'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
-    #   (b) call the method
+    p=len(distType)  
+    #(1) generate synthetic training data
+    qTrain,yTrain,noiseSdev,yTrain_noiseFree=trainDataGen(p,trainSampleType,n,qInfo,fExName,noiseType)
+    #(2) probabilistic PCE
+    ppceDict={'nGQtest':nGQtest,'qInfo':qInfo,'distType':distType,'nIter_gpr':nIter_gpr,
+              'lr_gpr':lr_gpr,'convPlot_gpr':convPlot_gpr,'nMC':nMC}
     ppce_=ppce(qTrain,yTrain,noiseSdev,ppceDict)
     optOut=ppce_.optOut
     fMean_samples=ppce_.fMean_samps
     fVar_samples=ppce_.fVar_samps
-
-    #(3) postprocess
-    #   (a) plot the GPR surrogate along with response from the exact simulator
-    gpr_torch.gprPlot().torch2d_3dSurf(qTrain,yTrain,optOut['qTest'],optOut['post_obs'],optOut['post_f'])
-
-    #   (b) plot histogram and pdf of the mean and variance distribution
-    pdfHisto.pdfFit_uniVar(fMean_samples,True,[])
-    pdfHisto.pdfFit_uniVar(fVar_samples,True,[])
-    #   (c) compare the exact moments with estimated values by ppce
+    #(3) estimate reference mean and varaiance of f(q) using Monte-Carlo approach
+    nMC=100000 #number of MC samples
+    qMC=[]
+    for i in range(p):
+        if distType[i]=='Unif':
+           sampleType_='unifRand' 
+        elif distType[i]=='Norm':
+           sampleType='normRand' 
+        samps=sampling.trainSample(sampleType=sampleType_,GQdistType=distType[i],
+                qInfo=qInfo[i],nSamp=nMC)
+        qMC.append(samps.q)
+    fVal_mc=analyticTestFuncs.fEx2D(qMC[0],qMC[1],fExName,'comp').val  
+    fMean_mc=np.mean(fVal_mc)
+    fVar_mc=np.mean(fVal_mc**2.)-fMean_mc**2.
+    #(4) postprocess
+    #   (a) plot the exact and GPR response surfaces
+    gpr_torch.gprPlot().torch2d_3dSurf(qTrain,yTrain,optOut['qTest'],optOut['post_obs'])
+    #   (b) plot histogram and fitted pdf of the mean and variance distributions
+    statsUQit.pdfFit_uniVar(fMean_samples,True,[])
+    statsUQit.pdfFit_uniVar(fVar_samples,True,[])
+    #   (c) compare the reference moments with the estimated values by ppce
     fMean_mean=fMean_samples.mean()
     fMean_sdev=fMean_samples.std()
     fVar_mean=fVar_samples.mean()
     fVar_sdev=fVar_samples.std()
     print(writeUQ.printRepeated('-', 80))
-    #print('>> Exact mean(f) = %g' %fMean_ex)
-    print('   ppce estimated: E[mean(f)] = %g , sdev[mean(f)] = %g' %(fMean_mean,fMean_sdev))
-    #print('>> Exact Var(f) = %g' %fVar_ex)
-    print('   ppce estimated: E[Var(f)] = %g , sdev[Var(f)] = %g' %(fVar_mean,fVar_sdev))
-
-
+    print('Reference mean(f) = %g' %fMean_mc)
+    print('PPCE estimated: E[mean(f)] = %g , sdev[mean(f)] = %g' %(fMean_mean,fMean_sdev))
+    print('Reference var(f) = %g' %fVar_mc)
+    print('PPCE estimated: E[var(f)] = %g , sdev[var(f)] = %g' %(fVar_mean,fVar_sdev))
+#
