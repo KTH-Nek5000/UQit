@@ -181,9 +181,6 @@ class testSample:
          Samples `q` from the mapped space Q    
       `qBound`: List of length 2 
          Admissible range of `q`. It will be the same as the Arg `qBound` if GQdistType=='Unif'
-      `w`: 1d numpy array of size `nSamp`
-         * If sampleType=='GQ': Weights in Gauss-Quadrature rule 
-         * Otherwise: `w=[]`
 
     Examples:
       ts1=testSample(sampleType='unifRand',GQdistType='Unif',qBound=[-1,3],nSamp=10)
@@ -213,9 +210,6 @@ class testSample:
         if self.sampleType not in self.sampleTypeList:
            raise KeyError('#ERROR @ testSample: Invalid sampleType! Choose from'\
                    ,self.sampleTypeList)
-        if self.sampleType=='GQ' and self.GQdistType not in self.GQdistList:
-           raise KeyError('#ERROR @ testSample: Invalid GQdistType! Choose from'\
-                   ,self.GQdistList)
         if self.GQdistType=='Norm' and len(self.qInfo)==0:
            raise KeyError("#ERROR @ testSample: qInfo is mandatory for GQdistType='Norm'")
 
@@ -246,7 +240,7 @@ class testSample:
               q_=self.qInfo[0]+xi_*self.qInfo[1]
         self.q=q_
         self.q2xi_map()      
-
+        
     def q2xi_map(self):
         """
         Linearly map q\in Q to xi\in\Gamma
