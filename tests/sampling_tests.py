@@ -18,7 +18,7 @@ def trainSample_test():
     F4=trainSample(sampleType='unifRand',qInfo=[2,3],nSamp=10)
     F5=trainSample(sampleType='GLL',qInfo=[2,3],nSamp=10)
     #print
-    F=F1
+    F=F5
     print('sampleType:',F.sampleType)
     print('GQdistType:',F.GQdistType)
     print('qBound',F.qBound)

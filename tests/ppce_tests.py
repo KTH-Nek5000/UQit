@@ -84,7 +84,7 @@ def ppce_1d_test():
     optOut=ppce_.optOut
     #(4) postprocess
     #   (a) plot the GPR surrogate along with response from the exact simulator
-    pltOpts={'title':'PPCE, 1d param, %s-scedastic noise'%noiseType}
+    pltOpts={'title':'PPCE, 1D param, %s-scedastic noise'%noiseType}
     gpr_torch.gprPlot(pltOpts).torch1d(optOut['post_f'],optOut['post_obs'],qTrain,yTrain,
             optOut['qTest'][0],fEx(optOut['qTest'][0],fType,qInfo))
     #   (b) plot histogram and pdf of the mean and variance distribution
@@ -195,7 +195,7 @@ def ppce_2d_test():
     fMean_samples=ppce_.fMean_samps
     fVar_samples=ppce_.fVar_samps
     #(3) estimate reference mean and varaiance of f(q) using Monte-Carlo approach
-    nMC=100000 #number of MC samples
+    nMC2=100000 
     qMC=[]
     for i in range(p):
         if distType[i]=='Unif':
@@ -203,7 +203,7 @@ def ppce_2d_test():
         elif distType[i]=='Norm':
            sampleType='normRand' 
         samps=sampling.trainSample(sampleType=sampleType_,GQdistType=distType[i],
-                qInfo=qInfo[i],nSamp=nMC)
+                qInfo=qInfo[i],nSamp=nMC2)
         qMC.append(samps.q)
     fVal_mc=analyticTestFuncs.fEx2D(qMC[0],qMC[1],fExName,'comp').val  
     fMean_mc=np.mean(fVal_mc)
