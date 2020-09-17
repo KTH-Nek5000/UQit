@@ -8,8 +8,12 @@
 #TODO: Generalize Sobol of Ishigami to [ai,bi]
 #--------------------------------------------
 #
+import os
+import sys
 import numpy as np
 import math as mt
+sys.path.append(os.getenv("UQit"))
+import sampling
 #
 #
 class fEx1D:
@@ -182,11 +186,44 @@ class fEx2D:
               f.append(tmp)
         self.val=np.asarray(f)
 
-    def moments(self):
+    def moments(self,distType,qInfo):
         """
-        Mean and variance of f(q)
+        Mean and variance of f(q) estimated by the Monte-Carlo approach        
+        (These can be used as reference values instead of the analytical values)
+
+        Args:
+           `distType`: List of length 2
+               The i-th value specifies the distribution type of the i-th parameter 
+           `qInfo`: List of length 2
+               Information about the parameter range or distribution.
+                 * If `q` is Gaussian ('Norm' or 'normRand') => qInfo=[mean,sdev]
+                 * Otherwise, `qInfo`=[min(q),max(q)]=admissible range of q
+        
+        Returns:
+           `mean`: float
+               Expected value of f(q) estimated by the Monte-Carlo method
+           `var`: float
+               Variance of f(q) estimated by the Monte-Carlo method
         """
-        pass
+        nMC=100000 #number of MC samples
+        print('... Reference moments are calculated by the Monte-Carlo method with %d samples' %nMC)
+        qMC=[]
+        p=len(distType)
+        if p!=2:
+           raise ValueError("distType should have length 2") 
+        for i in range(p):
+            if distType[i]=='Unif':
+               sampleType_='unifRand'
+            elif distType[i]=='Norm':
+               sampleType='normRand'
+            else:
+                raise ValueError("Invalid distType for parameter %d" %i)            
+            samps=sampling.trainSample(sampleType=sampleType_,GQdistType=distType[i],
+                  qInfo=qInfo[i],nSamp=nMC)
+            qMC.append(samps.q)
+        self.fVal_mc=fEx2D(qMC[0],qMC[1],self.typ,'comp').val
+        self.mean=np.mean(self.fVal_mc)
+        self.var=np.mean(self.fVal_mc**2.)-self.mean**2.
 
     def sobol(self,qBound):
         """
