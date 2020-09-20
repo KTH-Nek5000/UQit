@@ -14,16 +14,29 @@ from lagInt import lagInt
 #
 def lagrangeInterpGLL2UnifMesh(y,f,interpOpts):
     """
-        Lagrange interpolation from GLL points at each NEK element to an arbitrary uniformly spaced mesh. 
-        input profile:  f(y)
-        output ptofile: fInt(yInt)
-    """
-    nGLL=interpOpts['nGLL']   #number of GLL points per element
-    nTot=len(y)               #total number of GLL pts across each profile  
-    nElement=int(nTot/nGLL)   #number of element across each profile 
-    nIntPerE=interpOpts['nIntPerE']   #number of interpolation points per element
+    Lagrange interpolation from GLL points at each NEK5000 element to an arbitrary number of uniformly-spaced points inside the same element. 
+    f(y) is mapped into fInt(yInt)
 
-    yGLL=np.zeros(nGLL)   #original data at GLL points of each element
+    Args:
+      `y`: 1D numpy array 
+         Containing the global coordinates of the GLL points
+      `f`: 1D numpy array
+         Values at `y`
+      `interpOpts`: dict   
+         Options for interpolation
+    
+    Returns:
+      `yInt`: 1D numpy array
+         Containing the global coordinates of yInt
+      `fInt`: 1D numpy array
+         Interpolated f at `yInt`
+    """
+    nGLL=interpOpts['nGLL']   
+    nTot=len(y)                 
+    nElement=int(nTot/nGLL)    
+    nIntPerE=interpOpts['nIntPerE'] 
+
+    yGLL=np.zeros(nGLL)   
     fGLL=np.zeros(nGLL)
     yInt=[]
     fInt=[]
@@ -32,10 +45,8 @@ def lagrangeInterpGLL2UnifMesh(y,f,interpOpts):
             k=i*nGLL+j 
             yGLL[j]=y[k]               
             fGLL[j]=f[k]               
-        #interpolate in each element
         yInt_E=np.linspace(np.min(yGLL),np.max(yGLL),nIntPerE)
         fInt_E=lagInt(fNodes=fGLL,qNodes=[yGLL],qTest=[yInt_E]).val
-        #append in the list the interpolaed data on each element
         for j in range(nIntPerE):
             yInt.append(yInt_E[j])
             fInt.append(fInt_E[j])
@@ -45,19 +56,29 @@ def lagrangeInterpGLL2UnifMesh(y,f,interpOpts):
 #
 def sortedCaseInfo(caseDir,caseName):
     """ 
-       Read information about a Nek5000/OpenFOAM case (simulation set) which contains several simulations.
-       The info are saved in a database which will be sorted to make sure our convention for tensor-product in parameter space holds. This sorted info-db will be later used to sort other databases of the case.
-       The info file contains information about uncertain parameters associated with each case and has the following format.
-         # Information on the simlations set <caseName>. 
-         # caseName: 
-         # Number of included simulations: 
-         # Number of uncertain parameters: 
-         # Number of parameter samples in each direction:  (non-tensor-product: nTotSamples 1 1 ... 1)
-         # Name of uncertain parameters: 
-         # Admissible range of parameters: [20.2 100.5] [34.0 56.0] 
-         #List of simulations name and associated parameter values
-         # simName    q1      q2
-         #--------------------------------------------------------- (iEnd1)
+    Read information about a Nek5000 case (a set of channel flow simulations)
+    The info is saved in a database which will be sorted to make sure our convention for tensor-product in parameter space holds. This sorted info-db will be later used to sort other databases of the case.
+    The info file contains information about uncertain parameters associated with each case and has the following format.
+      # Information on the simlations set <caseName>. 
+      # caseName: 
+      # Number of included simulations: 
+      # Number of uncertain parameters: 
+      # Number of parameter samples in each direction:  (non-tensor-product: nTotSamples 1 1 ... 1)
+      # Name of uncertain parameters: 
+      # Admissible range of parameters: [20.2 100.5] [34.0 56.0] 
+      #List of simulations name and associated parameter values
+      # simName    q1      q2
+      #--------------------------------------------------------- (iEnd1)
+    
+    Args:
+      `caseDir`: string
+         Path to the Nek5000 simulations data
+      `caseName`: string
+         Name of the simulation case
+    
+    Returns:
+      `db_info`: dict
+         Information about the Nek5000 set of simulations
     """   
     caseName=caseName+'_info.dat'
     F1=open(caseDir+caseName,'r')     
@@ -66,23 +87,23 @@ def sortedCaseInfo(caseDir,caseName):
     for i in range(len(ain)):
         ain_sep.append(ain[i].split())
     #(1) Read the info in the header
-    nSim=int(ain_sep[2][-1])   #number of simulations included in the case
-    nPar=int(ain_sep[3][-1])   #number of uncertain parameters
-    nSamples=[]               #number of samples in each parameter dimension
+    nSim=int(ain_sep[2][-1])   
+    nPar=int(ain_sep[3][-1])   
+    nSamples=[]               
     parName=[]
-    parRange=[]              #Admissible range of parameters
+    parRange=[]              
     parVals=[]
   
     for i in range(nPar):
-        nSamples.append(int(ain_sep[4][-nPar+i]))   #number of parameters in each direction (only for tensor product case)
-        parName.append(ain_sep[5][-nPar+i])   #parameters name
-        rNo_=6   #line number at which parameters range are provided
+        nSamples.append(int(ain_sep[4][-nPar+i]))   
+        parName.append(ain_sep[5][-nPar+i])   
+        rNo_=6   
         r1_=float(ain_sep[rNo_][4+(2*i+1)][1:])  
         r2_=float(ain_sep[rNo_][4+(2*i+2)][:-1])
         parRange.append([r1_,r2_])
         parVals.append([])
 
-    iEnd1=10   #line number at which the header information is finished (the lines in this part have # at the beginning)
+    iEnd1=10   
     #(2) Read the info in the list
     simName=[]
     for i in range(nSim):
@@ -99,10 +120,8 @@ def sortedCaseInfo(caseDir,caseName):
     for i in range(nPar):
         db_info.update({('q'+str(i+1)):parVals[i]})
     #(4) Sort the db_info
-    #For nPar>1 sort the db_info to make sure the following convention for tensor-product is in place: the loop of the latest parameter must the out most. 
     if nPar>1:
        quads=quads_tensorProd_params(parVals)
-       #sort the db_info
        tmp={x:[] for x in db_info.keys()}
        if nPar==2:
           for Q2 in (quads[1]):
@@ -129,7 +148,7 @@ def sortedCaseInfo(caseDir,caseName):
                                    tmp['q'+str(j+1)].append(db_info['q'+str(j+1)][i])
                                break
        else:
-          print('ERROR in caseInfoReader_NEK(): currently nPar<4 is supported.')
+         raise ValueError('Currently nPar<4 is supported. This can be modified.')
        tmp['parName']=db_info['parName']               
        tmp['nSims']  =db_info['nSims']
        tmp['parRange']=db_info['parRange']               
@@ -139,12 +158,19 @@ def sortedCaseInfo(caseDir,caseName):
 #
 def quads_tensorProd_params(qList):
     """
-       Extract quadratures (not necessarily Gauss points) in each direction in the parameter space given qList that is tensor product of the parameters. 
-         qList: list of lists with len(qList)= number of parameters. qList=[[q1],[q2],...,[qp]] where qi are ni samples for i-th parameter. 
+    Extract parameter samples (not necessarily Gauss-quadrature nodes) in each direction in the parameter space given `qList`
+
+    Args:
+       `qList`: List of length p (number of parameters)
+          =[[q1],[q2],...,[qp]] where qi are the parameter samples for the i-th parameter.
+    
+    Returns:
+       `quads`: List of length p
+          Containing sorted non-repeated parameter samples in each direction in parameter space
     """
     def nonRepeatedEl(x):
         """
-           Find non-repeated elements of x
+        Find non-repeated elements of x
         """
         nx=len(x)
         xUniq=[x[0]]
@@ -159,8 +185,6 @@ def quads_tensorProd_params(qList):
     
     nPar =len(qList)
     nSamp=len(qList[0])
-   
-    #sorted non-repeated quadrates in each direction in parameter space
     quads=[]   
     for i in range(nPar):
         quads.append(sorted(nonRepeatedEl(qList[i])))
@@ -168,39 +192,58 @@ def quads_tensorProd_params(qList):
 #
 def sort_merge_dbs(dbSim,db_info):
     """
-       Sorts dbSim according to db_info['simName'] and then merges dbSims and db_info. 
-       The sorting is done to ensure that our convention for the tensor product of parameter samples in spaces of dimensionality of higher than 2 holds. 
-          dbSims: a list of databases (dictionaries); each database contains the post-processed data of a channel flow simulation. This list of databases represents a simulation case. 
-          db_info: a dictionary containing information about the simualtion case. It contains the quadratures of the parameters corresponding to which channel flow simulations have been performed. This db is already sorted to ensure the convention of tensor prodoct for the parameters. 
+    Sorts `dbSim` according to `db_info['simName']` and then merges `dbSims` and `db_info`. 
+    The sorting is done to ensure that our convention for the tensor product of parameter samples
+    in spaces of dimensionality of >= 2 holds (order='F', Fortran-like loops over parameters). 
+
+    Args:
+      `dbSims`: List of size N
+         Each element is a dict that contains the QoIs of a channel flow simulation. 
+         This list of databases represents a simulation case (in computer experiment). 
+      `db_info`: dict
+         Containing information about the simualtion case including the parameter samples corresponding to which channel flow simulations have been performed. 
+         This dict is already sorted to ensure the convention of Fortran-like loops (order='F'). 
+    
+    Returns:
+      `db`: List 
+         Merged `dbSim` and `db_info`
     """
-    nSim=len(dbSim)               #no of simulations in the case 
-    nPar=len(db_info['parName'])  #number of uncertain parameters
+    nSim=len(dbSim)               
+    nPar=len(db_info['parName'])  
     db=[]
-    #sorting
+    #sorting & merging
     for j in range(nSim):               
         for i in range(nSim):
             if (db_info['simName'][j]==dbSim[i]['name']):
                tmp_=dbSim[i]
-               tmp_.update({'parName':db_info['parName']})  #merging
-               parVal=[]   #q-values
-               parValMap=[] #xi\in[-1,1] corresponding to q samples
+               tmp_.update({'parName':db_info['parName']})  
+               parVal=[]   
+               parValMap=[] 
                for k in range(nPar):
                    parVal_=db_info['q'+str(k+1)][j]
-                   #mapping sampled parameters to [-1,1] (for Legendre PCE)
                    parRange1_=db_info['parRange'][k][0]
                    parRange2_=db_info['parRange'][k][1]
                    xi_=-1+2.*(parVal_-parRange1_)/(parRange2_-parRange1_)
                    parVal.append(parVal_)
                    parValMap.append(xi_)    
-               tmp_.update({'parVal':parVal})  #merging
-               tmp_.update({'parValMapped':parValMap})  #merging
+               tmp_.update({'parVal':parVal})  
+               tmp_.update({'parValMapped':parValMap})  
                db.append(tmp_)
                break
     return db
 #    
 def dbCnstrctr_NEK(dirNekData,interpOpts):
-    """ Construct database for a single NEK channel flow post processed data which are located at dirNekData. 
-        interpOpts: Options for interpolating original NEK profiles on a mesh that is uniform on each Nek element. In each elements GLL points are used in Lagrange interpolation.
+    """ 
+    Construct database (dicts) from the QoIs of a single Nek5000 channel flow simulation. 
+
+    Args:
+       `dirNekData`: string
+          Path to the Nek5000 data of the channel flow QoIs
+       `interpOpts`: dict
+          Options for interpolating original Nek5000 profiles to a uniform mesh.
+    Returns: 
+       `dataNek`: dict
+          Dictionary of the channel flow QoIs.          
     """
     [uTau,y,yp,up]=dataReader_1stOstats(dirNekData)
     u=up*uTau
@@ -212,8 +255,7 @@ def dbCnstrctr_NEK(dirNekData,interpOpts):
     uv=uvp*uTau**2.
     tke=0.5*(uu**2.+vv**2.+ww**2.)
     tkep=tke/uTau**2.
-
-    if interpOpts['doInterp']: #interpolation on each Nek element from GLL points to uniform points
+    if interpOpts['doInterp']: 
        print('... Nek5000 profiles are interpolated to uniform fine mesh.')       
        yInt,yp =lagrangeInterpGLL2UnifMesh(y,yp,interpOpts)       
        yInt,u  =lagrangeInterpGLL2UnifMesh(y,u,interpOpts)
@@ -229,15 +271,19 @@ def dbCnstrctr_NEK(dirNekData,interpOpts):
        yInt,tke=lagrangeInterpGLL2UnifMesh(y,tke,interpOpts)
        yInt,tkep=lagrangeInterpGLL2UnifMesh(y,tkep,interpOpts)
        y=yInt
-
-    #Pack the data in a database
     dataNEK={"uTau":uTau,"y":y,"y+":yp,"u":u,"u+":up,\
              "u'":uu,"u'+":uup,"v'":vv,"v'+":vvp,"w'":ww,"w'+":wwp,\
              "tke":tke,"tke+":tkep,"uv":uv,"uv+":uvp}
     return dataNEK
 #
 def dataReader_1stOstats(dirNekData):
-    """ read in (y,y+,<u>+) computed by NEK as given in mean_prof.dat"""
+    """
+    Read in uTau, y, y+, and <u>+ of turbulent channel flow simulated by Nek5000.
+
+    Args:
+      `dirNekData`: string
+         Path to  mean_prof.dat
+    """
     F1=open(dirNekData+'/'+'mean_prof.dat','r')
 
     ain=F1.readlines();
@@ -245,8 +291,8 @@ def dataReader_1stOstats(dirNekData):
     for i in range(len(ain)):
         ain_sep.append(ain[i].split())
 
-    iskip=4;  # no of lines to skip from the beginning of the input file
-    n=len(ain_sep)-iskip;  #n: no of data in 2*h: whole channel width
+    iskip=4;  
+    n=len(ain_sep)-iskip;  
     yNek=np.zeros(n);
     ypNek=np.zeros(n);
     upNek=np.zeros(n);
@@ -258,7 +304,13 @@ def dataReader_1stOstats(dirNekData):
     return uTauNek,yNek,ypNek,upNek
 #
 def nekDataReader_2ndOstats(dirNekData):
-    """ read in (y,y+,<u>+) computed by NEK as given in vel_fluc_prof.dat """
+    """
+    Read in velocity 2nd-order statistical moments of turbulent channel flow simulated by Nek5000.
+
+    Args:
+      `dirNekData`: string
+         Path to vel_fluc_prof.dat
+    """
     F1=open(dirNekData+'/'+'vel_fluc_prof.dat','r')
 
     ain=F1.readlines();
@@ -266,8 +318,8 @@ def nekDataReader_2ndOstats(dirNekData):
     for i in range(len(ain)):
         ain_sep.append(ain[i].split())
 
-    iskip=4;  # no of lines to skip from the beginning of the input file
-    n=len(ain_sep)-iskip;  #n: no of data in 2*h: whole channel width
+    iskip=4;  
+    n=len(ain_sep)-iskip;  
     yNek=np.zeros(n);
     ypNek=np.zeros(n);
     uupNek=np.zeros(n);
@@ -278,11 +330,11 @@ def nekDataReader_2ndOstats(dirNekData):
         yNek[i]=float(ain_sep[iskip+i][0]);
         ypNek[i]=float(ain_sep[iskip+i][1]);
         uupNek[i]=float(ain_sep[iskip+i][2]);
-        uupNek[i]=mt.sqrt(uupNek[i]);   #urms+
+        uupNek[i]=mt.sqrt(uupNek[i]);   
         vvpNek[i]=float(ain_sep[iskip+i][3]);
-        vvpNek[i]=mt.sqrt(vvpNek[i]);   #vrms+
+        vvpNek[i]=mt.sqrt(vvpNek[i]);   
         wwpNek[i]=float(ain_sep[iskip+i][4]);
-        wwpNek[i]=mt.sqrt(wwpNek[i]);   #wrms+
+        wwpNek[i]=mt.sqrt(wwpNek[i]);   
         uvpNek[i]=-float(ain_sep[iskip+i][5]);
     return yNek,ypNek,uupNek,vvpNek,wwpNek,uvpNek
 #
