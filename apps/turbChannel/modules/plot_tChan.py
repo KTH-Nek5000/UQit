@@ -1,8 +1,9 @@
-####################################################################
-# Plotters for UQ of turbulent Channel Flow
-####################################################################
+####################################################
+# Plotters for UQ (C.E.) of turbulent channel flow
+####################################################
 #  Saleh Rezaeiravesh, salehr@kth.se
-#-------------------------------------------------------------------
+#---------------------------------------------------
+#
 import sys
 import os
 import numpy as np
@@ -15,7 +16,7 @@ import texOptions_tChan
 #
 def pltOpts_default(pltOpts):
     """
-    Checks `pltOpts` for essential keys. Default values are assigned for missing values. 
+    Checks `pltOpts` for essential keys. Default values are assigned to missing keys. 
     No overwritting of the existing values in `pltOpts`.
     """
     if 'figSize' not in pltOpts.keys():
@@ -32,19 +33,25 @@ def pltOpts_default(pltOpts):
 def plotUQChan_profCI(db,chiName,qoiName,pceMean,pceCI,pltOpts):
     """
     Plot a profile of channel flow QoI along with associated 95%CI due to uncertain parameters. 
-        db: list, database
-        chiName: controlled variable = Quantity on the horizontal axis, e.g. channel wall-normal coordinate
-        qoiName: name of the QoI whose profile is plotted
-        pceMean: mean of the QoI predicted by gPCE
-        pciCI: 95% confidence interval
-        pltOpts: dictionary, plot options     
+
+    Args:
+      `db`: List of length N 
+          Containing data (dict) of the channel flow QoIs in the computer experiment
+      `chiName`: string
+          Name of the controlled variable 
+      `qoiName`: string
+          Name of the QoI whose profile is plotted
+       `pceMean`: 1D numpy array of size nChi
+          Mean of the QoI estimated by gPCE
+       `pceCI`: 1D numpy array of size nChi
+          95% CI of the QoI estimated by gPCE
+       `pltOpts`: dict
+          Plot options
     """
-    #set the values at the horizontal axis
     y=pltOpts['hrzAxVals']
     ist=0
     if pltOpts['xAxisScale']=='log':
        ist=1
-    #
     plt.figure(figsize=(10,6))
     ax=plt.gca()
     plt.plot(y[ist:],pceMean[ist:],'-k',lw='1',label=r'$\mathbb{E}_{\mathbf{q}}[$'+pltOpts['qoiLabel']+'$]$')
@@ -81,7 +88,21 @@ def plotUQChan_profCI(db,chiName,qoiName,pceMean,pceCI,pltOpts):
 #
 def plotUQChan_profSobol(chi,S1,S2,S3,S12,S13,S23,p,chiName,pltOpts):
     """
-    Plot Sobol indices of a qoi profile in the wall-normal direction. 
+    Plot Sobol indices of a QoI profile in the wall-normal direction. 
+
+    Args:
+       `chi`: 1D numpy array of size nChi
+          Values on the horizontal axis 
+       `S1`, `S2`, `S3`: 1D numpy array of size nChi   
+          Main Sobol indices with respect to q1,q2,q3, respectively.
+       `S12`, `S13`, `S23`: 1D numpy array of size nChi   
+          Dual interaction Sobol indices with respect to q1-q2,q1-q3,q2-q3, respectively.
+       `p`: int
+          Number of uncertain parameters
+       `chiName`: string
+          Name of the controlled variable
+       `pltOpts`: dict
+          Plot options
     """            
     texLab=texOptions_tChan.texLabel_constructor()  #Tex labels
     pltOpts_default(pltOpts)
