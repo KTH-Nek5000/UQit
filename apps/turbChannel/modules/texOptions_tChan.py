@@ -1,6 +1,6 @@
-##################################################
-# Assign LaTex values to strings
-##################################################
+####################################################
+# Assign LaTex values to strings appearing in plots
+####################################################
 #
 def texLabel_constructor():
     """
@@ -39,7 +39,7 @@ def texLabel_constructor():
 #
 def texLabel(qoiName):
     """
-    look up the LaTex label corresponding to qoiName
+    Look up the LaTex label corresponding to `qoiName`
     """
     texLab_db=texLabel_constructor()
     return(texLab_db[qoiName])
