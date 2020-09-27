@@ -126,7 +126,7 @@ def plotUQChan_profSobol(chi,S1,S2,S3,S12,S13,S23,p,chiName,pltOpts):
     if chiName=='y+':
        plt.xlabel(r'$\mathbb{E}_{\mathbf{q}}[y^*]$',fontsize=25)
     else:
-       plt.xlabel(texLabel(chiName),fontsize=25)
+       plt.xlabel(texLab[chiName],fontsize=25)
     plt.ylabel('Sobol Indices',fontsize=25)
     plt.xticks(fontsize=pltOpts['xTicks_fs'])
     plt.yticks(fontsize=pltOpts['yTicks_fs'])
