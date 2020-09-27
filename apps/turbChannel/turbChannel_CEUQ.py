@@ -1,7 +1,7 @@
 #***************************************************************************
 # Application of UQit to computer experiments of turbulent channel flow
 # The uncertain parameters are grid resolutions (scaled in wall-units) in 
-#   the wall-parallel directions
+#    the wall-parallel directions
 #***************************************************************************
 #
 import os
@@ -24,15 +24,15 @@ caseName='C8'
 #
 def CI_sobol_ChanProfs():
     """
-    Construct confidence intervals and compute Sobol indices for the channel flow 
-    QoIs for 2 uncertain parameters.
+    Construct confidence intervals and compute Sobol indices for turbulent channel flow QoIs
     """
     #----SETTINGS------------------------
-    qoiName="u+"  #name of the channel QoI
-    chiName="y+"   #name of the controlled parameter (wall-normal coordinate)
+    qoiName="u+"   #QoI:
+                   #"u","u+","u'","u'+","v'","v'+","w'","w'+",'tke','tke+','uv','uv+'
+    chiName="y+"   #Controlled parameter (wall-normal coordinate):
+                   #"y", "y+"
     #>>> PCE Options
-    truncMethod='TP'  # truncation scheme, 'TP'=Tensor Product, 'TO'=Total Order
-    sampleType='GQ'   #type of parameter samples: 'GQ'=Gauss Quadrature nodes
+    truncMethod='TP'  #truncation scheme: 'TP'=Tensor Product, 'TO'=Total Order
     pceSolveMethod='Regression' #method to solve for the PCE coefficients
                                 # 'Projection': 'GP'+'TP'
                                 # 'Regression': any combination 
@@ -42,12 +42,12 @@ def CI_sobol_ChanProfs():
     qName=[r'$\Delta x^+$',r'$\Delta z^+$']  #parameter labels
     nq_test=[30,30]    #number of test points to compute Sobol indices
     #>>> plot options
-    xLim=[0.5,300]   #Limits of the horizontal axis (optional)
     legend_sobol='on' 
     #yLim=[0,25]
     #------------------------------------
     #
-    # settings for interpolating from Nek5000 GLL points to a uniform mesh
+    # (0) Settings for interpolating from Nek5000 GLL points to a uniform mesh
+    sampleType='GQ'   #type of parameter samples: 'GQ'=Gauss Quadrature nodes
     interpOpts={'doInterp':True,  
                 'nGLL':8,         #number of GLL points per element in the Nek5000 simulations
                 'nIntPerE':30     #number of uniformly-spaced points per Nek5000 element
@@ -75,24 +75,19 @@ def CI_sobol_ChanProfs():
     #   (a) set the plot options
     pltOpts={'qoiLabel':texLabel(qoiName),
              'chiLabel':texLabel(chiName),
-             'xAxisScale':'log', #'log' or ''
              'figName':caseName+'_'+qoiName,
              'figDir':figDir,'legend':'on'}
-    #   (b) update the plot xlim and ylim
-    try:
-       xLim
-    except NameError:
-       print('Just to know: No xlim is set for plotting =)')
-    else:
-       pltOpts.update({'xLim':xLim})
-    #
-    try:
-       yLim
-    except NameError:
-       print('Just to know: No ylim is set for plotting =)')
-    else:
-       pltOpts.update({'yLim':yLim})
-    #
+    #   (b) update the plot xlim 
+    if chiName=="y+":
+       xLim=[0.5,300] 
+       xAxisScale='log'
+       xLogScale=True
+    elif chiName=="y":
+       xLim=[0.,1.0] 
+       xAxisScale=''
+       xLogScale=False
+    pltOpts.update({'xLim':xLim})
+    pltOpts.update({'xAxisScale':xAxisScale}), #'log' or ''
     #  (c) set the values at the plot horizontal axis
     if chiName=='y':   #horizontal axis=y
        hrzAxVals=db[0][chiName]   #assume all cases have the same-size y-vectors
@@ -119,7 +114,6 @@ def CI_sobol_ChanProfs():
        nQ_pce=[nSims]   
        for i in range(1,p):
            nQ_pce.append[1]
-    #total number of test samples    
     nq_test_tot=1
     for i in range(p):        
         nq_test_tot*=nq_test[i]
@@ -134,7 +128,7 @@ def CI_sobol_ChanProfs():
     S2=[]
     S12=[]   #2nd-order interaction
     print('... Computing Sobol sensitivity indices for %s wrt %d uncertain parameters.' %(qoiName,p))
-    for I in range(1,nChi):   #points on the profile of qoi (ignore y=0 since returns nan)
+    for I in range(1,nChi): 
         pcePred_=pce.pceEval(coefs=pceCoefs[I],xi=xiTest,distType=distType,kSet=kSet[I])
         fTest=pcePred_.pceVal
         sobol_=sobol.sobol(qTest,fTest,pdf)
@@ -145,7 +139,7 @@ def CI_sobol_ChanProfs():
     figOpts={'figDir':figDir,
              'figName': 'sobol_'+caseName+'_'+qoiName+'.pdf',
              'parLabs':qName,
-             'xLogScale':True,
+             'xLogScale':xLogScale,
              'figSize':[800,400],
              'xTicks_fs':17,
              'yTicks_fs':17,
