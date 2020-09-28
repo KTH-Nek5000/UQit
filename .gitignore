@@ -4,3 +4,5 @@ __pycache__/
 testFigs/
 testFigs/*
 docs/build/*
+apps/turbChannel/modules/__pycache__
+apps/turbChannel/__pycache__

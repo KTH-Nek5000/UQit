@@ -13,6 +13,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../core/'))
+sys.path.insert(1, os.path.abspath('../../apps/turbChannel/modules/'))
 import sphinx_rtd_theme
 
 

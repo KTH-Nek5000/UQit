@@ -1,42 +1,33 @@
 ==========
 Surrogates
 ==========
-A surrogate is an approaximation of the actual model function over the parameter space.
+
+A surrogate or metamodel is an approaximation of the actual model function or simulator over the parameter space.
 Running the surrogate is computationally inexpensive which facilitates the use of different UQ techniques.
 However, the predictions by the surrogate should be accurate enough compared to the actual predictions by the simulator. 
-Using an additive error model, the following relation could be considered:
+Using an additive error model, the following relation can be considered between the model function (simulator) and its observations:
 
 .. math::
    r=f(\chi,\mathbf{q})+\mathbf{\varepsilon}\,,
 
 where :math:`\mathbf{\varepsilon}` expresses the bias and random noise.
-Our task is to construct a surrogate :math:`\tilde{f}(\chi,\mathbf{q})` for actual model function (simulator).
+Our task is to construct a surrogate :math:`\tilde{f}(\chi,\mathbf{q})` for the actual model function (simulator).
 
-
-There are different techniqus to construct a surrogate, for instance see [smith, uqHandbook, Gramacy]. 
-Some of these have been implemented in :code:`UQit` in response to the needs for CFD practices. 
-Here, we provide a short overview to the theory behind these techniques and explain the code through providing examples. 
-
-
-Consider uncertain parameters :math:`\mathbf{q}\in \mathbb{Q}\subset \mathbb{R}^p`. 
-To construct the surrogates, a limited number of samples are taken from the parameter space. 
-These samples are represented :math:`\{\mathbf{q}^{(i)}\}_{i=1}^n`.
-In practice, the trade-off between the accuaracy of the surrogate and the cost of running the simulator determines :math:`n`. 
-Running the simulator at the :math:`n` parameter samples, realizations for the model outputs or QoIs, :math:`\{r^{(n)}\}_{i=1}^n`, are obtained. 
-Note that, the siumulator is being seen as a blackbox.
-Therefore, the training data to construct the surrogate are :math:`\mathcal{D}=\{(\mathbf{q}^{(i)},r^{(i)})\}_{i=1}^n`. 
+Treating the simulator as a blackbox, a set of training data :math:`\mathcal{D}=\{(\mathbf{q}^{(i)},r^{(i)})\}_{i=1}^n` is obtained. 
+There are different techniqus to construct a surrogate, for instance see [Smith13]_, [Ghanem17]_, and [Gramacy20]_. 
+Some of the techniques relevent to CFD applications have been implemented in :code:`UQit`.
+Here, we provide a short overview to the theory behind these techniques, explain their implementation in :code:`UQit` and provide examples for using them. 
 
 
 Non-intrusive Polynomial Chaos Expansion
 -----------------------------------------
-The stochastic collocation (SC), see [uqHandbook, Chap20] method is very well suited to the described framework. 
-Since, SC relies on treating the simulator as a blackbox. 
-As an option non-intrusive PCE can be considered. 
+As a type of stochastic collocation (SC) methods, see e.g. Chapter 20 in [Ghanem17]_, non-intrusive PCE [Xiu05]_, [Xiu07]_ can be used to construct a surrogate. 
 
 .. math::
-   \tilde{f}(\chi,\mathbf{q}) = \sum_{k=0}^K \hat{f}_k(\chi) \Psi_{k}(\mathbf{q})
+   \tilde{f}(\chi,\mathbf{q}) = \sum_{k=0}^K \hat{f}_k(\chi) \Psi_{k}(\xi) \,.
 
-Refer to sec??? for the details on how PCE is implemented in :code:`UQit`.
+There is a one-to-one correspondence between any sample of :math:`\mathbf{q}\in \mathbb{Q}` and :math:`\xi\in\Gamma`, where :math:`\mathbb{Q}=\bigotimes_{i=1}^p \mathbb{Q}_i` and :math:`\Gamma=\bigotimes_{i=1}^p \Gamma_i`.
+For the details of the method refer to :ref:`gPCE-sect`.
 
 
 
@@ -45,21 +36,21 @@ Lagrange Interpolation
 
 Theory
 ~~~~~~
-As another form of SC-based surrogate, Lagrange interpolation can be considered:
+As another form of SC-based surrogates, Lagrange interpolation can be considered:
 
 .. math::
    \tilde{f}(\chi,\mathbf{q}) = \sum_{k=1}^n \hat{f}_k(\chi,\mathbf{q}) L_k(\mathbf{q}) \,,
 
 where :math:`\hat{f}_k(\chi,\mathbf{q})=f(\chi,\mathbf{q}^{(k)})=r^{(k)}` are the training model outputs.
-If :math:`n_i` samples taken from the :math:`i`-th parameter space is represented by :math:`Q_{n_i}`, then the use of tensor product leads to the nodal set :math:`Q_n` of size :math:`n=\prod_{i=1}^p n_i`, where
+If the :math:`n_i` samples taken from the :math:`i`-th parameter space are represented by :math:`Q_{n_i}`, then the use of tensor-product leads to the nodal set :math:`Q_n` of size :math:`n=\prod_{i=1}^p n_i`, where,
 
 .. math::
-   Q_n= Q_{n_1} \times Q_{n_2}\times \ldots \times Q_{n_p} \,.
+   Q_n= Q_{n_1} \bigotimes Q_{n_2}\bigotimes \ldots \bigotimes Q_{n_p} \,.
 
-Correspondingly, the Lagrange bases :math:`L_k(\mathbf{q})` are constructed using the tensor product of the basis in each of the parameter spaces: 
+Correspondingly, the Lagrange bases :math:`L_k(\mathbf{q})` are constructed using the tensor-product of the bases in each of the parameter spaces: 
 
 .. math::
-   L_k(\mathbf{q})=L_{k_1}(q_1) \bigotimes L_{k_2}(q_2) \bigotimes \ldots \bigotimes L_{k_p}(q_p)
+   L_k(\mathbf{q})=L_{k_1}(q_1) \bigotimes L_{k_2}(q_2) \bigotimes \ldots \bigotimes L_{k_p}(q_p) \,,
 
 where,
 
@@ -67,63 +58,31 @@ where,
    L_{k_i}(q_i) = \prod_{\substack{{k_i=1}\\{k_i\neq j}}}^{n_i} 
    \frac{q_i - q_i^{(k)}}{q_i^{(k)}-q_i^{(j)}} \,,\quad i=1,2,\ldots,p \,.
 
-Note that the Lagrange basis satisfies :math:`L_{k_i}(q_i^{(j)})=\delta_{k_i j}` with :math:`\delta` representing Kronecker delta. 
+Note that the Lagrange basis satisfies :math:`L_{k_i}(q_i^{(j)})=\delta_{k_{ij}}`, where :math:`\delta` represents the Kronecker delta. 
 
 
-In :code:`UQit`, the Lagrange interpolation method is implemeneted in :code:`lagrangeInterpol.py`. 
-There are three methods available:
+Example
+~~~~~~~
+* For :math:`p=1` (one-dimensional parameter :math:`q`):
 
-* :code:`lagrangeBasis_singleVar(qNodes,k,Q)`
-  constructs the Lagrange basis in one dimension, i.e. :math:`L_{k_i}(q_i)` evaluated at a set oftest samples. 
+.. code-block:: python
 
-  - :code:`qNodes` is a 1D :code:`numpy` array containing training parameter samples. 
+    fInterp=lagInt(fNodes=fNodes,qNodes=[qNodes],qTest=[qTest]).val
 
-  - :code:`k` specfies the order of the basis.
+* For :math:`p>1` (multi-dimensional parameter :math:`\mathbf{q}`):
 
-  - :code:`Q` are the test samples, a 1D :code:`numpy` array at which the basis is evaluated. 
+.. code-block:: python
 
-* :code:`lagrangeInterpol_singleVar(fNodes,qNodes,Q)`
-  constructs a Lagrange interpolation for a single-variate parameter (:math:`p=1`). 
-
-  - :code:`qNodes` is a 1D :code:`numpy` array containing training parameter samples.
-
-  - :code:`fNodes` is a 1D :code:`numpy` array containing training model outputs.
-
-  - :code:`Q` are the test samples, a 1D :code:`numpy` array at which the basis is evaluated. 
-
-* :code:`lagrangeInterpol_multiVar(fNodes,qNodes,Q,method)` 
-  constructs a Lagrange interpolation for a multi-variate parameter (:math:`p>1`).               
-
-  - :code:`qNodes` is a list of :math:`p` 1D :code:`numpy` arrays each containing training parameter samples for one the single-variate parameters.
-
-  - :code:`fNodes` is a 1D :code:`numpy` array of size :math:`n` containing training model outputs.
-
-  - :code:`Q` is a 2D :code:`numpy` array of size :math:`m \times p` containing :math:`m` test samples over the :math:`p`-D parameter space. The constructed Lagrange interpolation is evaluated at these test samples. 
+    fInterp=lagInt(fNodes=fNodes,qNodes=qNodes,qTest=qTestList,liDict={'testRule':'tensorProd'}).val
 
 Implementation
 ~~~~~~~~~~~~~~
 .. automodule:: lagInt
    :members:
 
-Example
-~~~~~~~
-* For :math:`p=1` (one-dimensional parameter :math:`q`):
-
-.. code-block::
-
-    fInterp=lagInt(fNodes=fNodes,qNodes=[qNodes],qTest=[qTest]).val
-
-* For :math:`p>1` (multi-dimensional parameter :math:`q`):
-
-.. code-block::
-
-    fInterp=lagInt(fNodes=fNodes,qNodes=qNodes,qTest=qTestList,liDict={'testRule':'tensorProd'}).val
-
-
-
 Notebook
 ~~~~~~~~
-Try this `notebook <../examples/lagInt.ipynb>`_ to see how to use :code:`UQit` for Lagrange interpolation over a parameter space. 
+Try this `LagInt notebook <../examples/lagInt.ipynb>`_ to see how to use :code:`UQit` for Lagrange interpolation over a parameter space. 
 
 
 
@@ -131,36 +90,41 @@ Gaussian Process Regression
 ---------------------------
 Theory
 ~~~~~~
-Consider the simulator :math:`f(q)` where :math:`q\in \mathbb{Q}`. The observations can be generated from,
+Consider the simulator :math:`f(q)` where :math:`q\in \mathbb{Q}`. 
+The observations are assumed to be generated from the following model,
 
 .. math::
-   y_i = \tilde{f}(q_i) + \varepsilon_i \,, i=1,2,... \,.
+   y = f(q) + \varepsilon  \,.
 
-where :math:`\tilde{f}(q)` is a GP acting as a surrogate of $f(q)$ and :math:`\varepsilon` is the observatio noise. 
+Since the exact simulator :math:`f(q)` is not known, we can put a prior on it in the form of Gaussian process, see [Rasmussen05]_, [Gramacy20]_. 
+Then based on the training data :math:`\mathcal{D}`, the posterior of the :math:`f(q)` which will be denoted by :math:`\tilde{f}(q)` is inferred. 
 Without loss of generality we assume :math:`\varepsilon\sim\mathcal{N}(0,\sigma^2)`. 
-Contrary to the common use of GPR, see [Rasmuseen], where :math:`\sigma` is assumed to be fixed for all observations (homoscedastic noise), we are interested in cases where :math:`sigma` is observation dependent (heteroscedastic noise).
-The latter can be read-up from [???].
-At the first step, given the training data :math:`\mathcal{D}`, a GPR is constructed for :math:`\tilde{f}(q)`.
-Then, the posterior and posterior predictive of :math:`\tilde{f}(q)` and response :math:`y` can be sampled over the parameter space at test samples. 
+Contrary to the common use of Gaussian process regression (GPR), where :math:`\sigma` is assumed to be fixed for all observations (homoscedastic noise), we are interested in cases where :math:`sigma` is observation dependent (heteroscedastic noise).
+For the latter, see [Goldberg98]_.
+Then, the posterior and posterior predictive of :math:`\tilde{f}(q)` and response :math:`y` can be sampled over the parameter space at test samples, see [Rezaeiravesh20]_ and the references therein for the details. 
+
+
+Example
+~~~~~~~
+Given the training data including the observational noise, in :code:`UQit` is constructed as,
+
+.. code-block:: python
+
+   gpr_=gpr(xTrain,yTrain[:,None],noiseSdev,xTest,gprOpts)
+   post_f=gpr_.post_f
+   post_obs=gpr_.post_y
+
 
 Implementation
 ~~~~~~~~~~~~~~
-In :code:`UQit`, the GPR is implemented using the existing library :code:`GPyTorch` [????]. A user can similarly use any other available library for GPR. 
+In :code:`UQit`, the GPR is implemented using the existing Python library :code:`GPyTorch` [Gardner18]_.The user can similarly use any other available library for GPR as long as the code structure is kep consistent with :code:`UQit`. 
 
 .. automodule:: gpr_torch
    :members:
 
-Example
-~~~~~~~
 
 
 Notebook
 ~~~~~~~~
-Try `gpr_notebook <../examples/gpr.ipynb>`_ to see how to use :code:`UQit` for Gaussian process regression over a parameter space. 
-
-
-
-
-
-
+Try `GPR notebook <../examples/gpr.ipynb>`_ to see how to use :code:`UQit` for Gaussian process regression over a parameter space. 
 

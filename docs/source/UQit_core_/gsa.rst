@@ -3,8 +3,9 @@ Global Sensitivity Analysis (GSA)
 =================================
 Global sensitivity analysis (GSA) aims at quantifying the sensitivity of a model response
 or quantity of interest (QoI) with respect to the variation of the uncertain parameters and inputs. 
-In other words, the influence of each of the parameters in the propagated uncertainty in the QoI is measured.In contrast to the local sensitivity analysis, in GSA all the parameters are allowed to vary simeltanouesly over their own admissible space, [Smith:13]_. 
-In :code:`UQit`, the Sobol sensitivity indices [Sobol:01]_ are computed to measure GSA. 
+In other words, the influence of each of the parameters in the propagated uncertainty in the QoI is measured.
+In contrast to the local sensitivity analysis, in GSA all the parameters are allowed to vary simeltanouesly over their admissible space, [Smith13]_. 
+In :code:`UQit`, the Sobol sensitivity indices [Sobol01]_ are computed to measure GSA. 
 
 
 Sobol Sensitivity Indices
@@ -12,7 +13,10 @@ Sobol Sensitivity Indices
 
 Theory
 ~~~~~~
-By analysis of variance (`ANOVA <https://en.wikipedia.org/wiki/Analysis_of_variance>`_) or Sobol decomposition [Sobol:01]_, a model function is decomposed as,
+The following short description has been taken from [Rezaeiravesh20]_. 
+For more in depth review, the reader is referred to [Sobol01]_, Chapter 15 in [Smith13]_, and [Ghanem17]_.
+
+By analysis of variance (`ANOVA <https://en.wikipedia.org/wiki/Analysis_of_variance>`_) or Sobol decomposition [Sobol01]_, a model function is decomposed as,
 
 .. math::
   f(\mathbf{q}) =
@@ -47,19 +51,9 @@ The main Sobol indices are eventually defined as the contribution of each of :ma
    \label{eq:sobol} \tag{2}
    \end{equation}
 
-This short description has been taken from Rezaeiravesh et al. [Rezaeiravesh:20]_. 
-For more in depth review, the reader is referred to [Sobol:01]_, Chapter 15 in [Smith:13]_, and [Ghanem:17].
-
-
-Implementation
-~~~~~~~~~~~~~~
-
-.. automodule:: sobol
-   :members:
-
 Example
 ~~~~~~~
-Given samples `q` with associated `pdf` and response values `f`, the Sobol indices in :code:`UQit` are computed by, 
+Given samples :code:`q` with associated :code:`pdf` and response values :code:`f`, the Sobol indices in :code:`UQit` are computed by, 
 
 .. code-block:: python
 
@@ -69,18 +63,13 @@ Given samples `q` with associated `pdf` and response values `f`, the Sobol indic
    Sij=sobol_.Sij   #2nd-order interactions
    SijName=sobol_.SijName  #Names of Sij
 
+Implementation
+~~~~~~~~~~~~~~
+
+.. automodule:: sobol
+   :members:
 
 Notebook
 ~~~~~~~~
-Try this `notebook`_ to see how to use :code:`UQit` to compute Sobol indices. The provided examples can also be seen as a way to validate the implementation of the methods in :code:`UQit`.  
+Try this `GSA Notebook <../examples/sobol.ipynb>`_ to see how to use :code:`UQit` to compute Sobol indices. The provided examples can also be seen as a way to validate the implementation of the methods in :code:`UQit`.  
 
-
-.. [Sobol:01] `Sobol, I. Global sensitivity indices for nonlinear mathematical models and their monte carlo estimates. Mathematics and Computers in Simulation, 55(1):271 – 280, 2001. <https://www.sciencedirect.com/science/article/abs/pii/S0378475400002706>`_
-
-.. [Smith:13] `R. C. Smith. Uncertainty Quantification: Theory, Implementation, and Applications. Society for Industrial and Applied Mathematics, Philadelphia, PA, USA, 2013. <https://rsmith.math.ncsu.edu/UQ_TIA/>`_
-
-.. [Rezaeiravesh:20] `S. Rezaeiravesh, R. Vinuesa and P. Schlatter, An Uncertainty-Quantification Framework for Assessing Accuracy, Sensitivity, and Robustness in Computational Fluid Dynamics, arXiv:2007.07071, 2020. <https://arxiv.org/abs/2007.07071>`_
-
-.. [Ghanem:17] `R. Ghanem, D. Higdon, and H. Owhadi, editors. Handbook of Uncertainty Quantification. Springer International Publishing, 2017. <https://www.springer.com/gp/book/9783319123844>`_
-
-.. _notebook: ../examples/sobol.ipynb
