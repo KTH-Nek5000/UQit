@@ -2,29 +2,29 @@
 List of core files
 ==================
 
-* **analyticTestFuncs.py**: 
+* :code:`analyticTestFuncs.py`: 
   Analytical model functions to test implementation of different techniques
-* **gpr_torch.py**:
+* :code:`gpr_torch.py`:
   Gaussian Process Regression (GPR) using gpytorch library
-* **lagInt.py**:
+* :code:`lagInt.py`:
   Lagrange interpolation
-* **linAlg.py**:
+* :code:`linAlg.py`:
   Tools for linear algebra 
-* **nodes.py**:
+* :code:`nodes.py`:
   Spectral nodes from different types of polynomials
-* **pce.py**: 
+* :code:`pce.py`: 
   generalized Polynomial Chaos Expansion
-* **stats.py**:
+* :code:`stats.py`:
   Statistical tools
-* **ppce.py**:
+* :code:`ppce.py`:
   Probabilistic generalized Polynomial Chaos Expansion (PPCE)
-* **reshaper.py**:
+* :code:`reshaper.py`:
   Tools for converting and reshaping arrays and lists  
-* **sampling.py**: 
+* :code:`sampling.py`: 
   Sampling from parameter spaces
-* **sobol.py**:
+* :code:`sobol.py`:
   Sobol sensitivity indices
-* **surr2surr.py**:
+* :code:`surr2surr.py`:
   Interpolation from a surrogate to another surrogate
-* **writeUQ.py**:  
+* :code:`writeUQ.py`:  
   Tools for printing or writing data in file
