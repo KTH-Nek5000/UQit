@@ -106,27 +106,27 @@ class fEx2D:
     Analytical test functions for 2D parameter
 
     Args:  
-      `q1', 'q2': Two lists or 1D numpy arrays of size n1, n2, respectively
+      `q1`,`q2`: Two lists or 1D numpy arrays of size n1, n2, respectively.
          Samples of the parameters q1 and q2
       `typ`: string
-         Function type, available: 'type1', 'type2', 'type3', 'Rosenbrock'
+         Function type, available: 'type1', 'type2', 'type3', 'Rosenbrock'.
       `method`: string
-         Method for handling the multi-dimensionality: 'comp' or 'tensorProd'
-           * If 'comp' (component): n1 must be equal to n2 to make pairs of samples: q=(q1,q2)
-           * If 'tensorProd' (tensor-product): size of `val` is n=n1*n2. 
+         Method for handling the multi-dimensionality: 'comp' or 'tensorProd'.
+            * If 'comp' (component): n1 must be equal to n2 to make pairs of samples: q=(q1,q2).
+            * If tensorProd' (tensor-product): size of `val` is n=n1*n2. 
 
     Methods:
       `eval()`: 
           Evaluates f(q) at (q1,q2)
       `sobol(qBound)`: 
-          Sobol indices, available only for `typ`=='type3'
-          qBound: List of length 2, qBound=[qBound1,qBound2] where qBound_i is range of qi
+          Sobol indices, available only for `typ`=='type3'.
+          `qBound`: List of length 2, qBound=[qBound1,qBound2] where qBound_i is range of qi
 
     Returns:               
       `val`: 1D numpy array of size n
           Value of f(q) at q=(q1,q2)
-            * If `method`=='comp': n=n1=n2
-            * If `method`=='tensorProd': n=n1*n2
+            * If method=='comp': n=n1=n2
+            * If method=='tensorProd': n=n1*n2
       `Si` : [S1,S2], 
           where `Si` is the main Sobol index with respect to the i-th parameter, i=1,2
       `STi` : [ST1,ST2], 
@@ -203,7 +203,7 @@ class fEx2D:
            `qInfo`: List of length 2
                Information about the parameter range or distribution.
                  * If `q` is Gaussian ('Norm' or 'normRand') => qInfo=[mean,sdev]
-                 * Otherwise, `qInfo`=[min(q),max(q)]=admissible range of q
+                 * Otherwise, qInfo=[min(q),max(q)]=admissible range of q
         
         Returns:
            `mean`: float
