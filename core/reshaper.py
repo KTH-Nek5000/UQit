@@ -1,27 +1,27 @@
-##########################################################
-#   Tools for converting and reshaping arrays and lists
-##########################################################
+#######################################################
+# Tools for converting and reshaping arrays and lists
+#######################################################
 # Saleh Rezaeiravesh, salehr@kth.se
-#---------------------------------------------------------
+#------------------------------------------------------
 #
 import numpy as np
 #
 #
 def lengthVector(x):
     """ 
-    Returns the length of vector x that is a list or a numpy array
+    Returns the length of vector x which can be a list or a numpy array
     """
     if (isinstance(x,np.ndarray)):
        nx=x.size
     elif (isinstance(x,(list))):
        nx=len(x)
     else:
-       raise ValueError("ERROR in lengthVector: Unknown object x")
+       raise ValueError("Unknown object x")
     return int(nx)
 #
 def vecs2grid(x):
     """
-    Makes a p-D (p>1) tensor-product grid from a list of length p containg 1D numpy arrays
+    Makes a p-D (p>1) tensor-product grid from a list of length p containg 1D numpy arrays of points in each dimension.
 
     Args:
        `x`: A list of length p>1
@@ -49,11 +49,11 @@ def vecsGlue(*x):
 
     Return:   
        `z`: numpy array of shape (n,p) 
-          z[:,i]=xi
+          z[:,i]=xi where i=1,2,...,p
     """
     p=len(x)
     if p<=1:
-       raise ValueError("More then one numpy array must be imported.")
+       raise ValueError("More than one numpy array must be imported.")
     n=lengthVector(x[0])
     for i in range(1,p):
         n_=len(x[i])
