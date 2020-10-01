@@ -9,14 +9,16 @@ import cvxpy as cvx
 #
 def myLinearRegress(A,R,L_=1,max_iter_=100000):
     """    
-    Solves a linear system of equations Af=R with the normalized form A'Af=A'R
+    Solves the linear system of equations Af=R in its normalized form A'Af=A'R
       This solver works for uniquely-, over-, and under-determined linear systems.
       If system is under-determined, the compressed sensing method with L1 or L2 regularization is used.
-      For this purpose, the library cvxpy is used (https://www.cvxpy.org)
+      For this purpose, the library cvxpy is used (https://www.cvxpy.org).
     
     Args:
       `A`: numpy array of shape (n,K) 
+         
       `R`: numpy array of size n
+
       `L_`: int (optional)
          Specifies the regularization order, L_=1 or 2
       `max_iter_`: int (optional)   
