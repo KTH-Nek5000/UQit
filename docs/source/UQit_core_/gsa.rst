@@ -1,10 +1,10 @@
 =================================
 Global Sensitivity Analysis (GSA)
 =================================
-Global sensitivity analysis (GSA) aims at quantifying the sensitivity of a model response
+Global sensitivity analysis (GSA) aims at quantifying the sensitivity of the model response
 or quantity of interest (QoI) with respect to the variation of the uncertain parameters and inputs. 
 In other words, the influence of each of the parameters in the propagated uncertainty in the QoI is measured.
-In contrast to the local sensitivity analysis, in GSA all the parameters are allowed to vary simeltanouesly over their admissible space, [Smith13]_. 
+In contrast to the local sensitivity analysis, in GSA all the parameters are allowed to vary simultaneously over their admissible space, [Smith13]_. 
 In :code:`UQit`, the Sobol sensitivity indices [Sobol01]_ are computed to measure GSA. 
 
 
