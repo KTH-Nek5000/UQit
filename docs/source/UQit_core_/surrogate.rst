@@ -2,8 +2,8 @@
 Surrogates
 ==========
 
-A surrogate or metamodel is an approaximation of the actual model function or simulator over the parameter space.
-Running the surrogate is computationally inexpensive which facilitates the use of different UQ techniques.
+A surrogate or metamodel is an approximation of the actual model function or simulator over the parameter space.
+Running a surrogate is computationally much less expensive than the actual simulator, a characteristic that makes the use of surrogates inevitable in different UQ problems.
 However, the predictions by the surrogate should be accurate enough compared to the actual predictions by the simulator. 
 Using an additive error model, the following relation can be considered between the model function (simulator) and its observations:
 
@@ -14,9 +14,9 @@ where :math:`\mathbf{\varepsilon}` expresses the bias and random noise.
 Our task is to construct a surrogate :math:`\tilde{f}(\chi,\mathbf{q})` for the actual model function (simulator).
 
 Treating the simulator as a blackbox, a set of training data :math:`\mathcal{D}=\{(\mathbf{q}^{(i)},r^{(i)})\}_{i=1}^n` is obtained. 
-There are different techniqus to construct a surrogate, for instance see [Smith13]_, [Ghanem17]_, and [Gramacy20]_. 
-Some of the techniques relevent to CFD applications have been implemented in :code:`UQit`.
-Here, we provide a short overview to the theory behind these techniques, explain their implementation in :code:`UQit` and provide examples for using them. 
+There are different techniques to construct a surrogate, for instance see [Smith13]_, [Ghanem17]_, and [Gramacy20]_. 
+Some of the techniques relevant to CFD applications have been implemented in :code:`UQit`.
+Here, we provide a short overview to the theory behind these techniques, explain their implementation in :code:`UQit`, and provide examples to show how to use them. 
 
 
 Non-intrusive Polynomial Chaos Expansion
@@ -26,8 +26,9 @@ As a type of stochastic collocation (SC) methods, see e.g. Chapter 20 in [Ghanem
 .. math::
    \tilde{f}(\chi,\mathbf{q}) = \sum_{k=0}^K \hat{f}_k(\chi) \Psi_{k}(\xi) \,.
 
-There is a one-to-one correspondence between any sample of :math:`\mathbf{q}\in \mathbb{Q}` and :math:`\xi\in\Gamma`, where :math:`\mathbb{Q}=\bigotimes_{i=1}^p \mathbb{Q}_i` and :math:`\Gamma=\bigotimes_{i=1}^p \Gamma_i`.
-For the details of the method refer to :ref:`gPCE-sect`.
+There is a one-to-one correspondence between any sample of :math:`\mathbf{q}\in \mathbb{Q}` and :math:`\xi\in\Gamma`, where :math:`\mathbb{Q}=\bigotimes_{i=1}^p \mathbb{Q}_i` and :math:`\Gamma=\bigotimes_{i=1}^p \Gamma_i`. 
+Note that :math:`\mathbb{Q}_i` is the admissible space of the i-th parameter which can be mappd onto :math:`\Gamma_i` based on the gPCE rules, see [Xiu02]_, [Eldred09]_.
+For the details of the non-intrusive PCE method refer to :ref:`gPCE-sect`.
 
 
 
@@ -56,9 +57,9 @@ where,
 
 .. math::
    L_{k_i}(q_i) = \prod_{\substack{{k_i=1}\\{k_i\neq j}}}^{n_i} 
-   \frac{q_i - q_i^{(k)}}{q_i^{(k)}-q_i^{(j)}} \,,\quad i=1,2,\ldots,p \,.
+   \frac{q_i - q_i^{(k_i)}}{q_i^{(k_i)}-q_i^{(j)}} \,,\quad i=1,2,\ldots,p \,.
 
-Note that the Lagrange basis satisfies :math:`L_{k_i}(q_i^{(j)})=\delta_{k_{ij}}`, where :math:`\delta` represents the Kronecker delta. 
+Note that the Lagrange basis satisfies :math:`L_{k_i}(q_i^{(j)})=\delta_{k_{i}j}`, where :math:`\delta` represents the Kronecker delta. 
 
 
 Example
@@ -90,23 +91,23 @@ Gaussian Process Regression
 ---------------------------
 Theory
 ~~~~~~
-Consider the simulator :math:`f(q)` where :math:`q\in \mathbb{Q}`. 
+Consider the simulator :math:`f(\mathbf{q})` where :math:`\mathbf{q}\in \mathbb{Q}`. 
 The observations are assumed to be generated from the following model,
 
 .. math::
-   y = f(q) + \varepsilon  \,.
+   y = f(\mathbf{q}) + \varepsilon  \,.
 
-Since the exact simulator :math:`f(q)` is not known, we can put a prior on it in the form of Gaussian process, see [Rasmussen05]_, [Gramacy20]_. 
-Then based on the training data :math:`\mathcal{D}`, the posterior of the :math:`f(q)` which will be denoted by :math:`\tilde{f}(q)` is inferred. 
+Since the exact simulator :math:`f(\mathbf{q})` is not known, we can put a prior on it, which is in the form of a Gaussian process, see [Rasmussen05]_, [Gramacy20]_. 
+Based on the training data :math:`\mathcal{D}`, the posterior of the :math:`f(q)`, denoted by :math:`\tilde{f}(\mathbf{q})`, is inferred. 
 Without loss of generality we assume :math:`\varepsilon\sim\mathcal{N}(0,\sigma^2)`. 
-Contrary to the common use of Gaussian process regression (GPR), where :math:`\sigma` is assumed to be fixed for all observations (homoscedastic noise), we are interested in cases where :math:`sigma` is observation dependent (heteroscedastic noise).
-For the latter, see [Goldberg98]_.
-Then, the posterior and posterior predictive of :math:`\tilde{f}(q)` and response :math:`y` can be sampled over the parameter space at test samples, see [Rezaeiravesh20]_ and the references therein for the details. 
+Contrary to the common use of Gaussian process regression (GPR) where :math:`\sigma` is assumed to be fixed for all observations (homoscedastic noise), we are interested in cases where :math:`\sigma` is observation-dependent (heteroscedastic noise).
+In the latter, we need to have a Gaussian process to infer the noise parameters, see [Goldberg98]_.
+Eventually, the posteriors of :math:`\tilde{f}(\mathbf{q})` and response :math:`y` can be sampled over the parameter space, see [Rezaeiravesh20]_ and the references therein for the details. 
 
 
 Example
 ~~~~~~~
-Given the training data including the observational noise, in :code:`UQit` is constructed as,
+Given the training data including the observational noise, A GPR is constructed in :code:`UQit` as,
 
 .. code-block:: python
 
@@ -117,7 +118,8 @@ Given the training data including the observational noise, in :code:`UQit` is co
 
 Implementation
 ~~~~~~~~~~~~~~
-In :code:`UQit`, the GPR is implemented using the existing Python library :code:`GPyTorch` [Gardner18]_.The user can similarly use any other available library for GPR as long as the code structure is kep consistent with :code:`UQit`. 
+In :code:`UQit`, the GPR is implemented using the existing Python library :code:`GPyTorch` [Gardner18]_. 
+The user can similarly use any other available library for GPR as long as the code structure is kept consistent with :code:`UQit`. 
 
 .. automodule:: gpr_torch
    :members:
