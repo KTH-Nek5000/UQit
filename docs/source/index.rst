@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. figure:: ./_static/uqit_logo.png
+.. figure:: ./_static/uqit_logo.pdf
    :scale: 70%
    :align: center
    :alt: A Python Toolbox for Uncertainty Quantification in CFD
@@ -46,6 +46,7 @@ Combining GPR with PCE results in probabilistic PCE which is a very novel and po
    ./UQit_core_/surrogate
    ./UQit_core_/uqFWD
    ./UQit_core_/gsa
+   ./UQit_core_/others
    ./UQit_apps_/wrChan
    ./bib
 
