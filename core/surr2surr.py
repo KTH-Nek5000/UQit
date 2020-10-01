@@ -15,37 +15,38 @@ import reshaper
 #
 def lagIntAtGQs(fValM1,qM1,spaceM1,nM2,spaceM2,distType):
     """    
-    Given response values `fValM1` at `nM1` arbitrary samples over p-D spaceM1, the values at 
+    Given response values `fValM1` at `nM1` arbitrary samples over the p-D `spaceM1`, the values at 
     `nM2` Gauss quadrature points over `spaceM2` are computed using Lagrange interpolation. 
-      * Both `spaceM1` and `spaceM2` have the same dimension `p`.
-      * At each of the p dimensions, ||spaceM2||<||spaceM1|| at each dimension.
-      * The Gauss quadrature nodes over 'spaceM2' can be the abscissa of different types of 
-      polynomials based on the `distType` and the gPCE rule. 
-      * A tensor-product grid of the GQ nodes on `spaceM2` is created
+
+       * Both `spaceM1` and `spaceM2` have the same dimension `p`.
+       * At each of the p dimensions, ||`spaceM2`||<||`spaceM1`|| at each dimension.
+       * The Gauss quadrature nodes over 'spaceM2' can be the abscissa of different types of 
+         polynomials based on the `distType` and the gPCE rule. 
+       * A tensor-product grid from the GQ nodes on `spaceM2` is created
 
     args:    
       `qM1`: List of length p 
-         List of samples on `spaceM1`: qM1=[qM1_1,qM1_2,...,qM1_p] where `qM1_i` is a 1D numpy 
-         array of size nM1_i, where i=1,2,...,p. 
+         List of samples on `spaceM1`; qM1=[qM1_1,qM1_2,...,qM1_p] where `qM1_i` is a 1D numpy 
+         array of size nM1_i, for i=1,2,...,p. 
       `fValM1`: numpy p-D array of shape (nM1_1,nM1_2,...,nM1_p).
          Response values at `qM1`
       `spaceM1`: List of length p.
          =[spaceM1_1,spaceM1_2,...,spaceM1_p] where spaceM1_i is a list of two elements, 
-         specifying the admissible range of qM1_i, where i=1,2,...,p.
+         specifying the admissible range of qM1_i, for i=1,2,...,p.
       `nM2` List of length p,
          Containing the number of Gauss quadrature samples `qM2` in each parameter dimension, 
          nM2=[nM2_1,nM2_2,...,nM2_p]
       `spaceM2`: List of length p.
-         =[spaceM2_1,spaceM2_2,...|spaceM2_p] where spaceM2_i is a list of two elements, 
-         specifying the admissible range of qM2_i, where i=1,2,...,p.
+         =[spaceM2_1,spaceM2_2,...,spaceM2_p] where spaceM2_i is a list of two elements, 
+         specifying the admissible range of qM2_i, for i=1,2,...,p.
       `distType`: List of length p with string members
-         The i-th element specifies the distribution type of the i-th parameter accoring to 
+         The i-th element specifies the distribution type of the i-th parameter according to 
          the gPCE rule.
 
     Returns:
       `qM2`: List of length p 
-         List of samples on `spaceM2`: qM2=[qM2_1,qM2_2,...,qM2_p] where `qM2_i` is a 1D numpy 
-         array of size nM2_i, where i=1,2,...,p. 
+         List of samples on `spaceM2`; qM2=[qM2_1,qM2_2,...,qM2_p] where `qM2_i` is a 1D numpy 
+         array of size nM2_i, for i=1,2,...,p. 
       `xiM2`: numpy array of shape (nM2_1*nM2_2*...*nM2_p,p)   
          Tensor-product grid of Gauss-quadrature nodes on the mapped space of `spaceM2`
       `fValM2`: 1D numpy array of size (nM1_1*nM1_2*...*nM1_p).
