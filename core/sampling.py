@@ -16,13 +16,13 @@ import pce
 class trainSample:
     R"""
     Generating training samples from a 1D paramter space using different methods.
-    Samples of `xi` are drawn from the mapped space (Gamma) and are then mapped to the parameter space.
+    Samples of `xi` are drawn from the mapped space Gamma and are then mapped to the parameter space Q.
 
     Args:
       `sampleType`: string
          Sample type, chosen from the following list:
            * 'GQ': Gauss-Quadrature nodes 
-           * 'GLL': Gauss-Lobatto-Lgendre nodes
+           * 'GLL': Gauss-Lobatto-Legendre nodes
            * 'unifSpaced': Uniformly-spaced
            * 'unifRand': Uniformly distributed random
            * 'normRand': Gaussian distributed random
@@ -49,7 +49,7 @@ class trainSample:
       `qBound`: List of length 2
          Admissible range of `q`
       `w`: 1D numpy array of size `nSamp`
-         Weights in Gauss-Quadrature rule only if sampleType='GQ'         
+         Weights in Gauss-Quadrature rule only if sampleType=='GQ'         
     
     Examples:
       ts1=trainSample(sampleType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10)
@@ -116,7 +116,7 @@ class trainSample:
 
     def gqPtsWts(self):
         """
-        Gauss-Quadrature nodes and weights acc. gPCE rule
+        Gauss-Quadrature nodes and weights according to the gPCE rule
         """
         n=self.nSamp
         if self.GQdistType=='Unif':
@@ -136,7 +136,7 @@ class trainSample:
 
     def xi2q_map(self):
         """
-        Linearly map xi\in\Gamma to q\in Q
+        Linearly map xi in Gamma to q in Q
         """
         xi_=self.xi
         if (self.sampleType=='GQ' and self.GQdistType=='Norm') or \
@@ -157,7 +157,7 @@ class testSample:
     Args:
       `sampleType`: string 
          Type of sample, chosen from the following list:
-           * 'GLL': Gauss-Lobatto-Lgendre nodes
+           * 'GLL': Gauss-Lobatto-Legendre nodes
            * 'unifSpaced': Uniformly-spaced
            * 'unifRand': Uniformly distributed random
            * 'normRand': Gaussian distributed random
@@ -180,13 +180,13 @@ class testSample:
       `q`: 1D numpy array of size `nSamp`
          Samples `q` from the mapped space Q    
       `qBound`: List of length 2 
-         Admissible range of `q`. It will be the same as the Arg `qBound` if GQdistType=='Unif'
+         Admissible range of `q`. It will be the same as the argument `qBound` if GQdistType=='Unif'
 
     Examples:
       ts1=testSample(sampleType='unifRand',GQdistType='Unif',qBound=[-1,3],nSamp=10)
       ts2=testSample(sampleType='unifRand',qBound=[-1,3],nSamp=10)
-      ts3=testSample(sampleType='normRand',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
-      ts4=testSample(sampleType='unifSpaced',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
+      ts3=testSample(sampleType='unifSpaced',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
+      ts4=testSample(sampleType='normRand',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10)
       ts5=testSample(sampleType='unifSpaced',GQdistType='Unif',qBound=[-1,3],nSamp=10)
       ts6=testSample(sampleType='GLL',qBound=[-1,3],nSamp=10)
     """
@@ -243,7 +243,7 @@ class testSample:
         
     def q2xi_map(self):
         """
-        Linearly map q\in Q to xi\in\Gamma
+        Linearly map q in Q to xi in Gamma
         """
         q_=self.q
         qBound_=self.qBound
@@ -257,19 +257,19 @@ class testSample:
 #
 def LHS_sampling(n,xBound):
     """
-        LHS (Latin Hypercube) sampler from a p-D random variable distributed uniformly
-        credits: https://zmurchok.github.io/2019/03/15/Latin-Hypercube-Sampling.html
+        LHS (Latin Hypercube) sampler from a p-D random variable distributed uniformly.
+        Credits: https://zmurchok.github.io/2019/03/15/Latin-Hypercube-Sampling.html
 
         Args:
           `n`: int
              Number of samples to be taken
           `xBound`: list of length p
              =[[min(x1),max(x1)],...[min(xp),max(xp)]], where [min(xi),max(xi)] specifies
-              the range of the i-th parameter
+             the range of the i-th parameter
 
         Returns:
           `x`: 2D numpy array of size (n,p)
-             Samples takren from the p-D space with ranges `xBound`
+             Samples taken from the p-D space with ranges `xBound`
     """
     p=len(xBound)
     x = np.random.uniform(size=[n,p])

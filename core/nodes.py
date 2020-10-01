@@ -10,7 +10,7 @@ import math as mt
 #
 def Clenshaw_pts(n):
     """ 
-    Generates Clenshaw points over [-1,1]
+    Generates Clenshaw points over range [-1,1]
 
     Args: 
       `n`: int
@@ -28,7 +28,7 @@ def Clenshaw_pts(n):
 #
 def ClenshawCurtis_pts(l):
     """
-    Generates Clenshaw-Curtis nodes at level l over [0,1]
+    Generates Clenshaw-Curtis nodes at level l over range [0,1]
 
     Args:
       `l`: int
