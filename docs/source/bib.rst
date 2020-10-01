@@ -36,3 +36,5 @@ Bibliography
 
 .. [Gardner18] `J. R. Gardner, G. Pleiss, D. Bindel, K. Q. Weinberger, and A. G. Wilson. Gpytorch: Blackbox matrix-matrix gaussian process inference with GPU acceleration. CoRR, abs/1809.11165, 2018. <https://arxiv.org/abs/1809.11165>`_ 
 
+.. [Canuto87] `Canuto C., Hussaini M. Y., Quarteroni A., Tang T. A., Spectral Methods in Fluid Dynamics, Springer-Verlag 1987. <https://link.springer.com/book/10.1007/978-3-642-84108-8>`_
+
