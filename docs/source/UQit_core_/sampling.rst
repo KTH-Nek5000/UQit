@@ -5,16 +5,16 @@ Sampling
 Sampling
 --------
 In :code:`UQit`, different types of samples can be taken from the parameter space. 
-In the big picture, the parameter samples are divided into training and test. 
-To construct a surrogate or perform a UQ forward problem, we need to take training samples from :math:`\Gamma` and then we map them to :math:`\mathbb{Q}`.
-In contrast the test samples which are, for instance, used to evalute the surrogates, are taken from :math:`\mathbb{Q}` and then are mapped to :math:`\Gamma`.
+From one point of view, the parameter samples are divided into training and test. 
+To construct a surrogate or perform a UQ forward problem, we need to take training samples from a mapped or standardized space :math:`\Gamma` and then map them onto the parameter admissible space :math:`\mathbb{Q}`.
+In contrast, the test samples which are, for instance, used to evalute the constructed surrogates, are taken from :math:`\mathbb{Q}` and then are mapped onto :math:`\Gamma`.
 
 Available types of training samples:
 
  * :code:`GQ`: Gauss-Quadrature nodes
 
    can be used with distributions :code:`Unif`, :code:`Norm`
- * :code:`GLL`: Gauss-Lobatto-Lgendre nodes   
+ * :code:`GLL`: Gauss-Lobatto-Legendre nodes   
  * :code:`unifSpaced`: Uniformly-spaced samples   
  * :code:`unifRand`: Uniformly distributed random samples   
  * :code:`normRand`: Gaussian distributed random samples
@@ -23,14 +23,14 @@ Available types of training samples:
 
 Available types of test samples:
 
- * :code:`GLL`: Gauss-Lobatto-Lgendre nodes
+ * :code:`GLL`: Gauss-Lobatto-Legendre nodes
  * :code:`unifSpaced`: Uniformly-spaced points
  * :code:`unifRand`: Uniformly distributed random
  * :code:`normRand`: Gaussian distributed random
 
-Note that the argument :code:`qInfo`:
- * contains the parameter range, if the parameter is :code:`Unif`
- * contains the mean and variance, if the parameter is :code:`Norm` (:math:`\sim \mathcal{N}(\mu,\sigma^2)`)
+Note that the argument :code:`qInfo` appearing in sampling methods:
+ * :code:`qInfo=[a,b]`, if the parameter is :code:`Unif` over range :math:`[a,b]`, i.e. :math:`q\sim\mathcal{U}[a,b]`
+ * :code:`qInfo=[m,s]` contains the mean :math:`m` and standard-deviation :math:`s`, if the parameter is :code:`Norm`, i.e. :math:`q\sim \mathcal{N}(m,s^2)`
 
 
 Example
@@ -60,8 +60,10 @@ Implementation
    :members: 
 
 
-Implementation
-~~~~~~~~~~~~~~
-Some of tha sampling methods rely on generating nodes from mathematical polynomials, for instance.
+Nodes
+-----
+Some of the sampling methods rely on generating nodes from mathematical polynomials, for instance see [Canuto87]_.
+The associated methods are implemented in :code:`nodes.py`.
+
 .. automodule:: nodes
    :members:
