@@ -3,7 +3,7 @@ Overview \& Terminology
 =======================
 
 .. figure:: ../_static/uqFrame.png
-   :scale: 50%
+   :scale: 45%
    :align: center
    :alt: Schematic of different UQ problems, taken from [Rezaeiravesh18]_.
 
@@ -15,9 +15,9 @@ A computational model or code depends on different types of inputs and parameter
 The focus of the uncertainty quantification (UQ) techniques is mainly on the last two. 
 
 :code:`UQit` is designed mainly based on the needs for UQ in the CFD community. 
-Its connection with the CFD solvers is non-intrusive where the CFD code is treated as a blacbox. 
-As a result, we always deal with discrete data which include parameter samples and asociated responses acquired by running the simulator. 
-A good overview over different appraoches can be found for instance in [Smith13]_ and [Ghanem17]_.
+Its connection with the CFD solvers is non-intrusive where the CFD code is treated as a blackbox. 
+As a result, we always deal with discrete data which include parameter samples and associated responses acquired by running the simulator. 
+A good overview over different approaches can be found for instance in [Smith13]_ and [Ghanem17]_.
 The table below provides terminology related to this documentation and is based on [Rezaeiravesh20]_.
 
 
