@@ -7,7 +7,7 @@ Sampling
 In :code:`UQit`, different types of samples can be taken from the parameter space. 
 From one point of view, the parameter samples are divided into training and test. 
 To construct a surrogate or perform a UQ forward problem, we need to take training samples from a mapped or standardized space :math:`\Gamma` and then map them onto the parameter admissible space :math:`\mathbb{Q}`.
-In contrast, the test samples which are, for instance, used to evalute the constructed surrogates, are taken from :math:`\mathbb{Q}` and then are mapped onto :math:`\Gamma`.
+In contrast, the test samples which are, for instance, used to evaluate the constructed surrogates, are taken from :math:`\mathbb{Q}` and then are mapped onto :math:`\Gamma`.
 
 Available types of training samples:
 
