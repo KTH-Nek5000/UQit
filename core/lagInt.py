@@ -1,15 +1,16 @@
-###########################################################
-#     Lagrange Interpolation based on tensor-product
-# Using response values at a given nodal set and interpolate
-#     at some test points within a space defined by the nodes.
-# Note: To avoid Runge's phenomenon, the nodal set should 
-#       be non-uniformly distributed in each dimension of 
-#       parameter space. A good example of proper nodal set
-#       are Gauss quadratures.  
-###########################################################
+#######################################################################
+# Lagrange Interpolation is constructed based on tensor-product rule 
+#  using the response values at a given nodal set and then it is used to 
+#  interpolate at some test points within the parameter space.
+#######################################################################
 # Saleh Rezaeiravesh, salehr@kth.se
-#----------------------------------------------------------
+#-----------------------------------------------------------------------
 #
+"""
+Note: 
+  * To avoid Runge's phenomenon, the training nodal set should be non-uniformly distributed in each dimension of the parameter space. 
+
+"""
 import os
 import sys
 import numpy as np
@@ -24,26 +25,27 @@ class lagInt:
    :math:`n_k, k=1,2,...,p` refers to the number of training nodes in the i-th dimension of the parameter space.
 
    .. math::
-      F(\mathbf{Q})=\sum_{k_1=1}^{n_1} ... \sum_{k_p=1}^{n_p} [fNodes(k_1,k_2,...,k_p) L_{k_1}(Q_1) L_{k_2}(Q_2) ... L_{k_=}(Q_p)]
+      F(\mathbf{Q})=\sum_{k_1=1}^{n_1} ... \sum_{k_p=1}^{n_p} [fNodes(k_1,k_2,...,k_p) L_{k_1}(Q_1) L_{k_2}(Q_2) ... L_{k_p}(Q_p)]
          
-      where, :math:`L_{k_i}(Q_p)` is the single-variate Lagrange basis in the i-th dimension. 
+   where, :math:`L_{k_i}(Q_i)` is the single-variate Lagrange basis in the i-th dimension. 
 
    Args:      
       `qNodes`: A list of length p
-         `qNodes=[qNodes_1|qNodes_2|...|qNodes_p]`, where `qNodes_k` is a 1D numpy array 
-          of `n_k` nodes in the k-th parameter dimension. 
-      `fNodes`: A p-D numpy array of shape `(n_1,n_2,...,n_p)` or a 1D array of size `n=n_1*n_2*...*n_p` if p>1)
+         `qNodes=[qNodes_1,qNodes_2,...,qNodes_p]`, 
+         where `qNodes_k` is a 1D numpy array of `n_k` nodes in the k-th parameter dimension. 
+      `fNodes`: A p-D numpy array of shape `(n_1,n_2,...,n_p)` (or a 1D array of size `n=n_1*n_2*...*n_p` if p>1)
           Response values at the training nodes.
-      `qTest`: A list of length p containing test samples from the p-D parameter space.      
-          i.e. `qTest=[Q_0,Q_1,...,Q_{p-1}]` where `Q_i` is a 1D numpy array of size `m_i, i=0,1,...,p-1`. 
+      `qTest`: A list of length p 
+          Containing test samples from the p-D parameter space, i.e. `qTest=[Q_0,Q_1,...,Q_{p-1}]` 
+          where `Q_i` is a 1D numpy array of size `m_i, i=0,1,...,p-1`.
           Note that `Q_i` must be in `[min(qNodes_i),max(qNodes_i)]` for `i=1,2,...,p`.
       `liDict`: dict (optional)
           To set different options for Lagrange interpolation over the p-D space when p>1, with the following key:
             * 'testRule': The rule for treating the multi-dimensional test points with the values:
-               - 'tensorProd': A tensor-product grid is constructed from `Q_i` in list `qTest`.
-                 Hence, total number of sample points `m=m0*m1*m_{p-1}`
-               - 'set': All `m_i` for `i=0,1,...p-1` should be equal. A
-                 set of `m=m_i` test points is considered.
+               - 'tensorProd': A tensor-product grid is constructed from `Q_i`s in list `qTest`.
+                 Hence, the total number of sample points is `m=m0*m1*m_{p-1}`.
+               - 'set': All `m_i` for `i=0,1,...p-1` should be equal. As a result, 
+                 a set of `m=m_i` test points is considered.
    Returns: 
       `val`: f(qTest), Interpolated values of f(q) at `qTest`
          * If p==1: 1D numpy array of size m1
@@ -139,7 +141,7 @@ class lagInt:
       p-D parameter space. Here, :math:`n_k, k=1,2,...,p` refers to the number of training nodes in the i-th dimension of the parameter space.
 
       .. math::
-          F(\mathbf{Q})=\sum_{k_1=1}^{n_1} ... \sum_{k_p=1}^{n_p} [fNodes(k_1,k_2,...,k_p) L_{k_1}(Q_1) L_{k_2}(Q_2) ... L_{k_=}(Q_p)]
+          F(\mathbf{Q})=\sum_{k_1=1}^{n_1} ... \sum_{k_p=1}^{n_p} [fNodes(k_1,k_2,...,k_p) L_{k_1}(Q_1) L_{k_2}(Q_2) ... L_{k_p}(Q_p)]
          
       where, :math:`L_{k_i}(Q_p)` is the single-variate Lagrange basis in the i-th dimension. 
       """
@@ -209,17 +211,17 @@ def lagInt_Quads2Line(fNodes,qNodes,lineDef):
 
     Args: 
       `qNodes`: A list of length 2
-         `qNodes=[Q1|Q2]` list of training nodes `Qi` is a 1D numpy array of length ni for i=1,2.       
+         `qNodes=[Q1,Q2]` list of training nodes `Qi` is a 1D numpy array of length ni for i=1,2.       
       `fNodes`: 1D numpy array of length `n1*n2`
          Values of the response at `qNodes`
       `lineDef`: dict
-         Helps defining the line over which test samples are taken.
-          ={`'lineStart':[q1Start,q2Start]`,    line's starting point
-            `'ineEnd':[q1End,q2End]`,           line's end point 
-            `'noPtsLine':<int>`}                 number of test points on the line          
+         Defines the line over which the test samples are to be taken. The keys are:
+           * `'lineStart':[q1Start,q2Start]`; line's starting point
+           * `'lineEnd':[q1End,q2End]`; line's end point 
+           * `'noPtsLine'`: int; number of test points on the line, `m1`
     Returns:       
       `val`: f(qTest), Interpolated values of f(q) at `qTest`
-         1D numpy array of size `m1*m2*...*mp`
+         1D numpy array of size `m1`
     """
     p=len(qNodes)
     nQ=[qNodes[0].shape[0],qNodes[1].shape[0]]
