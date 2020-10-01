@@ -14,18 +14,20 @@ import writeUQ
 #
 def pdfFit_uniVar(f,doPlot,pwOpts):
     """
-    Fits a PDF to samples f and plots both histogram and the fitted PDF. 
-    As an option, the plots and data can be saved on the disk.
+    Fits a PDF to samples `f` and plots both histogram and the fitted PDF. 
+    As an option, the plots and data can be saved on disk.
     
     Args:
       `f`: 1D numpy array of size n 
+         Samples
       `doPlot`: bool      
-      `pwOpts`: dict (optional) options for plotting and dumping the data. 
-        Keys:
-          * 'figDir': Directory top save the figure and dump the data
-          * 'figName': Name of the figure
-          * 'header': String as the header of the dumped file
-          * 'iLoc': int, After converting to string is added to the `figName`
+         Whether or not plotting the PDF
+      `pwOpts`: dict (optional) 
+         Options for plotting and dumping the data with the following keys:
+           * 'figDir': string, Directory to save the figure and dump the data
+           * 'figName': string, Name of the figure
+           * 'header': string, the header of the dumped file
+           * 'iLoc': int, After converting to string will be added to the `figName`
     """
     if f.ndim>1:
        print('Note: input f to pdfFit_uniVar(f) must be a 1D numpy array. We reshape f!')
@@ -82,14 +84,15 @@ def pdfFit_uniVar(f,doPlot,pwOpts):
 
 def pdfPredict_uniVar(f,fTest,doPlot):
     """
-    Evaluates the continuous PDF fitted to f at fTest. 
+    Evaluates the continuous PDF fitted to `f` at `fTest`. 
 
     Args:
       `f`: 1D numpy array
+
       `fTest`: List of length m
     
     Returns:
-      `pdfPred`: 1D numpy array of size m       
+      `pdfPred`: 1D numpy array of size m             
     """
     #Fit the PDF to f
     kde=pdfFit_uniVar(f,doPlot,{})
