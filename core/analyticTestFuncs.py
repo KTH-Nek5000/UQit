@@ -1,10 +1,10 @@
-################################################################
-#     Analytical model functions to test implementation of 
-#       different techniques
-################################################################
-#--------------------------------------------
+###################################################
+# Analytical model functions to test implementation 
+#   of different UQ techniques
+###################################################
+#--------------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
-#--------------------------------------------
+#--------------------------------------------------
 #TODO: Generalize Sobol of Ishigami to [ai,bi]
 #--------------------------------------------
 #
@@ -32,8 +32,10 @@ class fEx1D:
            * `qInfo=[m,sdev]` if `q~N(m,sdev^2)` 
 
     Methods:
-      `eval()`: Evaluates f(q) at `q`
-      `moments(qInfo)`: Mean and variance of f(q)
+      `eval()`: 
+         Evaluates f(q) at `q`
+      `moments(qInfo)`: 
+         Mean and variance of f(q)
 
     Returns:        
       `val`: 1D numpy array of size n,
@@ -114,19 +116,23 @@ class fEx2D:
            * If 'tensorProd' (tensor-product): size of `val` is n=n1*n2. 
 
     Methods:
-      `eval()`: Evaluates f(q) at (q1,q2)
-      `sobol(qBound)`: Sobol indices if `typ`=='type3'
+      `eval()`: 
+          Evaluates f(q) at (q1,q2)
+      `sobol(qBound)`: 
+          Sobol indices, available only for `typ`=='type3'
           qBound: List of length 2, qBound=[qBound1,qBound2] where qBound_i is range of qi
 
     Returns:               
       `val`: 1D numpy array of size n
-          Values of f(q) at q=(q1,q2)
-            * If 'comp': n=n1=n2
-            * If 'tensorProd': n=n1*n2
-      `Si` : [S1,S2], where Si is the main Sobol index wrt the i-th par, i=1,2
-      `STi` : [ST1,ST2], where Si is the total Sobol index wrt the i-th par, i=1,2
-      `Sij`: [S12], dual interaction
-         Only if `typ`=='type3':     
+          Value of f(q) at q=(q1,q2)
+            * If `method`=='comp': n=n1=n2
+            * If `method`=='tensorProd': n=n1*n2
+      `Si` : [S1,S2], 
+          where `Si` is the main Sobol index with respect to the i-th parameter, i=1,2
+      `STi` : [ST1,ST2], 
+          where `Si` is the total Sobol index with respect to the i-th parameter, i=1,2
+      `Sij`: [S12], 
+          Dual interaction 
     """
     def __init__(self,q1,q2,typ,method):
         self.q1=q1
@@ -193,7 +199,7 @@ class fEx2D:
 
         Args:
            `distType`: List of length 2
-               The i-th value specifies the distribution type of the i-th parameter 
+               The i-th value (string) specifies the distribution type of the i-th parameter 
            `qInfo`: List of length 2
                Information about the parameter range or distribution.
                  * If `q` is Gaussian ('Norm' or 'normRand') => qInfo=[mean,sdev]
@@ -227,15 +233,18 @@ class fEx2D:
 
     def sobol(self,qBound):
         """
-        Sobol sensitivity indices of f(q) wrt q1 and q2
+        Sobol sensitivity indices of f(q) with respect to q1 and q2
         
         Args:
           `qBound`: =[qBound1,qBound2] admissible range of q1, q2
 
         Returns:   
-          `Si`:  =[S1,S2], where Si is the main Sobol index wrt the i-th par, i=1,2
-          `STi` : [ST1,ST2], where Si is the total Sobol index wrt the i-th par, i=1,2
-          `Sij`: =[S12], dual interaction
+          `Si`:  =[S1,S2], 
+             where `Si` is the main Sobol index wrt the i-th parameter, i=1,2
+          `STi` : [ST1,ST2], 
+             where `Si` is the total Sobol index wrt the i-th parameter, i=1,2
+          `Sij`: =[S12], 
+             dual interaction
         """
         if self.typ=='type3':
            #Exact sobol indices for f(q1,q2)=q1^2+q1*q2
@@ -306,15 +315,18 @@ class fEx3D:
          Function type, available: 'Ishigami'
       `method`: string
          Method for handling the multi-dimensionality: 'comp' or 'tensorProd'
-         If 'comp' (component): n1 must be equal to n2. Pair of samples: q=(q1,q2,q3)
-         If 'tensorProd' (tensor-product): size of `val` is n=n1*n2*n3. 
-      `opts`: options 
+           * If 'comp' (component): n1 must be equal to n2. Pair of samples: q=(q1,q2,q3)
+           * If 'tensorProd' (tensor-product): size of `val` is n=n1*n2*n3. 
+      `opts`: function fixed parameters
          If 'Ishigami': opts=['a':a_val,'b':b_val]
 
     Methods:
-      `eval()`: Evaluates f(q) at (q1,q2,q3)
-      `moments(qInfo)`: Analytical values of mean and variance of f(q)
-      `sobol(qBound)`: Analytical Sobol indices
+      `eval()`: 
+          Evaluates f(q) at (q1,q2,q3)
+      `moments(qInfo)`: 
+          Analytical values of mean and variance of f(q)
+      `sobol(qBound)`: 
+          Analytical Sobol indices
             
     Returns:
       `val`: 1D numpy array of size n
@@ -377,15 +389,17 @@ class fEx3D:
 
     def moments(self,qInfo):
         """ 
-        Analytical Mean and variance of f(q)
+        Analytical mean and variance of f(q)
 
         Args:
           `qInfo`: List of length 3
              qInfo=[qBound_1,qBoun_2,qBound_3] where qBound_i: admissible range of the i-th parameter
 
         Returns:     
-          `mean`: Expected value of f(q)   
-          `var`: Variance of f(q)   
+          `mean`: 
+              Expected value of f(q)   
+          `var`: 
+              Variance of f(q)   
         """
         if self.typ=='Ishigami':
            #Analytical values of mean and variance of Ishigami function f(q1,q2,q3)
@@ -416,14 +430,17 @@ class fEx3D:
 
     def sobol(self,qBound):    
         """
-        Sobol sensitivity indices of f(q) wrt q1, q2, qnd q3
+        Sobol sensitivity indices of f(q) with respect to q1, q2, and q3
         
         Args: 
-          `qBound`: =[qBound1,qBound2,qBound3] admissible range of q1, q2, q3
+          `qBound`: List of length 3
+             =[qBound1,qBound2,qBound3] admissible range of q1, q2, q3
 
         Returns:
-          `Si`:  =[S1,S2,S3], where Si is Sobol indices with respect to qi
-          `Sij`: =[S12,S13,S23], dual interactions
+          `Si`:  =[S1,S2,S3]
+             where Si is Sobol indices with respect to qi
+          `Sij`: =[S12,S13,S23]
+             dual interactions
         """
         pi=mt.pi
         iFac=0
