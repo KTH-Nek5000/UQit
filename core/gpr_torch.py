@@ -1,6 +1,5 @@
 ################################################################
 # Gaussian Process Regression (GPR)
-# Using gpytorch library
 #################################################################
 #----------------------------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
@@ -12,15 +11,15 @@ Notes:
 
   2. GPyTorch: If the standard deviation of the observation noise is 
   exactly zero for all observations, then there may be issues with
-  Cholesky decomposition. Instead of zero, use a very small value for
-  the noise standard deviations.
+  Cholesky decomposition. Therefore, instead of zero, use a very small 
+  value for the noise standard deviations.
 
   3. In a p-D parameter space, it is required to define a length-scale
-  per dimension. Based on the experinece, if the range of the parameters
+  per dimension. Based on the experience, if the range of the parameters
   are too different from each other or are too large, the optimization
   of the length-scales can be problematic. To rectify this, the original
   parameter space can be mapped, for instance, into the hypercube
-  [-1,1]^p.
+  [-1,1]^p. Then, the GPR can be constructed on this mapped space. 
 
 """    
 #----------------------------------------------------------------
@@ -44,8 +43,8 @@ from gpytorch.likelihoods import (
 #
 class SingletaskGPModel(gpytorch.models.ExactGP):
     """
-    GPR for single-task output, 1D input: y=f(x) in R, x in R
-    Based on `GPyTorch`
+    GPR for single-task output using GPyTorch, 
+    1D input: y=f(x) in R, x in R
     """
     def __init__(self, train_x, train_y, likelihood):
         super(SingletaskGPModel, self).__init__(train_x, train_y, likelihood)
@@ -60,8 +59,8 @@ class SingletaskGPModel(gpytorch.models.ExactGP):
 #
 class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
     """
-    GPR for single-task output, p-D input: y=f(x)  in R, x in R^p, p>1
-    Based on `GPyTorch`
+    GPR for single-task output using GPyTorch, 
+    p-D input: y=f(x)  in R, x in R^p, p>1
     """
     def __init__(self, train_x, train_y, likelihood):
         super(SingletaskGPModel_mIn, self).__init__(train_x, train_y, likelihood)
@@ -86,14 +85,14 @@ class gpr:
     .. math::
        y=f(x)+\epsilon 
        
-    where :math:`\epsilon~N(M,V)`
+    where :math:`\epsilon\sim N(M,V)`
 
-     * The parameter (input) space is p-dimensional, where p=1,2,...,p.
+     * The parameter (input) space is p-dimensional, where p=1,2,...
      * The response y is 1-D (single-task model).
      * The observations are assumed to be un-correlated, but the noise uncertainty 
        can be observation-dependent (heteroscedastic). Therefore, only the diagonal
        elements of V are (currently) assumed to be non-zero. If the noise uncertainty 
-       is fixed for all observations, then e_i~iid (homoscedastic).
+       is fixed for all observations, then epsilon_i~iid (homoscedastic).
 
     Args:          
       `xTrain`: 2D numpy array of size nxp
@@ -107,15 +106,16 @@ class gpr:
       `gprOpts`: dict
          Options for constructing GPR with the following keys:
            * 'nIter': int
-             Number of iterations in the optimization of hyperparameters
+               Number of iterations in the optimization of hyperparameters
            * 'lr': float 
-             Learning rate for the optimizaer of the hyperparameters
+               Learning rate in the optimization of hyperparameters
            * 'convPlot': bool 
-             If true, optimized values of the hyper-parameters is plotted vs. iteration.
+               If true, optimized values of the hyper-parameters is plotted vs. iteration.
 
     Attributes: 
-      `post_f`: Posterior gpr for f(x) at `xTest`
-      `post_obs`: Predictive posterior (likelihood) at `xTest`
+      `post_f`: Posterior of f(x) at `xTest`.
+      
+      `post_obs`: Predictive posterior (likelihood) at `xTest`.
     """
     def __init__(self,xTrain,yTrain,noiseV,xTest,gprOpts):
         self.xTrain=xTrain
@@ -132,7 +132,7 @@ class gpr:
 
     def train_pred(self):    
         """
-        Constructor of the GPR
+        Constructor of the GPR (training and predicting at test samples)
         """
         if self.p==1:
            self.gprTorch_1d() 
@@ -141,7 +141,7 @@ class gpr:
 
     def gprTorch_1d(self):
         """
-        GPR for 1D uncertain parameter
+        GPR for 1D uncertain parameter.
         Observations :math:`{(x_i,y_i)}_{i=1}^n` are assumed to be independent but their noise 
         variance can be either the same (iid=homoscedastic) or non-identical (heteroscedastic).
         """ 
@@ -321,7 +321,7 @@ class gpr:
 
     def optim_conv_plot(self):
         """
-        Plot convergence of loss and length-scale 
+        Plot convergence of loss and length-scale during the optimization
         """
         plt.figure(figsize=(12,3))
         plt.subplot(121)
@@ -396,21 +396,24 @@ class gprPlot:
 
     Args:
       `pltOpts`: dict (optional) 
-       Options for plane plots (p=1 or 2) with the following keys:
+       Options for planar plots (p=1 or 2) with the following keys:
          * 'title': string, plot title
          * 'legFS': float, legend fontsize
          * 'labFS': [float,float], x,y-axes label fontsize
          * 'ticksFS': [float,float], x,y-ticks fontsize
          * 'save': bool   
-            If 'save':True, then
+            If 'save'==True, then
               - 'figName': string, figure name 
-              - 'figDir': string, directory to save the fig
+              - 'figDir': string, directory to save the figure
               - 'figSize': [float,float], figure size
 
     Methods:    
-       `torch1d()`: Single-task GPR on a 1d array
-       `torch2d_2dcont()`:
-       `torch2d_3dSurf()`:
+       `torch1d()`: 
+          Plots the GPR constructed for a 1D input. 
+       `torch2d_2dcont()`: 
+          Planar contour plot of a GPR constructed over a 2D input space.
+       `torch2d_3dSurf()`: 
+          3D plot of the GPR surface (mean+CI) constructed for a 2D input.
     """
     def __init__(self,pltOpts={}):
         self.pltOpts=pltOpts
@@ -470,11 +473,11 @@ class gprPlot:
                       
     def torch1d(self,post_f,post_obs,xTrain,yTrain,xTest,fExTest):
         """
-        Plots the GPR constructed by GPyToch for a 1D input in the input space.
+        Plots the GPR constructed by GPyToch for a 1D input.
       
         Args:
           `post_f`: GpyTorch object
-             Posterior density of model function f(q)
+             Posterior density of the model function f(q)
           `post_obs`: GpyTorch object
              Posterior density of the response y
           `xTrain`: 1D numpy array of size nTrain
@@ -514,7 +517,7 @@ class gprPlot:
 
     def torch2d_2dcont(self,xTrain,qTest,fTestGrid):
         """
-        Planar contour plots of a GPR constructed in a 1D input space.
+        Planar contour plots of a GPR constructed over a 2D input space.
 
         Args:
           `xTrain`: 2D numpy array of shape (nTrain,2)
@@ -522,8 +525,8 @@ class gprPlot:
           `yTrain`: 1D numpy array of size nTrain
              Response values at `xTrain`
           `qTest`: List of length 2
-             =[qTest_1,qTest2], qTest_i: 1D array of size nTest_i of the test 
-              samples taken from the space of i-th input
+             =[qTest_1,qTest2], where qTest_i: 1D array of size nTest_i of the test 
+             samples taken from the space of i-th input
           `fTestGrid`: 2D numpy array of shape (nTest_1,nTest_2)    
               Response values at a tensor-product grid constructed from `qTest`
         """
@@ -554,8 +557,8 @@ class gprPlot:
           `yTrain`: 1D numpy array of size nTrain
              Response values at `xTrain`
           `qTest`: List of length 2
-             =[qTest_1,qTest2], qTest_i: 1D array of size nTest_i of the test 
-              samples taken from the space of i-th input
+             =[qTest_1,qTest2], where qTest_i: 1D array of size nTest_i of the test 
+             samples taken from the space of i-th input
           `post_`: GpyTorch object
              Posterior density of model function f(q) or observations y
         """
