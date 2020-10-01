@@ -24,6 +24,7 @@ class ppce:
     Probabilistic Polynomial Chaos Expansion (PPCE) over a p-D parameter space, 
     where p=1,2,...
     Model: y=f(q)+e
+
     Args:
       `qTrain`: 2D numpy array of shape (n,p)
          Training samples for q
@@ -37,8 +38,8 @@ class ppce:
               Number of GQ test points in each of the p-directions 
            * 'qInfo': List of length p
               =[qInfo_1,...,qInfo_p], where qInfo_i is the information about distribution of q_i
-              if q_i~'Unif', qInfo_i =[min(q_i),max(q_i)]
-              if q_i~'Norm', qInfo_i =[m,v] for q~N(m,v^2)
+                - if q_i~'Unif', qInfo_i =[min(q_i),max(q_i)]
+                - if q_i~'Norm', qInfo_i =[m,v] for q~N(m,v^2)
            * 'nMC': int
               Number of independent samples drawn from the GPR to construct PCE 
            * 'nIter_gpr': int
@@ -46,7 +47,7 @@ class ppce:
            * 'lr_gpr': float
               Learning rate for optimization of the GPR hyper-parameters
            * 'convPlot_gpr': bool
-              If true, optimized values of the hyper-parameters is plotted vs. iteration.
+              If true, values of the hyper-parameters are plotted vs. iteration during the optimization.
               
     Attributes:
        `fMean_list`: 1D numpy array of size `nMC`
@@ -57,10 +58,10 @@ class ppce:
           Optional outputs for plotting using gprPlot, with the following keys:    
             * `post_f`: Posterior density of f(q)
             * `post_obs`: Posterior density of y
-            * `qTest`: A List of length p
+            * `qTest`: A List of length p, 
               =[qTest_1,qTest_2,...,qTest_p], where qTest_i is a 1D numpy array of size 
-               `ppceDict['nGQtest'][i]` containing the GQ test samples in the i-th direction
-               of the parameter.
+              `ppceDict['nGQtest'][i]` containing the GQ test samples in the i-th direction
+              of the parameter.
     """
     def __init__(self,qTrain,yTrain,noiseV,ppceDict):
         self.qTrain=qTrain
@@ -87,7 +88,7 @@ class ppce:
 
     def ppce_cnstrct_1d(self):
        """
-       Constructing a probabistric PCE over a 1D parameter space
+       Constructing a probabilistic PCE over a 1D parameter space
        """
        print('... Probabilistic PCE for 1D input parameter.')
        p=self.p
@@ -142,7 +143,7 @@ class ppce:
 #
     def ppce_cnstrct_pd(self):
        """
-       Constructing a probabistric PCE over a p-D parameter space, p>1
+       Constructing a probabilistic PCE over a p-D parameter space, p>1
        """
        p=self.p
        print('... Probabilistic PCE for %d-D input parameter.' %p)
