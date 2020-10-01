@@ -1,19 +1,16 @@
 ##########################################
 #    Sobol Sensitivity Indices
 ##########################################
-#------------------------------------------
+#-----------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
-#------------------------------------------
+#-----------------------------------------
 """
   * Parameters are assumed to be independent from each other
-  * Parameters can have any arbitrary distribution. The PDF should be provided to Sobol().
-  * Samples generated from each of the parameters must be UNIFORMLY-Spaced.
+  * Parameters can have any arbitrary distribution. The discrete PDF should be imported to sobol().
+  * The samples generated for each of the parameters must be UNIFORMLY-spaced.
+  * Up to second-order interactions are currently implemented. 
 """
-#-----------------------------------------
-#  ToDo
-#  1. Extend to triple interactions
-#  2. Move sobol_pd_test() to fExPD
-#-----------------------------------------
+#
 #
 import os
 import sys
@@ -22,7 +19,8 @@ from scipy.integrate import simps
 #
 class sobol:
     """
-    Computing Sobol sensitivity indices for a p-D parameter (p>1).
+    Computes Sobol sensitivity indices for a p-D parameter (p>1).
+
     Assumptions:
       * Parameters are independent from each other
       * Up to second-order interactions are considered.
@@ -30,9 +28,9 @@ class sobol:
     Args:
       `q`: A list of length p
          q=[q1,q2,...,qp] where qi: 1D numpy array of size ni containing uniformly-spaced parameter samples
-      'f': 1d numpy array of size (n1*n2*...*np) 
+      `f`: 1d numpy array of size (n1*n2*...*np) 
          Response values at samples `q`. The tensor product with ordering='F' (Fortran-like) is considered.
-      'pdf': List of length p of 1D numpy arrays
+      `pdf`: List of length p of 1D numpy arrays
          The i-th array in the list contains the values of the PDF of q_i, where i=1,2,...,p
     
     Methods:
@@ -111,8 +109,8 @@ class sobol:
             Integrated variables            
 
        Returns:
-          T`: scalar
-            Inetgral value
+         `T`: scalar
+            Integral value
        """
        T_=simps(g,x2,axis=1)
        T=simps(T_,x1)
@@ -121,7 +119,7 @@ class sobol:
     def dualInteractTerm(self,fij_,fi_,fj_):
         """
         Computes 2nd-order interaction terms in the HDMR decomposition based on 
-        :math:`f_{ij}(qi,qj)=\int f(q)dq~{ij}-fi(qi)-fj(qj)-f0`
+        :math:`f_{ij}(q_i,q_j)=\int f(q)dq_{\sim{ij}}-f_i(q_i)-f_j(q_j)-f_0`
         """
         ni=fi_.size
         nj=fj_.size
@@ -258,4 +256,3 @@ class sobol:
         #Partial Variances & Sobol indices
         self.partVariance()
 #
-
