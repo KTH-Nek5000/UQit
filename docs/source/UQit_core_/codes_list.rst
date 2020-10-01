@@ -1,11 +1,11 @@
 ==================
-List of core files
+List of core codes
 ==================
 
 * :code:`analyticTestFuncs.py`: 
   Analytical model functions to test implementation of different techniques
 * :code:`gpr_torch.py`:
-  Gaussian Process Regression (GPR) using gpytorch library
+  Gaussian Process Regression (GPR) using GPyTorch library
 * :code:`lagInt.py`:
   Lagrange interpolation
 * :code:`linAlg.py`:
