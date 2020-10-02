@@ -142,7 +142,6 @@ def sobol_3par_unif_test():
     """
       Test for sobol_unif() when we have 3 uncertain parameters q1, q2, q3.
       Sobol indices are computed for f(q1,q2,q3)=Ishigami that is analyticTestFuncs.fEx3D('Ishigami').
-      First, we use Simpson numerical integration for the integrals in the definition of the indices (method of choice in myUQtoolbox). Then, these numerical values are validated by comparing them with the results of the analytical expressions.
     """
     #--------------------------
     #------- SETTINGS
