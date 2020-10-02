@@ -1,3 +1,5 @@
+.. _uqFwd-sect:
+
 ==================
 UQ Forward Problem
 ==================

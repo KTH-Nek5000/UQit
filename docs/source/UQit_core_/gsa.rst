@@ -7,6 +7,7 @@ In other words, the influence of each of the parameters in the propagated uncert
 In contrast to the local sensitivity analysis, in GSA all the parameters are allowed to vary simultaneously over their admissible space, [Smith13]_. 
 In :code:`UQit`, the Sobol sensitivity indices [Sobol01]_ are computed to measure GSA. 
 
+.. _sobol-sect:
 
 Sobol Sensitivity Indices
 -------------------------

@@ -1,3 +1,5 @@
+.. _surrogates-sect:
+
 ==========
 Surrogates
 ==========
