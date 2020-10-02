@@ -1,4 +1,4 @@
-![`UQit`](./docs/source/_static/uqit_logo.png?raw=true"UQit, a Python package for Uncertainty Quantification in CFD")
+![`UQit`](./docs/source/_static/uqit_logo.png?raw=true)
 ## A Python Package for Uncertainty Quantification (UQ) in Computational Fluid Dynamics (CFD)
 Saleh Rezaeiravesh, salehr@kth.se <br/>
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden
@@ -21,7 +21,18 @@ SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm,
   - Gaussian process regression (GPR) 
 
 ### Installation:
-:code:`pip install UQit`
+`pip install UQit`
+
+### Build documentation:
+First, you need [`Sphinx`](https://www.sphinx-doc.org/en/master/) to be installed: 
+`conda install sphinx`
+`conda install -c conda-forge nbsphinx`
+
+Then,
+`cd docs`
+`make html`
+
+Open `index.html` in `docs/build/html/`
 
 ### Required libraries:
  - [`numpy`](https://numpy.org/)
