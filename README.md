@@ -25,12 +25,12 @@ SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm,
 
 ### Build documentation:
 First, you need [`Sphinx`](https://www.sphinx-doc.org/en/master/) to be installed: 
-`conda install sphinx`
-`conda install -c conda-forge nbsphinx`
+* `conda install sphinx`
+* `conda install -c conda-forge nbsphinx`
 
 Then,
-`cd docs`
-`make html`
+* `cd docs`
+* `make html`
 
 Open `index.html` in `docs/build/html/`
 
