@@ -1,11 +1,10 @@
-![`UQit`](./docs/source/_static/UQit_logo.png?raw=true "UQit, a Python package for Uncertainty Quantification in CFD")
-## `UQit`, A Python Package for Uncertainty Quantification in CFD
+![`UQit`](./docs/source/_static/uqit_logo.pdf?raw=true "UQit, a Python package for Uncertainty Quantification in CFD")
+## A Python Package for Uncertainty Quantification (UQ) in Computational Fluid Dynamics (CFD)
 Saleh Rezaeiravesh, salehr@kth.se <br/>
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden
 #
-#
 
-### Features
+### Features:
 * **Sampling**:
   - Various stochastic and spectral types of samples
 
@@ -21,9 +20,8 @@ SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm,
   - gPCE
   - Gaussian process regression (GPR) 
 
-
 ### Installation:
-pip install UQit
+:code:`pip install UQit`
 
 ### Required libraries:
  - [`numpy`](https://numpy.org/)
