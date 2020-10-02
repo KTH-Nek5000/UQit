@@ -1,11 +1,11 @@
-![`UQit`](./docs/source/_static/UQit.png?raw=true "UQit, a Python toolbox for UQ in CFD")
+![`UQit`](./docs/source/_static/UQit.png?raw=true "UQit, a Python package for UQ in CFD")
 ## `UQit`, A Python Toolbox for Uncertainty Quantification in CFD
 Saleh Rezaeiravesh, salehr@kth.se <br/>
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden
 #
 #
 ### Add path to ~/.bashrc
-  myUQtoolboxPATH=<path-on-the-disk/>
+  UQit=<path-on-the-disk/>
   source ~/.bashrc
 
 ### Required libraries:
