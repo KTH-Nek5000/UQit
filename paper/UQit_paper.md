@@ -44,52 +44,53 @@ To perform this, we can adopt the non-intrusive point of view which does not nee
 As a result, the UQ techniques can be combined with the features in computer experiments [@Santner:2003].
 
 
-These constitute the foundations of developing UQit, a Python package for uncertainty quantification in computational physics, in general, and computational fluid dynamics (CFD), in particular. 
+These constitute the foundations of developing `UQit`, a Python package for uncertainty quantification in computational physics, in general, and computational fluid dynamics (CFD), in particular. 
 In CFD, the Navier-Stokes equations are numerically solved to model the fluid flows. 
 The flows are, in general, three-dimensional and time-dependent (unsteady) and at most of the Reynolds numbers relevant to the practical applications, are turbulent. 
-A wide range of appraoches have been used for numerical modeling of turbulence, see [Sagaut:2013].
+A wide range of approaches have been used for numerical modeling of turbulence, see [Sagaut:2013].
 Moving from low- toward high-fidelity approaches, the nature of the uncertainties change from modeling-dominant to numerical-driven. 
 Nevertheless, the QoIs computed in the simulations can be uncertain!  
 
 
-
-
 # Statement of need \& Design
 
-Performing different types of UQ analyses in CFD is so important that it has been considered in the NASA CFD vision 2030 [@Slotnick:2014].
-UQit can be seen as a good fit to such needs, noting that it can be the only Python-based open-source package for UQ in CFD.
-Due to the non-intrusive nature of the implemented UQ methods, UQit treats the CFD simulator as a blackbox, therefore it can be used with any CFD simulator conditioned on having appropriate interface provided.
-As a feature development, Python VTK interface can be considered for the purpose of in-situ UQ analyses which will be suitable for large-scale simulations of fluid flows on supercomputers.
-There are many similarities as well as connections between UQ and the techniques in the fields of machine learning and data science in which Python libraries are rich. 
-These besides the object-oriented design provide a good potential for further development of UQit in reply to different needs. 
-The documentation for each UQ technique starts from providing an overview to the theoretical background and introduction of the rel event references. 
+Performing different types of UQ analyses in CFD is so important that it has been considered as one of the required technologies in the NASA CFD vision 2030 [@Slotnick:2014].
+In this regard, `UQit` can be seen as a good match noting that it can be (one of) the first Python-based open-source packages for UQ in CFD.
+In fact, there are many similarities as well as connections between UQ and the techniques in the fields of machine learning and data science in which Python libraries are rich. 
+These besides the felxible design of `UQit` provide a good potential for further development of `UQit` in response to different needs. 
+Due to the non-intrusive nature of the implemented UQ techniques, `UQit` treats the CFD simulator as a blackbox, therefore it can be linked to any CFD simulator conditioned on having appropriate interface.
+As a possible future development, Python VTK interface can be considered for the purpose of in-situ UQ analyses which will be suitable for large-scale simulations of fluid flows on supercomputers.
+The documentation for each UQ technique in `UQit` starts from providing an overview to the theoretical background and introduction of the relevent references. 
 These are followed by the details of the implementation, examples, and notebooks.
-The examples in each notebook are exploited not as a user guide, but also as a way to verify and validate the implementation of the UQ techniques through comparison with reference values. 
-Considering these points, UQit can be viewed as an appropriate environment for pedagogical purposes.  
+The examples in each notebook are exploited not as a user guide, but also as a way to verify and validate the implementations through comparison with reference data. 
+Considering these points, `UQit` provides an appropriate environment for pedagogical purposes when it comes to practical guides to UQ approaches.  
+
 
 # Features
 
-Here, a short summary of the main UQ techniques implemented in UQit is given. 
+Here, a short summary of the main UQ techniques implemented in `UQit` is given. 
 In general, the methods are implemented at highest required flexibility and they can be applied to any number of uncertain parameters. 
-For the theoretical background, further details, and application in CFD, see [@Rezaeiravesh:2020].
+For the theoretical background, further details, and different applications in CFD, see [@Rezaeiravesh:2020].
 
 **Surrogates** play a key role in conducting non-intrusive UQ analyses and computer experiments.
    They establish a functional between the simulator outputs (or QoIs) and the model inputs and parameters. 
-   The surrogates are constructed based on a limited number of training data and once constructed, they are much less expensive to evaluate than the simulators. 
-   UQit uses different approaches to construct surrogates, including Lagrange interpolation, polynomial chaos expansion [@Xiu:2002,@Xiu:2007] and more importantly Gaussian process regression [@Rasmussen:2005,@Gramacy:2020]. 
-   In developing UQit, the highest possible flexibility in constructing GPR surrogates have been considered when it comes to incorporating the observational uncertainties.
+   The surrogates are constructed based on a limited number of training data and once constructed, they are much less expensive to run than the simulators. 
+   `UQit` uses different approaches to construct surrogates, including Lagrange interpolation, polynomial chaos expansion [@Xiu:2002,@Xiu:2007] and more importantly Gaussian process regression [@Rasmussen:2005,@Gramacy:2020]. 
+   In developing `UQit`, the highest possible flexibility in constructing GPR surrogates have been considered specially when it comes to incorporating the observational uncertainties.
 
 
-The goal of **uncertainty propagation** or **UQ forward problem** is to estimates how the known uncertainties in the inputs and parameters propagate into the QoIs. 
-    In UQit, these problems are efficiently handled using non-intrusive generalized polynomial chaos expansion (PCE), see [@Xiu:2002,@Xiu:2007]. 
-    Different options have been implemented for constructing a PCE, including different schemes for truncation of the expansion.
-    Moreover, to compute the coefficients, both regression and projection methods are implemented. 
-    As great feature, compressed sensing method can be adopted when the number of training samples are less than the truncation limit. 
-    A great flexibility is also provided in terms of generating samples from the parameter space.
+The goal of **uncertainty propagation** or **UQ forward problem** is to estimate how the known uncertainties in the inputs and parameters propagate into the QoIs. 
+    In `UQit`, these problems are efficiently handled using non-intrusive generalized polynomial chaos expansion (PCE), see [@Xiu:2002,@Xiu:2007]. 
+    For constructing a PCE, `UQit` offers a diverse set of options for the schemes for truncating the expansion, types of parameter samples, and methods to compute the coefficients in the expansion.
+    For the latter, regression and projection methods can be adopted. 
+    As a great feature for computationally expensive CFD simulations, compressed sensing method can be utilized when the number of training samples are less than the truncation limit. 
     
     
-**Global sensitivity analysis** is performed to quantify the sensitivity of the QoIs to the uncertain inputs and parameters. 
-Contrary to local sensitivity analysis, in GSA all parameters are allowed to vary simultaneously and no linearization is involved in computing sensitivities. In UQit, Sobol Sensitivity Indices [@Sobol:2001] are computed as indicators of GSA. 
+**Global sensitivity analysis** is performed to quantify the sensitivity of the QoIs with respect to the uncertain inputs and parameters. 
+Contrary to the local sensitivity analysis, in GSA all parameters are allowed to vary simultaneously and no linearization is involved in computing sensitivities. 
+In `UQit`, Sobol Sensitivity Indices (main, interaction, and total) [@Sobol:2001] are computed as indicators of GSA. 
+
+Driven by the needs, different features can be developed and added to `UQit`.
 
 
 # Acknowledgements
