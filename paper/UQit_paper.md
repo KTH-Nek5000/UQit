@@ -7,7 +7,7 @@ tags:
 authors:
   - name: Saleh Rezaeiravesh^[Corresponding author]
     orcid: 0000-0002-9610-9910
-    affiliation: "1,2" 
+    affiliation: 1,2 
   - name: Ricardo Vinuesa
     affiliation: 1,2
   - name: Philipp Schlatter
@@ -24,27 +24,33 @@ bibliography: UQit_paper.bib
 
 # Introduction
 
-In computational physics, a set of mathematical equations (models) are numerically solved and as a result, realizations for the quantities of interest (QoIs) are obtained. 
-Even when adopting the most accurate numerical methods for deterministic models, the QoIs can still be up to some extent uncertain. 
-Uncertainty is the lack of certainty and originates from the lack of or improper knowledge and information [@Smith:2013,@Ghanem:2017].
-Note that uncertainty is different from error which is the measure of deviation of a response from a reference true value. 
-In computational models, various sources of uncertainties may exist including the fidelity of the mathematical model (i.e. the extent the model can reflect the truth), the parameters in such models, initial data and boundary condition, finite sampling time when computing the statistics, the way numerical errors interact and evolve, computer arithmetic, coding bugs, geometrical uncertainties, etc. 
-Various mathematical and statistical techniques gathered under the umbrella of uncertainty quantification (UQ) can be exploited to assess the uncertainty in different models and associate QoIs, see [@Smith:2013,@Ghanem:2017]. 
-The UQ techniques not only facilitate systematic evaluation of validation and verification metrics, but also play a vital role in evaluation of confidence and reliability of data acquired in experiments and computations. 
-Note that such confidence intervals are crucial in data-driven engineering designs. 
+In computational physics, mathematical models are numerically solved and as a result, realizations for the quantities of interest (QoIs) are obtained. 
+Even when adopting the most accurate numerical methods for deterministic mathematical models, the QoIs can still be, up to some extent, uncertain. 
+Uncertainty is defined as the lack of certainty and it originates from the lack, impropriety or insufficiency of knowledge and information [@Smith:2013,@Ghanem:2017].
+It is important to note that uncertainty is different from error which is attributed to the deviation of a response from a reference true value. 
+In computational models, various sources of uncertainties may exist,
+These include but not limited to the fidelity of the mathematical model (i.e. the extent by which the model can reflect the truth), the parameters in the models, initial data and boundary condition, finite sampling time when computing the time-averaged QoIs, the way numerical errors interact and evolve, computer arithmetic, coding bugs, geometrical uncertainties, etc. 
+Various mathematical and statistical techniques gathered under the umbrella of uncertainty quantification (UQ) can be exploited to assess the uncertainty in different models and associated QoIs, see [@Smith:2013,@Ghanem:2017]. 
+The UQ techniques not only facilitate systematic evaluation of validation and verification metrics, but also play a vital role in evaluation of the confidence and reliability of the data acquired in experiments and computations. 
+Note that accurate accounting for such confidence intervals is crucial in data-driven engineering designs. 
 
-In general, uncertainties can be divided into two main categories, aleatoric and epistemic. 
-The aleatoric uncertainties are random and inherent in the models and hence cannot be removed.
-In contrast, epistemic uncertainties originate from using simplified model, insufficient data, ... , which can be reducible by improving the models, for instance. 
-As a general approach, in UQ we try to reformulate the epistemic uncertainties in terms of aleatoric so that the probabilistic approaches can be applied. 
-To perform this, we can adopt the non-intrusive point of view which does not need the computational codes, hereafter simulator, to be modified.
+
+In general, uncertainties can be divided into two main categories, aleatoric and epistemic [@Smith:2013]. 
+The aleatoric uncertainties are random, inherent in the models, and hence, cannot be removed.
+In contrast, epistemic uncertainties originate from using simplified models, insufficient data, etc.
+Therefore,  they can be reduced through improving the models, for instance. 
+As a general strategy in UQ, we try to reformulate the epistemic uncertainties in terms of aleatoric uncertainties so that the probabilistic approaches could be applied. 
+To perform this, we can adopt the non-intrusive point of view which does not need the computational codes, hereafter simulators, to be modified.
 As a result, the UQ techniques can be combined with the features in computer experiments [@Santner:2003].
 
 
-This is what has been used in developing UQit that is a Python package for uncertainty quantification in computational physics, in general, and computational fluid dynamics (CFD), in particular. 
-In computational fluid dynamics (CFD), the Navier-Stokes equations or variations of them are numerically solved to model the fluid flows. 
-The flows are, in general, three dimensional and time-dependent (unsteady) and at most of Reynolds numbers relevant to practical applications, are turbulent. 
-Application of high-fidelity scale-resolving approaches to simulate turbulent flows require a high computational cost, while reduce the epistemic uncertainties due to turbulence modeling. 
+These constitute the foundations of developing UQit, a Python package for uncertainty quantification in computational physics, in general, and computational fluid dynamics (CFD), in particular. 
+In CFD, the Navier-Stokes equations are numerically solved to model the fluid flows. 
+The flows are, in general, three-dimensional and time-dependent (unsteady) and at most of the Reynolds numbers relevant to the practical applications, are turbulent. 
+A wide range of appraoches have been used for numerical modeling of turbulence, see [Sagaut:2013].
+Moving from low- toward high-fidelity approaches, the nature of the uncertainties change from modeling-dominant to numerical-driven. 
+Nevertheless, the QoIs computed in the simulations can be uncertain!  
+
 
 
 
@@ -60,7 +66,6 @@ The documentation for each UQ technique starts from providing an overview to the
 These are followed by the details of the implementation, examples, and notebooks.
 The examples in each notebook are exploited not as a user guide, but also as a way to verify and validate the implementation of the UQ techniques through comparison with reference values. 
 Considering these points, UQit can be viewed as an appropriate environment for pedagogical purposes.  
-
 
 # Features
 
@@ -90,7 +95,7 @@ Contrary to local sensitivity analysis, in GSA all parameters are allowed to var
 # Acknowledgements
 
 This work has been supported by the EXCELLERAT project which has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 823691.
-Also, financial support by the Linn\`e FLOW Centre at KTH for SR is gratefully acknowledged.
+Also, financial support by the Linn{\`e} FLOW Centre at KTH for SR is gratefully acknowledged.
 
 
 # References
