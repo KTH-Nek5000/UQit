@@ -1,3 +1,4 @@
+---
 title: 'UQit: A Python package for uncertainty quantification (UQ) in computational fluid dynamics (CFD)'
 tags:
   - Python
@@ -18,6 +19,7 @@ affiliations:
    index: 2
 date: 2 October 2020
 bibliography: UQit_paper.bib
+---
 
 
 # Introduction
