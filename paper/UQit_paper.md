@@ -71,17 +71,18 @@ In general, the methods are implemented at the highest required flexibility and 
 For the theoretical background, further details, and different applications in CFD, see [@Rezaeiravesh:2020].
 
 **Surrogates** play a key role in conducting non-intrusive UQ analyses and computer experiments.
-   They establish a functional relation between the simulator outputs (or QoIs) and the model inputs and parameters. 
-   The surrogates are constructed based on a limited number of training data and once constructed, they are much less expensive to run than the simulators. 
-   `UQit` uses different approaches to construct surrogates, including Lagrange interpolation, polynomial chaos expansion [@Xiu:2002,@Xiu:2007] and more importantly Gaussian process regression [@Rasmussen:2005,@Gramacy:2020]. 
-   In developing `UQit`, the highest possible flexibility in constructing GPR surrogates have been considered specially when it comes to incorporating the observational uncertainties.
+They establish a functional relation between the simulator outputs (or QoIs) and the model inputs and parameters. 
+The surrogates are constructed based on a limited number of training data and once constructed, they are much less expensive to run than the simulators. 
+`UQit` uses different approaches to construct surrogates, including Lagrange interpolation, polynomial chaos expansion [@Xiu:2002,@Xiu:2007] and more importantly Gaussian process regression [@Rasmussen:2005,@Gramacy:2020]. 
+In developing `UQit`, the highest possible flexibility in constructing GPR surrogates have been considered specially when it comes to incorporating the observational uncertainties.
 
 
 The goal of **uncertainty propagation** or **UQ forward problem** is to estimate how the known uncertainties in the inputs and parameters propagate into the QoIs. 
-    In `UQit`, these problems are efficiently handled using non-intrusive generalized polynomial chaos expansion (PCE), see [@Xiu:2002,@Xiu:2007]. 
-    For constructing a PCE, `UQit` offers a diverse set of options for the schemes of truncating the expansion, types of parameter samples, and methods to compute the coefficients in the expansion.
-    For the latter, regression and projection methods can be adopted. 
-    As a great feature for computationally expensive CFD simulations, compressed sensing method can be utilized when the number of training samples are less than the number of terms in the expansion. 
+In `UQit`, these problems are efficiently handled using non-intrusive generalized polynomial chaos expansion (PCE), see [@Xiu:2002,@Xiu:2007]. 
+For constructing a PCE, `UQit` offers a diverse set of options for the schemes of truncating the expansion, types of parameter samples, and methods to compute the coefficients in the expansion.
+For the latter, regression and projection methods can be adopted. 
+As a great feature for computationally expensive CFD simulations, compressed sensing method can be utilized when the number of training samples are less than the number of terms in the expansion. 
+By combining standard PCE and GPR, `UQit` provides the novel probabilistic PCE which is applicable to many CFD applications. 
     
     
 **Global sensitivity analysis** is performed to quantify the sensitivity of the QoIs with respect to the uncertain inputs and parameters. 
@@ -93,7 +94,7 @@ Driven by the needs, different features will be developed and added to `UQit`.
 
 # Acknowledgments
 This work has been supported by the EXCELLERAT project which has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 823691.
-Also, financial support by the Linn{U+00E9} FLOW Centre at KTH for SR is gratefully acknowledged.
+Also, financial support by the Linn{00E9} FLOW Centre at KTH for SR is gratefully acknowledged.
 
 
 # References
