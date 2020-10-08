@@ -35,14 +35,14 @@ Then,
 Open `index.html` in `docs/build/html/`
 
 ### Required libraries:
-## General  
- - [`numpy`](https://numpy.org/)
- - [`scipy`](https://www.scipy.org/)
- - [`matplotlib`](https://matplotlib.org/)
-## Optional
- - [`cvxpy`](https://www.cvxpy.org/) (for compressed sensing in PCE)
- - [`PyTorch`](https://pytorch.org/) (for GPR)
- - [`GPyTorch`](https://gpytorch.ai/) (for GPR)
+ * General  
+   - [`numpy`](https://numpy.org/)
+   - [`scipy`](https://www.scipy.org/)
+   - [`matplotlib`](https://matplotlib.org/)
+ * Optional
+   - [`cvxpy`](https://www.cvxpy.org/) (for compressed sensing in PCE)
+   - [`PyTorch`](https://pytorch.org/) (for GPR)
+   - [`GPyTorch`](https://gpytorch.ai/) (for GPR)
 
 ## Release Notes
 ### Release 1, 10.10.2020
