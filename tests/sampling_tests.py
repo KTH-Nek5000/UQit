@@ -1,12 +1,14 @@
 """
 Tests for Sampling
 """
+#
 import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
 sys.path.append(os.getenv("UQit"))
 from sampling import trainSample, testSample, LHS_sampling
+#
 #
 def trainSample_test():
     """

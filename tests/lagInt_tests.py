@@ -1,6 +1,7 @@
 """
 Tests for lagInt
 """
+#
 import os
 import sys
 import numpy as np
@@ -12,6 +13,7 @@ import analyticTestFuncs
 import sampling
 import pce
 import reshaper
+#
 #
 def lagInt_1d_test():
     """

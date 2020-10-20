@@ -1,6 +1,7 @@
 """
 Tests for surr2surr
 """
+#
 import os
 import sys
 import numpy as np
@@ -13,6 +14,7 @@ from lagInt import lagInt
 import reshaper
 import sampling
 import analyticTestFuncs
+#
 #
 def lagIntAtGQs_1d_test():
     """

@@ -1,14 +1,16 @@
 """
 Tests for stats
 """
+#
 import os
 import sys
 import numpy as np
 sys.path.append(os.getenv("UQit"))
 import statsUQit
-#
 from scipy import stats
 from statsmodels.distributions.mixture_rvs import mixture_rvs
+#
+#
 def pdf_uniVar_test():
     """
         For a set of randomly generated data, plot histogram and fitted PDF.
