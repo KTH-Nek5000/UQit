@@ -6,8 +6,6 @@ Turbulent Channel Flow
 ----------------------
 
 
-
-
 Notebook
 ~~~~~~~~
 
