@@ -1,7 +1,6 @@
 ![`UQit`](./docs/source/_static/uqit_logo.png?style=centerme)
 ## A Python Package for Uncertainty Quantification (UQ) in Computational Fluid Dynamics (CFD)
-Saleh Rezaeiravesh, salehr@kth.se <br/>
-SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden
+SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden <br/>
 #
 
 ### Features:
@@ -43,6 +42,13 @@ Open `index.html` in `docs/build/html/`
    - [`cvxpy`](https://www.cvxpy.org/) (for compressed sensing in PCE)
    - [`PyTorch`](https://pytorch.org/) (for GPR)
    - [`GPyTorch`](https://gpytorch.ai/) (for GPR)
+
+### Bugs/Questions
+* In case there is a bug, please feel free to open an issue on Github. 
+
+* Qestions/comments:
+  - Saleh Rezaeiravesh, salehr@kth.se <br/>
+  - Philipp Schlatter, pschlatt@mech.kth.se 
 
 ## Release Notes
 ### Release 1, 10.10.2020
