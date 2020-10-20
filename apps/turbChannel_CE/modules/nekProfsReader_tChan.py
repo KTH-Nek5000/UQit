@@ -59,15 +59,16 @@ def sortedCaseInfo(caseDir,caseName):
     Read information about a Nek5000 case (a set of channel flow simulations)
     The info is saved in a database which will be sorted to make sure our convention for tensor-product in parameter space holds. This sorted info-db will be later used to sort other databases of the case.
     The info file contains information about uncertain parameters associated with each case and has the following format.
-      # Information on the simlations set <caseName>. 
-      # caseName: 
-      # Number of included simulations: 
-      # Number of uncertain parameters: 
-      # Number of parameter samples in each direction:  (non-tensor-product: nTotSamples 1 1 ... 1)
-      # Name of uncertain parameters: 
-      # Admissible range of parameters: [20.2 100.5] [34.0 56.0] 
-      #List of simulations name and associated parameter values
-      # simName    q1      q2
+
+      # Information on the simlations set <caseName>. \n
+      # caseName: \n
+      # Number of included simulations: \n
+      # Number of uncertain parameters: \n
+      # Number of parameter samples in each direction:  (non-tensor-product: nTotSamples 1 1 ... 1) \n
+      # Name of uncertain parameters: \n
+      # Admissible range of parameters: [q1Min q1Max] [q2Min q2Max] \n
+      #List of simulations name and associated parameter values \n
+      # simName    q1      q2 \n
       #--------------------------------------------------------- (iEnd1)
     
     Args:
