@@ -40,19 +40,18 @@ Example
 
 .. code-block:: python
 
-   tr_=trainSample(sampleType=’GQ’,GQdistType=’Unif’,qInfo=[2,3],nSamp=10) 
-   tr_=trainSample(sampleType=’NormRand’,qInfo=[2,3],nSamp=10) 
-   tr_=trainSample(sampleType=’GLL’,qInfo=[2,3],nSamp=10)
-
+   tr_=trainSample(sampleType='GQ',GQdistType='Unif',qInfo=[2,3],nSamp=10) 
+   tr_=trainSample(sampleType='NormRand',qInfo=[2,3],nSamp=10) 
+   tr_=trainSample(sampleType='GLL',qInfo=[2,3],nSamp=10)
 
 .. code-block:: python
 
-   ts_=testSample(sampleType=’unifRand’,GQdistType=’Unif’,qBound=[-1,3],nSamp=10) 
-   ts_=testSample(sampleType=’unifRand’,qBound=[-1,3],nSamp=10) 
-   ts_=testSample(sampleType=’normRand’,GQdistType=’Norm’,qBound=[-1,3],qInfo=[0.5,2],nSamp=10) 
-   ts_=testSample(sampleType=’unifSpaced’,GQdistType=’Norm’,qBound=[-1,3],qInfo=[0.5,2],nSamp=10) 
-   ts_=testSample(sampleType=’unifSpaced’,GQdistType=’Unif’,qBound=[-1,3],nSamp=10) 
-   ts_=testSample(sampleType=’GLL’,qBound=[-1,3],nSamp=10)
+   ts_=testSample(sampleType='unifRand',GQdistType='Unif',qBound=[-1,3],nSamp=10) 
+   ts_=testSample(sampleType='unifRand',qBound=[-1,3],nSamp=10) 
+   ts_=testSample(sampleType='normRand',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10) 
+   ts_=testSample(sampleType='unifSpaced',GQdistType='Norm',qBound=[-1,3],qInfo=[0.5,2],nSamp=10) 
+   ts_=testSample(sampleType='unifSpaced',GQdistType='Unif',qBound=[-1,3],nSamp=10) 
+   ts_=testSample(sampleType='GLL',qBound=[-1,3],nSamp=10)
 
 
 Implementation
