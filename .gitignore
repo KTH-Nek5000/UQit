@@ -6,3 +6,4 @@ testFigs/*
 docs/build/*
 apps/turbChannel/modules/__pycache__
 apps/turbChannel/__pycache__
+docs/source/examples/.ipynb_checkpoints/
