@@ -80,7 +80,7 @@ class pce:
         PCE estimation for V[f(q)]
      `kSet`: List (size K) of p-D lists, p>1
         Index set :math:`[[k_{1,1},k_{2,1},...k_{p,1}],...,[k_{1,K},k_{2,K},..,k_{p,K}]]`
-         - If p==1, then `kSet`=[]
+        If p==1, then kSet=[]
    """
    def __init__(self,fVal,xi,pceDict,nQList=[],verbose=True):
        self.fVal=fVal

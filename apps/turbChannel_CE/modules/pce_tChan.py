@@ -58,7 +58,7 @@ def pce_chan(db,qoiName,nQ,pceDict):
              Each memeber is a scalar representing the variance of the QoI estimated by PCE
           `pceCI`: 1D numpy array of size nChi
              Each memeber is a scalar representing the 95% CI of the QoI estimated by PCE
-          `kSet`L List of length nChi
+          `kSet`: List of length nChi
              Each member is a list of length K containing the PCE index set
     """
     def xiGridMaker(nSets,nDim,db):

@@ -12,7 +12,7 @@ def dbMakerCase_multiPar(prePath,caseName,interpOpts):
             which are conducted in a computer experiment conducted for two or more uncertain parameters.
        * CFD simulations can be done by either Nek5000 or OpenFOAM.   
        * The database of each simulation is a dict containing profiles of channel flow QoIs which are averaged over time and space.   
-       * Each channel flow simulation corresponds a unique sample of uncertain parameters. 
+       * Each channel flow simulation corresponds a unique sample of uncertain parameters.
          We assume tensor-product over parameter space when designing the experiment.
        * Sorting is required to make sure our convention for tensor-product parameter samples is in place. 
          Convention: Higher the parameter index, slower the loop changes: Fortran-like loop order.
@@ -23,8 +23,8 @@ def dbMakerCase_multiPar(prePath,caseName,interpOpts):
        `caseName`: string
           Name of the computer experiment (i.e. the set of channel flow simulations)
        `interOpts`: dict
-          Options for interpolating the Nek5000 data from GLL points to arbitrary uniform mesh.
-          for OpenFoam, `interOpts`={}
+          Options for interpolating the Nek5000 data from GLL points to arbitrary uniform mesh. 
+          for OpenFoam, interOpts={}
     
     Returns:
        `db`: List of dicts

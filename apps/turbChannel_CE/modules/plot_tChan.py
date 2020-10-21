@@ -41,11 +41,11 @@ def plotUQChan_profCI(db,chiName,qoiName,pceMean,pceCI,pltOpts):
           Name of the controlled variable 
       `qoiName`: string
           Name of the QoI whose profile is plotted
-       `pceMean`: 1D numpy array of size nChi
+      `pceMean`: 1D numpy array of size nChi
           Mean of the QoI estimated by gPCE
-       `pceCI`: 1D numpy array of size nChi
+      `pceCI`: 1D numpy array of size nChi
           95% CI of the QoI estimated by gPCE
-       `pltOpts`: dict
+      `pltOpts`: dict
           Plot options
     """
     y=pltOpts['hrzAxVals']
