@@ -25,6 +25,7 @@ Below, we list some of the main features of :code:`UQit`.
 
 
 * **Uncertainty propagation or UQ forward problem:**
+
 Estimates how the known uncertainties in the inputs and parameters propagate into the quantities of interest (QoIs).
 These problems can be efficiently handled using non-intrusive generalized polynomial chaos expansion (PCE), see [Xiu02]_, [Xiu07]_.
 In :code:`UQit`, for constructing PCE both regression and projection methods are implemented.
@@ -33,11 +34,14 @@ Samples from the parameter space can be taken using different methods implemente
 See the details in :ref:`uqFwd-sect`.
 
 * **Global sensitivity analysis (GSA):**
+
+
 GSA is performed to quantify the sensitivity of the QoIs to the simultaneous variation of the inputs/parameters.
 Contrary to local sensitivity analysis (LSA), in GSA all parameters are allowed to vary simultaneously and no linearization is involved in computing sensitivities.
 In :code:`UQit`, GSA is performed by :ref:`sobol-sect` [Sobol01]_.
 
 * **Surrogates:**
+
 :code:`UQit` uses different approaches including Lagrange interpolation, polynomial chaos expansion and more importantly Gaussian process regression [Rasmussen05]_, [Gramacy20]_ to construct :ref:`surrogates-sect` which connect the QoIs to the inputs/parameters.
 Surrogates are the pillars for conducting computer experiments [Santner03]_.
 In particular, highest possible flexibility in constructing GPR surrogates have been considered when it comes to incorporating the observational uncertainties.
