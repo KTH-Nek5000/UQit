@@ -25,11 +25,11 @@ bibliography: paper.bib
 # Introduction
 In computational physics, mathematical models are numerically solved and as a result, realizations for the quantities of interest (QoIs) are obtained. 
 Even when adopting the most accurate numerical methods for deterministic mathematical models, the QoIs can still be up to some extent uncertain. 
-Uncertainty is defined as the lack of certainty and it originates from the lack, impropriety or insufficiency of knowledge and information [@Smith:2013,@Ghanem:2017].
+Uncertainty is defined as the lack of certainty and it originates from the lack, impropriety or insufficiency of knowledge and information [@Smith:2013;@Ghanem:2017].
 It is important to note that uncertainty is different from error, which is defined as the deviation of a realization from a reference true value. 
 In computational models, various sources of uncertainties may exist.
 These include, but not limited to, the fidelity of the mathematical model (i.e. the extent by which the model can reflect the truth), the parameters in the models, initial data and boundary conditions, finite sampling time when computing the time-averaged QoIs, the way numerical errors interact and evolve, computer arithmetic, coding bugs, geometrical uncertainties, etc. 
-Various mathematical and statistical techniques gathered under the umbrella of uncertainty quantification (UQ) can be exploited to assess the uncertainty in different models and their QoIs, see [@Smith:2013,@Ghanem:2017]. 
+Various mathematical and statistical techniques gathered under the umbrella of uncertainty quantification (UQ) can be exploited to assess the uncertainty in different models and their QoIs, see [@Smith:2013;@Ghanem:2017]. 
 The UQ techniques not only facilitate systematic evaluation of validation and verification metrics, but also play a vital role in evaluation of the confidence and reliability of the data acquired in computations and experiments. 
 Note that accurate accounting for such confidence intervals is crucial in data-driven engineering designs. 
 
@@ -73,12 +73,12 @@ For the theoretical background, further details, and different applications in C
 **Surrogates** play a key role in conducting non-intrusive UQ analyses and computer experiments.
 They establish a functional relation between the simulator outputs (or QoIs) and the model inputs and parameters. 
 The surrogates are constructed based on a limited number of training data and once constructed, they are much less expensive to run than the simulators. 
-`UQit` uses different approaches to construct surrogates, including Lagrange interpolation, polynomial chaos expansion [@Xiu:2002,@Xiu:2007] and more importantly Gaussian process regression [@Rasmussen:2005,@Gramacy:2020]. 
-In developing `UQit`, the highest possible flexibility in constructing GPR surrogates have been considered specially when it comes to incorporating the observational uncertainties.
+`UQit` uses different approaches to construct surrogates, including Lagrange interpolation, polynomial chaos expansion [@Xiu:2002;@Xiu:2007] and more importantly Gaussian process regression [@Rasmussen:2005;@Gramacy:2020]. 
+In developing `UQit`, the highest possible flexibility in constructing GPR surrogates have been considered especially when it comes to incorporating the observational uncertainties.
 
 
 The goal of **uncertainty propagation** or **UQ forward problem** is to estimate how the known uncertainties in the inputs and parameters propagate into the QoIs. 
-In `UQit`, these problems are efficiently handled using non-intrusive generalized polynomial chaos expansion (PCE), see [@Xiu:2002,@Xiu:2007]. 
+In `UQit`, these problems are efficiently handled using non-intrusive generalized polynomial chaos expansion (PCE), see [@Xiu:2002;@Xiu:2007]. 
 For constructing a PCE, `UQit` offers a diverse set of options for the schemes of truncating the expansion, types of parameter samples, and methods to compute the coefficients in the expansion.
 For the latter, regression and projection methods can be adopted. 
 As a great feature for computationally expensive CFD simulations, compressed sensing method can be utilized when the number of training samples are less than the number of terms in the expansion. 
