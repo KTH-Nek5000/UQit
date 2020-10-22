@@ -7,7 +7,7 @@ tags:
 authors:
   - name: Saleh Rezaeiravesh^[Corresponding author]
     orcid: 0000-0002-9610-9910
-    affiliation: 1,2 
+    affiliation: 1
   - name: Ricardo Vinuesa
     affiliation: 1,2
   - name: Philipp Schlatter
@@ -17,8 +17,8 @@ affiliations:
    index: 1
  - name: Swedish e-Science Research Centre (SeRC), Stockholm, Sweden
    index: 2
-date: 2 October 2020
-bibliography: UQit_paper.bib
+date: 21 October 2020
+bibliography: paper.bib
 ---
 
 
