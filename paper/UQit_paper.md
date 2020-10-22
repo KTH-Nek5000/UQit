@@ -26,15 +26,15 @@ bibliography: UQit_paper.bib
 In computational physics, mathematical models are numerically solved and as a result, realizations for the quantities of interest (QoIs) are obtained. 
 Even when adopting the most accurate numerical methods for deterministic mathematical models, the QoIs can still be up to some extent uncertain. 
 Uncertainty is defined as the lack of certainty and it originates from the lack, impropriety or insufficiency of knowledge and information [@Smith:2013,@Ghanem:2017].
-It is important to note that uncertainty is different from error which is defined as the deviation of a realization from a reference true value. 
+It is important to note that uncertainty is different from error, which is defined as the deviation of a realization from a reference true value. 
 In computational models, various sources of uncertainties may exist.
-These include but not limited to the fidelity of the mathematical model (i.e. the extent by which the model can reflect the truth), the parameters in the models, initial data and boundary conditions, finite sampling time when computing the time-averaged QoIs, the way numerical errors interact and evolve, computer arithmetic, coding bugs, geometrical uncertainties, etc. 
+These include, but not limited to, the fidelity of the mathematical model (i.e. the extent by which the model can reflect the truth), the parameters in the models, initial data and boundary conditions, finite sampling time when computing the time-averaged QoIs, the way numerical errors interact and evolve, computer arithmetic, coding bugs, geometrical uncertainties, etc. 
 Various mathematical and statistical techniques gathered under the umbrella of uncertainty quantification (UQ) can be exploited to assess the uncertainty in different models and their QoIs, see [@Smith:2013,@Ghanem:2017]. 
 The UQ techniques not only facilitate systematic evaluation of validation and verification metrics, but also play a vital role in evaluation of the confidence and reliability of the data acquired in computations and experiments. 
 Note that accurate accounting for such confidence intervals is crucial in data-driven engineering designs. 
 
 
-In general, uncertainties can be divided into two main categories, aleatoric and epistemic [@Smith:2013]. 
+In general, uncertainties can be divided into two main categories: aleatoric and epistemic [@Smith:2013]. 
 The aleatoric uncertainties are random, inherent in the models, and hence, cannot be removed.
 In contrast, epistemic uncertainties originate from using simplified models, insufficient data, etc.
 Therefore,  they can be reduced, for instance, through improving the models. 
@@ -61,7 +61,7 @@ As a possible future development, Python VTK interface can be considered for the
 
 The documentation for each UQ technique in `UQit` starts from providing an overview to the theoretical background and introducing the main relevant references. 
 These are followed by the details of implementation, instructions on how to use the method, and notebooks.
-The examples in each notebook are exploited not only as a user guide, but also as a way to verify and validate the implementations in `UQit` through comparison the results with reference data. 
+The examples in each notebook are exploited not only as a user guide, but also as a way to verify and validate the implementations in `UQit` through comparison of the results with reference data. 
 Considering these aspects, `UQit` provides an appropriate environment for pedagogical purposes when it comes to practical guides to UQ approaches.  
 
 
