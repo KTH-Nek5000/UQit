@@ -50,6 +50,9 @@ Open `index.html` in `docs/build/html/`
   - Saleh Rezaeiravesh, salehr@kth.se <br/>
   - Philipp Schlatter, pschlatt@mech.kth.se 
 
+### Publications related to UQit:
+* [Rezaeiravesh S., Vinuesa R., Schlatter P., An Uncertainty-Quantification Framework for Assessing Accuracy, Sensitivity, and Robustness in Computational Fluid Dynamics, arXiv:2007.07071, 2020.](https://arxiv.org/abs/2007.07071)
+
 ## Release Notes
 ### Release 1, 10.10.2020
 Source code, documentation, tests and notebooks are provided for the above-listed features. 
