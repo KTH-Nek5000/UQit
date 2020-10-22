@@ -7,13 +7,13 @@ tags:
 authors:
   - name: Saleh Rezaeiravesh^[Corresponding author]
     orcid: 0000-0002-9610-9910
-    affiliation: 1
+    affiliation: 1,2
   - name: Ricardo Vinuesa
     affiliation: 1,2
   - name: Philipp Schlatter
     affiliation: 1,2
 affiliations:
- - name: SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden
+ - name: SimEx/FLOW, KTH Engineering Mechanics, Royal Institute of Technolgy, Stockholm, Sweden
    index: 1
  - name: Swedish e-Science Research Centre (SeRC), Stockholm, Sweden
    index: 2
@@ -94,7 +94,8 @@ Driven by the needs, different features will be developed and added to `UQit`.
 
 # Acknowledgments
 This work has been supported by the EXCELLERAT project which has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 823691.
-Also, financial support by the Linn&#233; FLOW Centre at KTH for SR is gratefully acknowledged.
+The financial support by the Linn&#233; FLOW Centre at KTH for SR is gratefully acknowledged.
+PS acknowledges financial support by the Knut and Alice Wallenberg Foundation as part of the Wallenberg Academy Fellow programme.
 
 
 # References
