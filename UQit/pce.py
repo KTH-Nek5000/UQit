@@ -11,9 +11,8 @@ import numpy as np
 import math as mt
 import matplotlib
 import matplotlib.pyplot as plt
-sys.path.append(os.getenv("UQit"))
-import reshaper
-import linAlg
+import UQit.reshaper as reshaper
+import UQit.linAlg as linAlg
 #
 #
 class pce:

@@ -7,10 +7,9 @@
 #
 import os
 import sys
-sys.path.append(os.getenv("UQit"))
-from pce import pce, pceEval
-from lagInt import lagInt
-import reshaper
+from UQit.pce import pce, pceEval
+from UQit.lagInt import lagInt
+import UQit.reshaper as reshaper
 #
 #
 def lagIntAtGQs(fValM1,qM1,spaceM1,nM2,spaceM2,distType):

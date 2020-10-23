@@ -8,7 +8,7 @@ import numpy as np
 import statsmodels.api as sm
 import matplotlib
 import matplotlib.pyplot as plt
-import UQit.writeUQ as writeUQ
+import UQit.write as writeUQ
 #
 #
 def pdfFit_uniVar(f,doPlot,pwOpts):

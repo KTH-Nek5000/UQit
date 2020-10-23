@@ -9,9 +9,8 @@ import sys
 import os
 import numpy as np
 import math as mt
-sys.path.append(os.getenv("UQit"))
-import nodes
-import pce
+import UQit.nodes as nodes
+import UQit.pce as pce
 #
 class trainSample:
     R"""

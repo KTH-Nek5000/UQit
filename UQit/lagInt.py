@@ -14,8 +14,7 @@ Note:
 import os
 import sys
 import numpy as np
-sys.path.append(os.getenv("UQit"))
-import reshaper
+import UQit.reshaper as reshaper
 #
 #
 class lagInt:

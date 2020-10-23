@@ -12,8 +12,7 @@ import os
 import sys
 import numpy as np
 import math as mt
-sys.path.append(os.getenv("UQit"))
-import sampling
+import UQit.sampling as sampling
 #
 #
 class fEx1D:

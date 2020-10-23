@@ -11,12 +11,11 @@
 import os
 import sys
 import numpy as np
-sys.path.append(os.getenv("UQit"))
-import pce
-import gpr_torch
-import statsUQit
-import reshaper
-import sampling
+import UQit.pce as pce
+import UQit.gpr_torch as gpr_torch
+import UQit.stats as statsUQit
+import UQit.reshaper as reshaper
+import UQit.sampling as sampling
 #
 #
 class ppce:
