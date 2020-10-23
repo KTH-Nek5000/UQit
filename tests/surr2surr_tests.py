@@ -7,13 +7,12 @@ import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-sys.path.append(os.getenv("UQit"))
-from surr2surr import lagIntAtGQs
-from pce import pce, pceEval
-from lagInt import lagInt
-import reshaper
-import sampling
-import analyticTestFuncs
+from UQit.surr2surr import lagIntAtGQs
+from UQit.pce import pce, pceEval
+from UQit.lagInt import lagInt
+import UQit.reshaper as reshaper
+import UQit.sampling as sampling
+import UQit.analyticTestFuncs as analyticTestFuncs
 #
 #
 def lagIntAtGQs_1d_test():

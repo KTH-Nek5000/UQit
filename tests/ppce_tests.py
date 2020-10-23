@@ -8,15 +8,14 @@ import numpy as np
 import math as mt
 import matplotlib
 import matplotlib.pyplot as plt
-sys.path.append(os.getenv("UQit"))
-from ppce import ppce
-import pce
-import gpr_torch
-import statsUQit
-import analyticTestFuncs
-import writeUQ
-import reshaper
-import sampling
+from UQit.ppce import ppce
+import UQit.pce as pce
+import UQit.gpr_torch as gpr_torch
+import UQit.stats as statsUQit
+import UQit.analyticTestFuncs as analyticTestFuncs
+import UQit.write as writeUQ
+import UQit.reshaper as reshaper
+import UQit.sampling as sampling
 #
 #
 def ppce_1d_test():

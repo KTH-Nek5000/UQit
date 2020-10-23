@@ -7,12 +7,11 @@ import sys
 import numpy as np
 import math as mt
 import matplotlib.pyplot as plt
-sys.path.append(os.getenv("UQit"))
-from sobol import sobol
-import analyticTestFuncs
-import pce
-import reshaper
-import sampling
+from UQit.sobol import sobol
+import UQit.analyticTestFuncs as analyticTestFuncs
+import UQit.pce as pce
+import UQit.reshaper as reshaper
+import UQit.sampling as sampling
 #
 #
 def sobol_2par_unif_test():

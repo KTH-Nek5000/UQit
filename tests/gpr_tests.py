@@ -9,11 +9,10 @@ import math as mt
 from matplotlib import pyplot as plt
 import torch
 import gpytorch
-sys.path.append(os.getenv("UQit"))
-from gpr_torch import gpr, gprPost, gprPlot
-import analyticTestFuncs
-import reshaper
-import sampling
+from UQit.gpr_torch import gpr, gprPost, gprPlot
+import UQit.analyticTestFuncs as analyticTestFuncs
+import UQit.reshaper as reshaper
+import UQit.sampling as sampling
 #
 #
 def gprTorch_1d_singleTask_test():

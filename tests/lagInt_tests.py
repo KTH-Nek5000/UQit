@@ -7,12 +7,11 @@ import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-sys.path.append(os.getenv("UQit"))
-from lagInt import lagInt, lagInt_Quads2Line
-import analyticTestFuncs
-import sampling
-import pce
-import reshaper
+from UQit.lagInt import lagInt, lagInt_Quads2Line
+import UQit.analyticTestFuncs as analyticTestFuncs
+import UQit.sampling as sampling
+import UQit.pce as pce
+import UQit.reshaper as reshaper
 #
 #
 def lagInt_1d_test():

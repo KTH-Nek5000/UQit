@@ -8,12 +8,11 @@ import numpy as np
 import math as mt
 import matplotlib
 import matplotlib.pyplot as plt
-sys.path.append(os.getenv("UQit"))
-from pce import pce, pceEval, convPlot
-import analyticTestFuncs
-import writeUQ
-import reshaper
-import sampling
+from UQit.pce import pce, pceEval, convPlot
+import UQit.analyticTestFuncs as analyticTestFuncs
+import UQit.write as writeUQ
+import UQit.reshaper as reshaper
+import UQit.sampling as sampling
 #
 #
 def pce_1d_test():

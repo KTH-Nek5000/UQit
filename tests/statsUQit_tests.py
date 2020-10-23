@@ -5,10 +5,9 @@ Tests for stats
 import os
 import sys
 import numpy as np
-sys.path.append(os.getenv("UQit"))
-import statsUQit
 from scipy import stats
 from statsmodels.distributions.mixture_rvs import mixture_rvs
+import UQit.stats as statsUQit
 #
 #
 def pdf_uniVar_test():
