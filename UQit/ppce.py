@@ -124,7 +124,7 @@ class ppce:
            # Draw a sample for f(q) from GPR surrogate
            f_=post_obs.sample().numpy()
            # Construct PCE for the drawn sample
-           pce_=pce.pce(fVal=f_,xi=[],pceDict=pceDict,verbose=False)  #GP+TP
+           pce_=pce(fVal=f_,xi=[],pceDict=pceDict,verbose=False)  #GP+TP
            fMean_list.append(pce_.fMean)
            fVar_list.append(pce_.fVar)
            if ((j+1)%nw_==0):
@@ -191,7 +191,7 @@ class ppce:
            # Draw a sample for f(q) from GPR surrogate
            f_=post_obs.sample().numpy()
            # Construct PCE for the drawn sample
-           pce_=pce.pce(fVal=f_,nQList=nGQ,xi=[],pceDict=pceDict,verbose=False)
+           pce_=pce(fVal=f_,nQList=nGQ,xi=[],pceDict=pceDict,verbose=False)
            fMean_list.append(pce_.fMean)
            fVar_list.append(pce_.fVar)
            if ((j+1)%nw_==0):
