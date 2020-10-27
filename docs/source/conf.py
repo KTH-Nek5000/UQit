@@ -16,8 +16,6 @@ sys.path.insert(0, os.path.abspath('../../UQit/'))
 sys.path.insert(1, os.path.abspath('../../apps/turbChannel_CE/modules/'))
 import sphinx_rtd_theme
 
-
-
 # -- Project information -----------------------------------------------------
 
 project = 'UQit'
@@ -25,8 +23,7 @@ copyright = '2020, Saleh Rezaeiravesh'
 author = 'Saleh Rezaeiravesh'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
-
+release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -34,16 +31,6 @@ release = '0.0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['nbsphinx','sphinx.ext.autodoc']
-##for pdf
-#extensions.append('rst2pdf.pdfbuilder')
-#pdf_documents = [('index', u'rst2pdf', u'Sample rst2pdf doc', u'Your Name')]
-##for rinoh
-#extensions.append('rinoh.frontend.sphinx')
-#rinoh_documents = [('index',            # top-level file (index.rst)
-#                    'target',           # output (target.pdf)
-#                    'Document Title',   # document title
-#                    'John A. Uthor')]   # document author                  
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -52,7 +39,6 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
-
 
 # -- Options for HTML output -------------------------------------------------
 
