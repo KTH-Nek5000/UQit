@@ -9,7 +9,7 @@ import math as mt
 import matplotlib.pyplot as plt
 from UQit.sobol import sobol
 import UQit.analyticTestFuncs as analyticTestFuncs
-import UQit.pce as pce
+from UQit.pce import pce,pceEval
 import UQit.reshaper as reshaper
 import UQit.sampling as sampling
 #
@@ -62,7 +62,7 @@ def sobol_2par_unif_test():
     xiGrid=reshaper.vecs2grid(xi)
     pceDict={'p':2,'sampleType':'GQ','truncMethod':'TP','pceSolveMethod':'Projection',
              'distType':distType}
-    pce_=pce.pce(fVal=fVal_pceCnstrct,nQList=nQpce,xi=xiGrid,pceDict=pceDict)
+    pce_=pce(fVal=fVal_pceCnstrct,nQList=nQpce,xi=xiGrid,pceDict=pceDict)
 
     #Use the PCE to predict at test samples from parameter space
     qpceTest=[]
@@ -71,7 +71,7 @@ def sobol_2par_unif_test():
         testSamps=sampling.testSample('unifSpaced',GQdistType=distType[i],qBound=qBound[i],nSamp=n[i])
         xiTest.append(testSamps.xi)
         qpceTest.append(testSamps.q)
-    fPCETest_=pce.pceEval(coefs=pce_.coefs,kSet=pce_.kSet,xi=xiTest,distType=distType)
+    fPCETest_=pceEval(coefs=pce_.coefs,kSet=pce_.kSet,xi=xiTest,distType=distType)
     fPCETest=fPCETest_.pceVal
     #compute Sobol indices
     sobolPCE_=sobol(qpceTest,fPCETest,pdf)

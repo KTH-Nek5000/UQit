@@ -126,7 +126,7 @@ def ppce_2d_test():
               xi=sampling.LHS_sampling(nSamp,[[-1,1]]*p)
               xTrain=np.zeros((nSamp,p))
               for i in range(p):
-                  xTrain[:,i]=pce.pce.mapFromUnit(xi[:,i],qBound[i])
+                  xTrain[:,i]=pce.mapFromUnit(xi[:,i],qBound[i])
               fEx_=analyticTestFuncs.fEx2D(xTrain[:,0],xTrain[:,1],fExName,'comp')
            else:
               raise ValueError("LHS works only when all q have 'Unif' distribution.")
