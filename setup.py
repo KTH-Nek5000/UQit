@@ -1,11 +1,11 @@
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README_pypi.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="UQit", # Replace with your own username
-    version="1.0.0",
+    name="UQit", 
+    version="1.0.2",
     author="Saleh Rezaeiravesh",
     author_email="salehr@kth.se",
     description="A Python Package for Uncertainty Quantification (UQ) in Computational Fluid Dynamics (CFD)",

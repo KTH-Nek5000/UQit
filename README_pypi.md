@@ -1,4 +1,4 @@
-![`UQit`](https://github.com/KTH-Nek5000/UQit/tree/master/docs/source/_static/uqit_logo.png?style=centerme)
+![UQit](https://raw.githubusercontent.com/KTH-Nek5000/UQit/master/docs/source/_static/uqit_logo.png)
 
 ## A Python Package for Uncertainty Quantification (UQ) in Computational Fluid Dynamics (CFD)
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden <br/>
@@ -21,6 +21,6 @@ SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm,
   - Gaussian process regression (GPR) 
 
 ## Release Notes
-### Release v 1.0.1, 27.10.2020
+### Release v 1.0.2, 27.10.2020
 Source code, documentation, tests and notebooks are provided for the above-listed features. 
 
