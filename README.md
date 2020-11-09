@@ -46,8 +46,8 @@ Then in `docs`,
 
 * Qestions/comments:
   - Saleh Rezaeiravesh, salehr@kth.se <br/>
-  - Philipp Schlatter, pschlatt@mech.kth.se <br/>
   - Ricardo Vinuesa, rvinuesa@mech.kth.se 
+  - Philipp Schlatter, pschlatt@mech.kth.se <br/>
 
 ### Publications related to UQit:
 * [Rezaeiravesh S., Vinuesa R., Schlatter P., An Uncertainty-Quantification Framework for Assessing Accuracy, Sensitivity, and Robustness in Computational Fluid Dynamics, arXiv:2007.07071, 2020.](https://arxiv.org/abs/2007.07071)
