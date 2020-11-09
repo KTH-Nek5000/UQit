@@ -48,7 +48,7 @@ In CFD, the Navier-Stokes equations are numerically integrated as a model of flu
 The flows are, in general, three-dimensional and time-dependent (unsteady) and at most of the Reynolds numbers relevant to practical applications, turbulent. 
 A wide range of approaches has been used for numerical modeling of turbulence, see [@Sagaut:2013].
 Moving from low- toward high-fidelity approaches, the nature of the uncertainties inherent in the simulations change from model-based to numerical-driven. 
-Independent from the approach, we may need to study the influence of different factors on the simulations QoIs, where UQ techniques are beneficial. 
+Regardless of the approach, we may need to study the influence of different factors on the simulations QoIs, where UQ techniques are beneficial. 
 
 
 # Statement of need \& Design
@@ -57,7 +57,7 @@ In this regard, `UQit` can be seen as a good match noting that it can be (one of
 In fact, there are many similarities as well as connections between UQ and the techniques in the fields of machine learning and data sciences in which Python libraries are rich. 
 These besides the flexible design of `UQit` provide a good potential for further development of `UQit` in response to different needs coming up in particular applications. 
 Due to the non-intrusive nature of the implemented UQ techniques, `UQit` treats the CFD simulator as a blackbox, therefore it can be linked to any CFD simulator conditioned on having an appropriate interface.
-As a possible future development, a Python VTK interface can be considered for the purpose of in-situ UQ analyses which will be suitable for large-scale simulations of fluid flows on supercomputers without the need of storing full sets of data.
+As a possible future development, a Python VTK interface can be considered for the purpose of in-situ UQ analyses which will be suitable for large-scale simulations of fluid flows on supercomputers without the need of storing large data sets.
 
 The documentation for each UQ technique in `UQit` starts from providing an overview of the theoretical background and introducing the main relevant references. 
 These are followed by the details of implementation, instructions on how to use the method, and notebooks.
@@ -73,8 +73,8 @@ For the theoretical background, further details, and different applications in C
 **Surrogates** play a key role in conducting non-intrusive UQ analyses and computer experiments.
 They establish a functional relation between the simulator outputs (or QoIs) and the model inputs and parameters. 
 The surrogates are constructed based on a limited number of training data and once constructed, they are much less expensive to run than the simulators. 
-`UQit` uses different approaches to construct surrogates, including Lagrange interpolation, polynomial chaos expansion [@Xiu:2002;@Xiu:2010] and more importantly Gaussian process regression [@Rasmussen:2005;@Gramacy:2020]. 
-In developing `UQit`, a high level of flexibility in constructing GPR surrogates have been considered especially when it comes to incorporating the observational uncertainties.
+`UQit` uses different approaches to construct surrogates, including Lagrange interpolation, polynomial chaos expansion [@Xiu:2002;@Xiu:2010], and Gaussian process regression [@Rasmussen:2005;@Gramacy:2020]. 
+In developing `UQit`, a high level of flexibility in constructing GPR surrogates has been considered especially when it comes to incorporating the observational uncertainties.
 
 
 The goal of **uncertainty propagation** or **UQ forward problem** is to estimate how the known uncertainties in the inputs and parameters propagate into the QoIs. 
@@ -89,7 +89,7 @@ By combining standard PCE and GPR, `UQit` provides the novel probabilistic PCE w
 Contrary to the local sensitivity analysis, in GSA all parameters are allowed to vary simultaneously and no linearization is involved in computing sensitivities. 
 In `UQit`, Sobol Sensitivity Indices (main, interaction, and total) [@Sobol:2001] are computed as indicators of GSA. 
 
-Driven by the needs, different features will be developed and added to `UQit`.
+Driven by the needs, different features will be developed and added to `UQit` in future.
 
 
 # Acknowledgments
