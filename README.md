@@ -53,6 +53,6 @@ Then in `docs`,
 * [Rezaeiravesh S., Vinuesa R., Schlatter P., An Uncertainty-Quantification Framework for Assessing Accuracy, Sensitivity, and Robustness in Computational Fluid Dynamics, arXiv:2007.07071, 2020.](https://arxiv.org/abs/2007.07071)
 
 ## Release Notes
-### Release v 1.0.1, 27.10.2020
+### Release v 1.0.2, 27.10.2020
 Source code, documentation, tests and notebooks are provided for the above-listed features. 
 
