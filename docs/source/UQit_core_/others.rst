@@ -21,7 +21,7 @@ Interpolate values from one surrogate to another surrogate.
 Statistical Tools
 -----------------
 
-.. automodule:: statsUQit
+.. automodule:: stats
    :members:
 
 
@@ -43,6 +43,6 @@ Tools for Printing and Writing
 ------------------------------
 Tools for printing or writing data in file
 
-.. automodule:: writeUQ
+.. automodule:: write
    :members:
 

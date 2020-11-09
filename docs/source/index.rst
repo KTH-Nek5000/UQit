@@ -21,20 +21,6 @@ Some of the main features in the current version of :code:`UQit` are listed belo
 Note that for each technique listed below, there is a short theory section followed by implementation details, example and a notebook. 
 
 
-Dependencies
-------------
-
-* Required:  
-
-  - `numpy <https://numpy.org/>`_
-  - `scipy <https://www.scipy.org/>`_
-  - `matplotlib <https://matplotlib.org/>`_
-
-* Optional:    
-
-  - `cvxpy <https://www.cvxpy.org/>`_ (for PCE)
-  - `GPyTorch <https://gpytorch.ai/>`_ (for GPR)
-  - `PyTorch <https://pytorch.org/>`_ (for GPR)
 
 Licence
 -------
@@ -42,8 +28,8 @@ Licence
 
 Contact
 -------
-I would appreciate to hear your comments, ideas, and feedbacks about :code:`UQit`. 
-In case there is a bug, please feel free to open an issue on Git. 
+We would appreciate to hear your comments, ideas, and feedbacks about :code:`UQit`. 
+In case there is a bug, please feel free to open an issue on `Github`. 
 
 
 .. toctree::
@@ -58,7 +44,6 @@ In case there is a bug, please feel free to open an issue on Git.
    ./UQit_core_/uqFWD
    ./UQit_core_/gsa
    ./UQit_core_/others
-   ./UQit_apps_/wrChan
    ./bib
 
 Indices and tables
