@@ -30,6 +30,7 @@ First, you need [`Sphinx`](https://www.sphinx-doc.org/en/master/) to be installe
 
 Then in `docs`,
 * `make html`
+* (You may also need `pip install sphinx-rtd-theme`)
 
 ### Required libraries:
  * General  
