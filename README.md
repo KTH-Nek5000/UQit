@@ -1,4 +1,5 @@
-![`UQit`](./docs/source/_static/uqit_logo.png?style=centerme)
+![`UQit`](https://github.com/KTH-Nek5000/UQit/blob/master/docs/source/_static/uqit_logo.png?style=centerme)
+
 ## A Python Package for Uncertainty Quantification (UQ) in Computational Fluid Dynamics (CFD)
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden <br/>
 #
@@ -27,11 +28,8 @@ First, you need [`Sphinx`](https://www.sphinx-doc.org/en/master/) to be installe
 * `conda install sphinx`
 * `conda install -c conda-forge nbsphinx`
 
-Then,
-* `cd docs`
+Then in `docs`,
 * `make html`
-
-Open `index.html` in `docs/build/html/`
 
 ### Required libraries:
  * General  
@@ -48,12 +46,13 @@ Open `index.html` in `docs/build/html/`
 
 * Qestions/comments:
   - Saleh Rezaeiravesh, salehr@kth.se <br/>
-  - Philipp Schlatter, pschlatt@mech.kth.se 
+  - Philipp Schlatter, pschlatt@mech.kth.se <br/>
+  - Ricardo Vinuesa, rvinuesa@mech.kth.se 
 
 ### Publications related to UQit:
 * [Rezaeiravesh S., Vinuesa R., Schlatter P., An Uncertainty-Quantification Framework for Assessing Accuracy, Sensitivity, and Robustness in Computational Fluid Dynamics, arXiv:2007.07071, 2020.](https://arxiv.org/abs/2007.07071)
 
 ## Release Notes
-### Release 1, 10.10.2020
+### Release 1, 27.10.2020
 Source code, documentation, tests and notebooks are provided for the above-listed features. 
 
