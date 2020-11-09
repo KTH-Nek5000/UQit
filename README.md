@@ -1,4 +1,4 @@
-![`UQit`](https://github.com/KTH-Nek5000/UQit/tree/master/docs/source/_static/uqit_logo.png?style=centerme)
+![`UQit`](./docs/source/_static/uqit_logo.png?style=centerme)
 
 ## A Python Package for Uncertainty Quantification (UQ) in Computational Fluid Dynamics (CFD)
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden <br/>
@@ -53,6 +53,6 @@ Then in `docs`,
 * [Rezaeiravesh S., Vinuesa R., Schlatter P., An Uncertainty-Quantification Framework for Assessing Accuracy, Sensitivity, and Robustness in Computational Fluid Dynamics, arXiv:2007.07071, 2020.](https://arxiv.org/abs/2007.07071)
 
 ## Release Notes
-### Release 1, 27.10.2020
+### Release v 1.0.1, 27.10.2020
 Source code, documentation, tests and notebooks are provided for the above-listed features. 
 
