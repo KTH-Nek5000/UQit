@@ -95,7 +95,7 @@ Driven by the needs, different features will be developed and added to `UQit` in
 # Acknowledgments
 This work has been supported by the EXCELLERAT project which has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 823691.
 The financial support by the Linn&#233; FLOW Centre at KTH for SR is gratefully acknowledged.
-PS acknowledges financial support by the Knut and Alice Wallenberg Foundation as part of the Wallenberg Academy Fellow programme.
+PS and SR acknowledge financial support by the Knut and Alice Wallenberg Foundation as part of the Wallenberg Academy Fellow programme.
 
 
 # References
