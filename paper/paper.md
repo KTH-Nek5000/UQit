@@ -7,11 +7,11 @@ tags:
 authors:
   - name: Saleh Rezaeiravesh^[Corresponding author]
     orcid: 0000-0002-9610-9910
-    affiliation: 1,2
+    affiliation: "1,2"
   - name: Ricardo Vinuesa
-    affiliation: 1,2
+    affiliation: "1,2"
   - name: Philipp Schlatter
-    affiliation: 1,2
+    affiliation: "1,2"
 affiliations:
  - name: SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology,
    index: 1
