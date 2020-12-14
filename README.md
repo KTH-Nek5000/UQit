@@ -1,4 +1,4 @@
-![`UQit`](./docs/source/_static/uqit_logo.png?style=centerme)
+![`UQit`](./docs/_static/uqit_logo.png?style=centerme)
 
 ## A Python Package for Uncertainty Quantification (UQ) in Computational Fluid Dynamics (CFD)
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden <br/>
