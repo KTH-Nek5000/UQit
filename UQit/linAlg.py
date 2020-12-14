@@ -7,7 +7,7 @@
 import numpy as np
 import cvxpy as cvx
 #
-def myLinearRegress(A,R,L_=1,max_iter_=100000):
+def myLinearRegress(A,R,L_=1,solver_='OSQP',max_iter_=100000):
     """    
     Solves the linear system of equations Af=R in its normalized form A'Af=A'R
       This solver works for uniquely-, over-, and under-determined linear systems.
@@ -21,6 +21,12 @@ def myLinearRegress(A,R,L_=1,max_iter_=100000):
 
       `L_`: int (optional)
          Specifies the regularization order, L_=1 or 2
+
+      `solver_`: string (optional)   
+         A cvxpy solver for the optimization problem. 
+         To see the available list of solvers print `cvxpy.installed_solvers()`. 
+         Also see https://www.cvxpy.org/tutorial/advanced/index.html?highlight=installed_solvers
+
       `max_iter_`: int (optional)   
          Maximum number of iterations to find the optimal solution when doing compressed sensing
 
@@ -43,7 +49,14 @@ def myLinearRegress(A,R,L_=1,max_iter_=100000):
            objective = cvx.Minimize(cvx.norm(f, L_))   #L1/L2-regularization
            constraints = [M*f == R]
            prob = cvx.Problem(objective, constraints)
-           object_value = prob.solve(verbose=True,max_iter=max_iter_)
+           if solver_ not in cvx.installed_solvers():
+              raise ValueError("Chosen solver=%s is not in cvxpy list of solvers." %solver_)
+           if solver_ == 'OSQP':
+              object_value = prob.solve(solver=solver_,verbose=True,max_iter=max_iter_)
+           elif solver_ in ['SCS','ECOS','ECOS_BB']:
+              object_value = prob.solve(solver=solver_,verbose=True,max_iters=max_iter_)
+           else:
+              object_value = prob.solve(solver=solver_,verbose=True)           
            print('...... Compressed sensing (regularization) is done.')
            print('       Min objective value=||fHat||= %g in L%d-sense.'%(object_value,L_))
            fHat=f.value
