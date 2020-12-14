@@ -46,10 +46,6 @@ def lagInt_1d_test():
     plt.grid()
     plt.xlabel(r'$q$',fontsize=26)
     plt.ylabel(r'$f(q)$',fontsize=26)
-    fig = plt.gcf()
-    DPI = fig.get_dpi()
-    fig.set_size_inches(1000/float(DPI),500/float(DPI))
-    plt.savefig('../testFigs/lag1d4'+'.png',bbox_inches='tight')
     plt.show()
 #
 def lagInt_2d_test():
