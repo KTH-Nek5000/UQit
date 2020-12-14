@@ -3,10 +3,10 @@ __pycache__/
 *.swp
 testFigs/
 testFigs/*
-docsrc/_build/*
-docsrc/examples/.ipynb_checkpoints/
-docsrc/UQit_apps_/*
-docsrc/UQit_apps_/
+docs/
+docsrc/build/
+docsrc/source/_build
+docsrc/source/examples/.ipynb_checkpoints/
 apps/*
 apps/
 apps/turbChannel/modules/__pycache__
