@@ -102,22 +102,22 @@ def pce_2d_test():
     """
     #---- SETTINGS------------
     #Parameters specifications
-    distType=['Unif','Norm']   #distribution type of the parameters q1, q2
-    qInfo=[[-2,3],             #info on parameters
+    distType=['Norm','Norm']   #distribution type of the parameters q1, q2
+    qInfo=[[-2,1],             #info on parameters
            [-2,0.4]] 
-    nQ=[10,12]                   #number of training samples of parameters 
+    nQ=[7,6]                   #number of training samples of parameters 
     nTest=[121,120]            #number of test points in parameter spaces to evaluate PCE
     #PCE Options
     truncMethod='TO'     #'TP'=Tensor Product
                          #'TO'=Total Order  
-    sampleType=['GQ','normRand']  #'GQ'=Gauss Quadrature nodes ('Projection' or 'Regression')
+    sampleType=['GQ','GQ']  #'GQ'=Gauss Quadrature nodes ('Projection' or 'Regression')
                              #For other type of samples, see sampling.py, trainSample => only 'Regression' can be used
                       #'LHS': Latin Hypercube Sampling (only when all distType='Unif')
     fType='type1'#Type of the exact model response, 'type1', 'type2', 'type3', 'Rosenbrock'
     pceSolveMethod='Regression' #'Regression': for any combination of sampling and truncation methods
                                 #'Projection': only for 'GQ'+'TP'
     if truncMethod=='TO':
-       LMax=10   #max polynomial order in each parameter dimention
+       LMax=8   #max polynomial order in each parameter dimention
     #------------------------
     p=len(distType)
     #Assemble the pceDict       
