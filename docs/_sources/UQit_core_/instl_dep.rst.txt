@@ -13,7 +13,13 @@ To install :code:`UQit`:
 
    pip install UQit
 
-The `html` documentation is found at `this GitHub page <https://kth-nek5000.github.io/UQit/>`_.   
+
+The source code is found at this `GitHub repository <https://github.com/KTH-Nek5000/UQit>`_.
+
+
+Documentation
+-------------
+The `html` documentation is found at this `GitHub page <https://kth-nek5000.github.io/UQit/>`_.   
 
 
 Dependencies
