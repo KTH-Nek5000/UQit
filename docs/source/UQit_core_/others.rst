@@ -29,6 +29,14 @@ Linear Algebra
 --------------
 Tools for linear algebra.
 
+To solve a linear system which is under-determined, the compressed sensing method is used. 
+The required optimization is handled by :code:`cxvpy` [Diamond16]_. 
+Different solvers can be used for this purpose, a list of which can be obtained by 
+`cvxpy.installed_solvers()`. 
+The required options for each solver can be found in `this cvxpy page <https://www.cvxpy.org/tutorial/advanced/index.html?highlight=installed_solvers>`_.
+Note that the default solver is directly specified in :code:`linAlg.myLinearRegress()`.
+
+
 .. automodule:: linAlg
    :members:
 
