@@ -220,7 +220,7 @@ class fEx2D:
             if distType[i]=='Unif':
                sampleType_='unifRand'
             elif distType[i]=='Norm':
-               sampleType='normRand'
+               sampleType_='normRand'
             else:
                 raise ValueError("Invalid distType for parameter %d" %i)            
             samps=sampling.trainSample(sampleType=sampleType_,GQdistType=distType[i],
