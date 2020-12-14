@@ -1,4 +1,4 @@
-![UQit](https://raw.githubusercontent.com/KTH-Nek5000/UQit/master/docs/source/_static/uqit_logo.png)
+![UQit](https://raw.githubusercontent.com/KTH-Nek5000/UQit/master/docsrc/source/_static/uqit_logo.png)
 
 ## A Python Package for Uncertainty Quantification (UQ) in Computational Fluid Dynamics (CFD)
 SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm, Sweden <br/>
