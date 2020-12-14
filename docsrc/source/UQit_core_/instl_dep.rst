@@ -13,21 +13,7 @@ To install :code:`UQit`:
 
    pip install UQit
 
-To build the documentation:   
-
-First, you need `Sphinx <https://www.sphinx-doc.org/en/master/>`_ to be installed:
-
-.. code-block::
-
-  conda install sphinx
-  conda install -c conda-forge nbsphinx
-
-Then in `/docs`,
-
-.. code-block::
-
-   make html
-   
+The `html` documentation is found at `this GitHub page <https://kth-nek5000.github.io/UQit/>`_.   
 
 
 Dependencies
