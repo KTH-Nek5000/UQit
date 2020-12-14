@@ -4,11 +4,11 @@ __pycache__/
 testFigs/
 testFigs/*
 docsrc/_build/*
-apps/*
-apps/
+docsrc/examples/.ipynb_checkpoints/
 docsrc/UQit_apps_/*
 docsrc/UQit_apps_/
-docsrc/examples/.ipynb_checkpoints/
+apps/*
+apps/
 apps/turbChannel/modules/__pycache__
 apps/turbChannel/__pycache__
 UQit.egg-info
