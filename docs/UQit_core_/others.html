@@ -1,0 +1,684 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Other Core Codes &mdash; UQit 1.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Bibliography" href="../bib.html" />
+    <link rel="prev" title="Global Sensitivity Analysis (GSA)" href="gsa.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> UQit
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="instl_dep.html">Installation and Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="codes_list.html">List of core codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Overview &amp; Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="surrogate.html">Surrogates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="uqFWD.html">UQ Forward Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gsa.html">Global Sensitivity Analysis (GSA)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Other Core Codes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#analytical-test-functions">Analytical Test Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#surrogate-to-surrogate">Surrogate to Surrogate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-stats">Statistical Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#linear-algebra">Linear Algebra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reshaping-tools">Reshaping Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tools-for-printing-and-writing">Tools for Printing and Writing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../bib.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">UQit</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Other Core Codes</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/UQit_core_/others.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="other-core-codes">
+<h1>Other Core Codes<a class="headerlink" href="#other-core-codes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="analytical-test-functions">
+<h2>Analytical Test Functions<a class="headerlink" href="#analytical-test-functions" title="Permalink to this headline">¶</a></h2>
+<p>Analytical model functions to test and validate implementation of different UQ techniques.</p>
+<span class="target" id="module-analyticTestFuncs"></span><dl class="py class">
+<dt id="analyticTestFuncs.fEx1D">
+<em class="property">class </em><code class="sig-prename descclassname">analyticTestFuncs.</code><code class="sig-name descname">fEx1D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">typ</span></em>, <em class="sig-param"><span class="n">qInfo</span><span class="o">=</span><span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analytical test functions and their exact moments for 1D parameter</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt><cite>q</cite>: List or 1D numpy array of size n</dt><dd><p>Samples of the parameter</p>
+</dd>
+<dt><cite>typ</cite>: string</dt><dd><dl class="simple">
+<dt>Function type, available: ‘type1’, ‘type2’:</dt><dd><ul class="simple">
+<li><p>‘type1’ for <cite>q~Uniform</cite></p></li>
+<li><p>‘type2’ for <cite>q~Normal</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><cite>qInfo</cite>: (optional) List (Required for the moments or if q is Gaussian)</dt><dd><ul class="simple">
+<li><p><cite>qInfo=[qMin,qMax]</cite> if <cite>q~U[qMin,qMax]</cite></p></li>
+<li><p><cite>qInfo=[m,sdev]</cite> if <cite>q~N(m,sdev^2)</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>Methods:</dt><dd><dl class="simple">
+<dt><cite>eval()</cite>: </dt><dd><p>Evaluates f(q) at <cite>q</cite></p>
+</dd>
+<dt><cite>moments(qInfo)</cite>: </dt><dd><p>Mean and variance of f(q)</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:        </dt><dd><dl class="simple">
+<dt><cite>val</cite>: 1D numpy array of size n,</dt><dd><p>Values of f(q) at <cite>q</cite></p>
+</dd>
+<dt><cite>mean</cite>: float</dt><dd><p>E[f(q)] for <cite>q</cite></p>
+</dd>
+<dt><cite>var</cite>: float</dt><dd><p>V[f(q)] for <cite>q</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="analyticTestFuncs.fEx1D.eval">
+<code class="sig-name descname">eval</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx1D.eval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Value of f(q) at q</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="analyticTestFuncs.fEx1D.moments">
+<code class="sig-name descname">moments</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">qInfo</span></em><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx1D.moments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analytical Mean and variance of f(q)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="analyticTestFuncs.fEx2D">
+<em class="property">class </em><code class="sig-prename descclassname">analyticTestFuncs.</code><code class="sig-name descname">fEx2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q1</span></em>, <em class="sig-param"><span class="n">q2</span></em>, <em class="sig-param"><span class="n">typ</span></em>, <em class="sig-param"><span class="n">method</span></em><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analytical test functions for 2D parameter</p>
+<dl class="simple">
+<dt>Args:  </dt><dd><dl class="simple">
+<dt><cite>q1</cite>,`q2`: Two lists or 1D numpy arrays of size n1, n2, respectively.</dt><dd><p>Samples of the parameters q1 and q2</p>
+</dd>
+<dt><cite>typ</cite>: string</dt><dd><p>Function type, available: ‘type1’, ‘type2’, ‘type3’, ‘Rosenbrock’.</p>
+</dd>
+<dt><cite>method</cite>: string</dt><dd><dl class="simple">
+<dt>Method for handling the multi-dimensionality: ‘comp’ or ‘tensorProd’.</dt><dd><ul class="simple">
+<li><p>If ‘comp’ (component): n1 must be equal to n2 to make pairs of samples: q=(q1,q2).</p></li>
+<li><p>If tensorProd’ (tensor-product): size of <cite>val</cite> is n=n1*n2.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt>Methods:</dt><dd><dl class="simple">
+<dt><cite>eval()</cite>: </dt><dd><p>Evaluates f(q) at (q1,q2)</p>
+</dd>
+<dt><cite>sobol(qBound)</cite>: </dt><dd><p>Sobol indices, available only for <cite>typ`==’type3’.
+`qBound</cite>: List of length 2, qBound=[qBound1,qBound2] where qBound_i is range of qi</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:               </dt><dd><dl class="simple">
+<dt><cite>val</cite>: 1D numpy array of size n</dt><dd><dl class="simple">
+<dt>Value of f(q) at q=(q1,q2)</dt><dd><ul class="simple">
+<li><p>If method==’comp’: n=n1=n2</p></li>
+<li><p>If method==’tensorProd’: n=n1*n2</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><cite>Si</cite><span class="classifier">[S1,S2], </span></dt><dd><p>where <cite>Si</cite> is the main Sobol index with respect to the i-th parameter, i=1,2</p>
+</dd>
+<dt><cite>STi</cite><span class="classifier">[ST1,ST2], </span></dt><dd><p>where <cite>Si</cite> is the total Sobol index with respect to the i-th parameter, i=1,2</p>
+</dd>
+<dt><cite>Sij</cite>: [S12], </dt><dd><p>Dual interaction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="analyticTestFuncs.fEx2D.eval">
+<code class="sig-name descname">eval</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx2D.eval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates f(q) at given q1, q2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="analyticTestFuncs.fEx2D.moments">
+<code class="sig-name descname">moments</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">distType</span></em>, <em class="sig-param"><span class="n">qInfo</span></em><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx2D.moments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean and variance of f(q) estimated by the Monte-Carlo approach        
+(These can be used as reference values instead of the analytical values)</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt><cite>distType</cite>: List of length 2</dt><dd><p>The i-th value (string) specifies the distribution type of the i-th parameter</p>
+</dd>
+<dt><cite>qInfo</cite>: List of length 2</dt><dd><dl class="simple">
+<dt>Information about the parameter range or distribution.</dt><dd><ul class="simple">
+<li><p>If <cite>q</cite> is Gaussian (‘Norm’ or ‘normRand’) =&gt; qInfo=[mean,sdev]</p></li>
+<li><p>Otherwise, qInfo=[min(q),max(q)]=admissible range of q</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt><cite>mean</cite>: float</dt><dd><p>Expected value of f(q) estimated by the Monte-Carlo method</p>
+</dd>
+<dt><cite>var</cite>: float</dt><dd><p>Variance of f(q) estimated by the Monte-Carlo method</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="analyticTestFuncs.fEx2D.sobol">
+<code class="sig-name descname">sobol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">qBound</span></em><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx2D.sobol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sobol sensitivity indices of f(q) with respect to q1 and q2</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p><cite>qBound</cite>: =[qBound1,qBound2] admissible range of q1, q2</p>
+</dd>
+<dt>Returns:   </dt><dd><dl class="simple">
+<dt><cite>Si</cite>:  =[S1,S2], </dt><dd><p>where <cite>Si</cite> is the main Sobol index wrt the i-th parameter, i=1,2</p>
+</dd>
+<dt><cite>STi</cite><span class="classifier">[ST1,ST2], </span></dt><dd><p>where <cite>Si</cite> is the total Sobol index wrt the i-th parameter, i=1,2</p>
+</dd>
+<dt><cite>Sij</cite>: =[S12], </dt><dd><p>dual interaction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="analyticTestFuncs.fEx3D">
+<em class="property">class </em><code class="sig-prename descclassname">analyticTestFuncs.</code><code class="sig-name descname">fEx3D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q1</span></em>, <em class="sig-param"><span class="n">q2</span></em>, <em class="sig-param"><span class="n">q3</span></em>, <em class="sig-param"><span class="n">typ</span></em>, <em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="n">opts</span></em><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analytical test functions for 3D parameter</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt><cite>q1</cite>, <cite>q2</cite>, <cite>q3</cite>: Three lists or 1D numpy arrays of size n1, n2, n3, respectively</dt><dd><p>Samples of the parameters <cite>q1</cite>, <cite>q2</cite> and <cite>q3</cite></p>
+</dd>
+<dt><cite>typ</cite>: string</dt><dd><p>Function type, available: ‘Ishigami’</p>
+</dd>
+<dt><cite>method</cite>: string</dt><dd><dl class="simple">
+<dt>Method for handling the multi-dimensionality: ‘comp’ or ‘tensorProd’</dt><dd><ul class="simple">
+<li><p>If ‘comp’ (component): n1 must be equal to n2. Pair of samples: q=(q1,q2,q3)</p></li>
+<li><p>If ‘tensorProd’ (tensor-product): size of <cite>val</cite> is n=n1*n2*n3.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><cite>opts</cite>: function fixed parameters</dt><dd><p>If ‘Ishigami’: opts=[‘a’:a_val,’b’:b_val]</p>
+</dd>
+</dl>
+</dd>
+<dt>Methods:</dt><dd><dl class="simple">
+<dt><cite>eval()</cite>: </dt><dd><p>Evaluates f(q) at (q1,q2,q3)</p>
+</dd>
+<dt><cite>moments(qInfo)</cite>: </dt><dd><p>Analytical values of mean and variance of f(q)</p>
+</dd>
+<dt><cite>sobol(qBound)</cite>: </dt><dd><p>Analytical Sobol indices</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt><cite>val</cite>: 1D numpy array of size n</dt><dd><dl class="simple">
+<dt>Values of f(q) at q</dt><dd><ul class="simple">
+<li><p>If ‘comp’: n=n1=n2=n3</p></li>
+<li><p>If ‘tensorProd’: n=n1*n2*n3</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="analyticTestFuncs.fEx3D.moments">
+<code class="sig-name descname">moments</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">qInfo</span></em><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx3D.moments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analytical mean and variance of f(q)</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt><cite>qInfo</cite>: List of length 3</dt><dd><p>qInfo=[qBound_1,qBoun_2,qBound_3] where qBound_i: admissible range of the i-th parameter</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:     </dt><dd><dl class="simple">
+<dt><cite>mean</cite>: </dt><dd><p>Expected value of f(q)</p>
+</dd>
+<dt><cite>var</cite>: </dt><dd><p>Variance of f(q)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="analyticTestFuncs.fEx3D.sobol">
+<code class="sig-name descname">sobol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">qBound</span></em><span class="sig-paren">)</span><a class="headerlink" href="#analyticTestFuncs.fEx3D.sobol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sobol sensitivity indices of f(q) with respect to q1, q2, and q3</p>
+<dl class="simple">
+<dt>Args: </dt><dd><dl class="simple">
+<dt><cite>qBound</cite>: List of length 3</dt><dd><p>=[qBound1,qBound2,qBound3] admissible range of q1, q2, q3</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt><cite>Si</cite>:  =[S1,S2,S3]</dt><dd><p>where Si is Sobol indices with respect to qi</p>
+</dd>
+<dt><cite>Sij</cite>: =[S12,S13,S23]</dt><dd><p>dual interactions</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="surrogate-to-surrogate">
+<h2>Surrogate to Surrogate<a class="headerlink" href="#surrogate-to-surrogate" title="Permalink to this headline">¶</a></h2>
+<p>Interpolate values from one surrogate to another surrogate.</p>
+<span class="target" id="module-surr2surr"></span><dl class="py function">
+<dt id="surr2surr.lagIntAtGQs">
+<code class="sig-prename descclassname">surr2surr.</code><code class="sig-name descname">lagIntAtGQs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fValM1</span></em>, <em class="sig-param"><span class="n">qM1</span></em>, <em class="sig-param"><span class="n">spaceM1</span></em>, <em class="sig-param"><span class="n">nM2</span></em>, <em class="sig-param"><span class="n">spaceM2</span></em>, <em class="sig-param"><span class="n">distType</span></em><span class="sig-paren">)</span><a class="headerlink" href="#surr2surr.lagIntAtGQs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given response values <cite>fValM1</cite> at <cite>nM1</cite> arbitrary samples over the p-D <cite>spaceM1</cite>, the values at 
+<cite>nM2</cite> Gauss quadrature points over <cite>spaceM2</cite> are computed using Lagrange interpolation.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Both <cite>spaceM1</cite> and <cite>spaceM2</cite> have the same dimension <cite>p</cite>.</p></li>
+<li><p>At each of the p dimensions, ||`spaceM2`||&lt;||`spaceM1`|| at each dimension.</p></li>
+<li><p>The Gauss quadrature nodes over ‘spaceM2’ can be the abscissa of different types of 
+polynomials based on the <cite>distType</cite> and the gPCE rule.</p></li>
+<li><p>A tensor-product grid from the GQ nodes on <cite>spaceM2</cite> is created</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>args:    </dt><dd><dl class="simple">
+<dt><cite>qM1</cite>: List of length p </dt><dd><p>List of samples on <cite>spaceM1</cite>; qM1=[qM1_1,qM1_2,…,qM1_p] where <cite>qM1_i</cite> is a 1D numpy 
+array of size nM1_i, for i=1,2,…,p.</p>
+</dd>
+<dt><cite>fValM1</cite>: numpy p-D array of shape (nM1_1,nM1_2,…,nM1_p).</dt><dd><p>Response values at <cite>qM1</cite></p>
+</dd>
+<dt><cite>spaceM1</cite>: List of length p.</dt><dd><p>=[spaceM1_1,spaceM1_2,…,spaceM1_p] where spaceM1_i is a list of two elements, 
+specifying the admissible range of qM1_i, for i=1,2,…,p.</p>
+</dd>
+<dt><cite>nM2</cite> List of length p,</dt><dd><p>Containing the number of Gauss quadrature samples <cite>qM2</cite> in each parameter dimension, 
+nM2=[nM2_1,nM2_2,…,nM2_p]</p>
+</dd>
+<dt><cite>spaceM2</cite>: List of length p.</dt><dd><p>=[spaceM2_1,spaceM2_2,…,spaceM2_p] where spaceM2_i is a list of two elements, 
+specifying the admissible range of qM2_i, for i=1,2,…,p.</p>
+</dd>
+<dt><cite>distType</cite>: List of length p with string members</dt><dd><p>The i-th element specifies the distribution type of the i-th parameter according to 
+the gPCE rule.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt><cite>qM2</cite>: List of length p </dt><dd><p>List of samples on <cite>spaceM2</cite>; qM2=[qM2_1,qM2_2,…,qM2_p] where <cite>qM2_i</cite> is a 1D numpy 
+array of size nM2_i, for i=1,2,…,p.</p>
+</dd>
+<dt><cite>xiM2</cite>: numpy array of shape (nM2_1*nM2_2*…*nM2_p,p)   </dt><dd><p>Tensor-product grid of Gauss-quadrature nodes on the mapped space of <cite>spaceM2</cite></p>
+</dd>
+<dt><cite>fValM2</cite>: 1D numpy array of size (nM1_1*nM1_2*…*nM1_p).</dt><dd><p>Interpolated response values at <cite>xiM2</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-stats">
+<span id="statistical-tools"></span><h2>Statistical Tools<a class="headerlink" href="#module-stats" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="stats.pdfFit_uniVar">
+<code class="sig-prename descclassname">stats.</code><code class="sig-name descname">pdfFit_uniVar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">doPlot</span></em>, <em class="sig-param"><span class="n">pwOpts</span></em><span class="sig-paren">)</span><a class="headerlink" href="#stats.pdfFit_uniVar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits a PDF to samples <cite>f</cite> and plots both histogram and the fitted PDF. 
+As an option, the plots and data can be saved on disk.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt><cite>f</cite>: 1D numpy array of size n </dt><dd><p>Samples</p>
+</dd>
+<dt><cite>doPlot</cite>: bool      </dt><dd><p>Whether or not plotting the PDF</p>
+</dd>
+<dt><cite>pwOpts</cite>: dict (optional) </dt><dd><dl class="simple">
+<dt>Options for plotting and dumping the data with the following keys:</dt><dd><ul class="simple">
+<li><p>‘figDir’: string, Directory to save the figure and dump the data</p></li>
+<li><p>‘figName’: string, Name of the figure</p></li>
+<li><p>‘header’: string, the header of the dumped file</p></li>
+<li><p>‘iLoc’: int, After converting to string will be added to the <cite>figName</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="stats.pdfPredict_uniVar">
+<code class="sig-prename descclassname">stats.</code><code class="sig-name descname">pdfPredict_uniVar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">fTest</span></em>, <em class="sig-param"><span class="n">doPlot</span></em><span class="sig-paren">)</span><a class="headerlink" href="#stats.pdfPredict_uniVar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates the continuous PDF fitted to <cite>f</cite> at <cite>fTest</cite>.</p>
+<dl>
+<dt>Args:</dt><dd><p><cite>f</cite>: 1D numpy array</p>
+<p><cite>fTest</cite>: List of length m</p>
+</dd>
+<dt>Returns:</dt><dd><p><cite>pdfPred</cite>: 1D numpy array of size m</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="linear-algebra">
+<h2>Linear Algebra<a class="headerlink" href="#linear-algebra" title="Permalink to this headline">¶</a></h2>
+<p>Tools for linear algebra.</p>
+<p>To solve a linear system which is under-determined, the compressed sensing method is used.
+The required optimization is handled by <code class="code docutils literal notranslate"><span class="pre">cxvpy</span></code> <a class="reference internal" href="../bib.html#diamond16" id="id1"><span>[Diamond16]</span></a>.
+Different solvers can be used for this purpose, a list of which can be obtained by
+<cite>cvxpy.installed_solvers()</cite>.
+The required options for each solver can be found in <a class="reference external" href="https://www.cvxpy.org/tutorial/advanced/index.html?highlight=installed_solvers">this cvxpy page</a>.
+Note that the default solver is directly specified in <code class="code docutils literal notranslate"><span class="pre">linAlg.myLinearRegress()</span></code>.</p>
+<span class="target" id="module-linAlg"></span><dl class="py function">
+<dt id="linAlg.myLinearRegress">
+<code class="sig-prename descclassname">linAlg.</code><code class="sig-name descname">myLinearRegress</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">A</span></em>, <em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">L_</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">solver_</span><span class="o">=</span><span class="default_value">'OSQP'</span></em>, <em class="sig-param"><span class="n">max_iter_</span><span class="o">=</span><span class="default_value">100000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#linAlg.myLinearRegress" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Solves the linear system of equations Af=R in its normalized form A’Af=A’R</dt><dd><p>This solver works for uniquely-, over-, and under-determined linear systems.
+If system is under-determined, the compressed sensing method with L1 or L2 regularization is used.
+For this purpose, the library cvxpy is used (<a class="reference external" href="https://www.cvxpy.org">https://www.cvxpy.org</a>).</p>
+</dd>
+<dt>Args:</dt><dd><p><cite>A</cite>: numpy array of shape (n,K)</p>
+<p><cite>R</cite>: numpy array of size n</p>
+<dl class="simple">
+<dt><cite>L_</cite>: int (optional)</dt><dd><p>Specifies the regularization order, L_=1 or 2</p>
+</dd>
+<dt><cite>solver_</cite>: string (optional)   </dt><dd><p>A cvxpy solver for the optimization problem. 
+To see the available list of solvers print <cite>cvxpy.installed_solvers()</cite>. 
+Also see <a class="reference external" href="https://www.cvxpy.org/tutorial/advanced/index.html?highlight=installed_solvers">https://www.cvxpy.org/tutorial/advanced/index.html?highlight=installed_solvers</a></p>
+</dd>
+<dt><cite>max_iter_</cite>: int (optional)   </dt><dd><p>Maximum number of iterations to find the optimal solution when doing compressed sensing</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:     </dt><dd><dl class="simple">
+<dt><cite>f</cite>: 1D numpy array of size K</dt><dd><p>The solution of the linear system A.f=R</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="reshaping-tools">
+<h2>Reshaping Tools<a class="headerlink" href="#reshaping-tools" title="Permalink to this headline">¶</a></h2>
+<p>Tools for converting and reshaping arrays and lists.</p>
+<span class="target" id="module-reshaper"></span><dl class="py function">
+<dt id="reshaper.lengthVector">
+<code class="sig-prename descclassname">reshaper.</code><code class="sig-name descname">lengthVector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#reshaper.lengthVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the length of vector x which can be a list or a numpy array</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="reshaper.vecs2grid">
+<code class="sig-prename descclassname">reshaper.</code><code class="sig-name descname">vecs2grid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#reshaper.vecs2grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes a p-D (p&gt;1) tensor-product grid from a list of length p containg 1D numpy arrays of points in each dimension.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt><cite>x</cite>: A list of length p&gt;1</dt><dd><p>x=[x1,x2,…,xp] where xi is a 1D numpy array of size ni</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>‘z’: A numpy array of shape (n1*n2*…*np,p)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="reshaper.vecsGlue">
+<code class="sig-prename descclassname">reshaper.</code><code class="sig-name descname">vecsGlue</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#reshaper.vecsGlue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes a set by gluing p&gt;1 1D numpy arrays x0,x1,…,xp of the same size (=n)</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p><cite>x</cite>: 1D numpy arrays each having the size of n</p>
+</dd>
+<dt>Return:   </dt><dd><dl class="simple">
+<dt><cite>z</cite>: numpy array of shape (n,p) </dt><dd><p>z[:,i]=xi where i=1,2,…,p</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="tools-for-printing-and-writing">
+<h2>Tools for Printing and Writing<a class="headerlink" href="#tools-for-printing-and-writing" title="Permalink to this headline">¶</a></h2>
+<p>Tools for printing or writing data in file</p>
+<span class="target" id="module-write"></span><dl class="py function">
+<dt id="write.printRepeated">
+<code class="sig-prename descclassname">write.</code><code class="sig-name descname">printRepeated</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string_to_expand</span></em>, <em class="sig-param"><span class="n">length</span></em><span class="sig-paren">)</span><a class="headerlink" href="#write.printRepeated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Repeats the string <cite>string_to_extend</cite>, <cite>length</cite> times</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../bib.html" class="btn btn-neutral float-right" title="Bibliography" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gsa.html" class="btn btn-neutral float-left" title="Global Sensitivity Analysis (GSA)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Saleh Rezaeiravesh
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

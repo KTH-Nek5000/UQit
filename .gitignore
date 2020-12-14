@@ -3,14 +3,13 @@ __pycache__/
 *.swp
 testFigs/
 testFigs/*
-docs/build/*
+docsrc/build/
+docsrc/source/examples/.ipynb_checkpoints/
+docsrc/source/_build
 apps/*
 apps/
-doc/UQit_apps_/*
-docs/UQit_apps_/
 apps/turbChannel/modules/__pycache__
 apps/turbChannel/__pycache__
-docs/examples/.ipynb_checkpoints/
 UQit.egg-info
 build/
 dist/
