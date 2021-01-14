@@ -228,3 +228,85 @@ def gprTorch_2d_singleTask_test():
         #3d plot
         gprPlot().torch2d_3dSurf(xTrain,yTrain,xTestList,post_obs)
 #
+def gprTorch_2d_singleTask_test2():
+    """
+    Test for GPR for 2d input - Importance of standardization of the training data
+    Run the test with 'standardizeYTrain_' being True and False. 
+    """
+    ##
+    def trainData():
+        """
+        Generate training data
+        """
+        qBound=[[-1,1],[-1,1]]
+        x1_=sampling.trainSample(sampleType='GQ',GQdistType='Unif',qInfo=qBound[0],nSamp=4)
+        x2_=sampling.trainSample(sampleType='GQ',GQdistType='Unif',qInfo=qBound[1],nSamp=4)
+        xTrain=reshaper.vecs2grid([x1_.q,x2_.q])
+        yTrain_mean=np.asarray([-0.0169906,-0.0191095,-0.0167435,-0.0172338,-0.0203195,-0.020089,
+        -0.0184691,-0.0188843,-0.0164581,-0.0200013,-0.0186512,-0.0159343,
+        -0.0185975, -0.0155899,-0.0178921,-0.018329 ])
+        yTrain_sdev= np.asarray([0.00131249,0.00104324,0.00085491,0.00099751,0.00094231,0.00102579,
+        0.0010804,0.00089567,0.00081245,0.0011208,0.00110756,0.00126673,
+        0.00108875,0.00145115,0.00098541,0.00130559])
+        
+        return qBound,xTrain,yTrain_mean,yTrain_sdev
+    #   
+    #----- SETTINGS
+    #options for GPR
+    nIter_=3000        #number of iterations in optimization of GPR hyperparameters
+    lr_   =0.05        #learning rate in the optimization of the hyperparameters
+    convPlot_=True     #plot convergence of optimization of GPR hyperparameters
+    standardizeYTrain_=True   #standardize the Y training data?
+    nTest=[41,40]      #number of test points in each parameter dimension    
+    #---------------------------------
+    #(1) Generate training data
+    qBound,xTrain,yTrain_mean,yTrain_sdev=trainData()
+    p=len(qBound)    #dimension of the input
+    nSamp=len(yTrain_mean)
+    
+    #(2) Generate noisy training data
+    noise_=np.random.randn(nSamp)
+    noise_=yTrain_sdev*noise_
+    yTrain=yTrain_mean+noise_
+
+    #(3) Create test points
+    xTestList=[]
+    for i in range(p):
+        grid_=np.linspace(qBound[i][0],qBound[i][1],nTest[i])
+        xTestList.append(grid_)
+    xTest=reshaper.vecs2grid(xTestList)
+
+    #(4) Fit the GPR
+    gprOpts={'nIter':nIter_,'lr':lr_,'convPlot':convPlot_,'standardizeYTrain':standardizeYTrain_}
+    gpr_=gpr(xTrain,yTrain[:,None],yTrain_sdev,xTest,gprOpts)
+    post_f=gpr_.post_f
+    post_obs=gpr_.post_y
+    #(4) Predicted mean and variance of the posteriors at the test grid
+    shift_=0.0 #default shift and scaling, assuming no standardization in the training data
+    scale_=1.0
+    if standardizeYTrain_:
+        shift_=gpr_.shift[0]  #0: single-response
+        scale_=gpr_.scale[0]
+
+    fP_=gprPost(post_f,nTest,shift=shift_,scale=scale_)
+    fP_.torchPost()
+    post_f_mean=fP_.mean
+    post_f_sdev=fP_.sdev
+    obsP_=gprPost(post_obs,nTest,shift=shift_,scale=scale_)
+    obsP_.torchPost()
+    post_obs_mean=obsP_.mean
+    post_obs_sdev=obsP_.sdev
+
+    # (5) Plots
+    # When using 'torch2d_2dcont', de-standardization of the predicted  mean and sdev is manual
+    pltOpts={'title':'Mean of posterior f(q)','xlab':r'$q_1$','ylab':r'$q_2$'}
+    gprPlot(pltOpts).torch2d_2dcont(xTrain,xTestList,post_f_mean*scale_+shift_)
+    pltOpts={'title':'Sdev of posterior f(q)','xlab':r'$q_1$','ylab':r'$q_2$'}
+    gprPlot(pltOpts).torch2d_2dcont(xTrain,xTestList,post_f_sdev*scale_)
+    # When using torch2d_3dSurf, the optional arguments shift and scale can be passed. 
+    # Therefore, de-standardization of the predictions is automatic. 
+    pltOpts={'title':'Mean of posterior f(q)','xlab':r'$q_1$','ylab':r'$q_2$'}
+    gprPlot(pltOpts).torch2d_3dSurf(xTrain,yTrain,xTestList,post_f,shift=shift_,scale=scale_)
+    pltOpts={'title':'Mean of posterior predictive y=f(q)+e','xlab':r'$q_1$','ylab':r'$q_2$'}
+    gprPlot(pltOpts).torch2d_3dSurf(xTrain,yTrain,xTestList,post_obs,shift=shift_,scale=scale_)
+#    
