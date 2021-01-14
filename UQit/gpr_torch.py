@@ -21,6 +21,14 @@ Notes:
   parameter space can be mapped, for instance, into the hypercube
   [-1,1]^p. Then, the GPR can be constructed on this mapped space. 
 
+  4. Shifting and scaling (standardization) of the training data can result 
+  in a better fit of GPR. This can be activated via making `'standardizeYTrain':True` 
+  in `gprOpts`.
+
+  5. Different options for kernel function are available by :code:`GPyTorch`. 
+  One can change the default kernel in `self.covar_module(...)` (see below) 
+  manually by modifying the source code of :code:`UQit`. 
+
 """    
 #----------------------------------------------------------------
 #
@@ -67,9 +75,12 @@ class SingletaskGPModel_mIn(gpytorch.models.ExactGP):
         num_dims = train_x.size(-1)
         self.mean_module = gpytorch.means.ConstantMean()
         self.covar_module = gpytorch.kernels.ScaleKernel(
+            ##different length scales in different dimentions
             #gpytorch.kernels.RBFKernel(ard_num_dims=num_dims)   
-            ##different length scales in different dimentions, RBF
-            gpytorch.kernels.MaternKernel(nu=2.5,ard_num_dims=num_dims)   
+            gpytorch.kernels.RBFKernel(ard_num_dims=num_dims,
+                                      lengthscale_constraint=None,
+                                      lengthscale_prior=gpytorch.priors.NormalPrior(10, 10)) #prior (optional), to make a better fit
+            #gpytorch.kernels.MaternKernel(nu=2.5,ard_num_dims=num_dims)   
             ##different length scales in different dimentions, Matern nu
             #gpytorch.kernels.RBFKernel()   #equal length scales in all input dimensions
         )
@@ -109,6 +120,11 @@ class gpr:
                Number of iterations in the optimization of hyperparameters
            * 'lr': float 
                Learning rate in the optimization of hyperparameters
+           * 'standardizeYTrain': bool (optional, default:False)
+              If true, the training data are standardized by shifting by mean and scaling by sdev:
+
+              :math:`yStnd =  (yTrain-mean(yTrain))/sdev(yTrain)`
+
            * 'convPlot': bool 
                If true, optimized values of the hyper-parameters is plotted vs. iteration.
 
@@ -116,6 +132,8 @@ class gpr:
       `post_f`: Posterior of f(x) at `xTest`.
       
       `post_obs`: Predictive posterior (likelihood) at `xTest`.
+
+      
     """
     def __init__(self,xTrain,yTrain,noiseV,xTest,gprOpts):
         self.xTrain=xTrain
@@ -129,6 +147,15 @@ class gpr:
     def _info(self):
        self.p=self.xTrain.shape[-1]
        self.nResp=self.yTrain.shape[-1]
+       self.shift=np.zeros(self.nResp) 
+       self.scale=np.ones(self.nResp)
+       if 'standardizeYTrain' in self.gprOpts.keys(): 
+          if self.gprOpts['standardizeYTrain']:
+             for i in range(self.nResp): 
+                 self.shift[i]=np.mean(self.yTrain[:,i])
+                 self.scale[i]=np.std(self.yTrain[:,i])
+                 self.yTrain[:,i]=(self.yTrain[:,i]-self.shift[i])/self.scale[i]
+                 print('...... GPR: y-Training data is standardized by shifting and scaling.')
 
     def train_pred(self):    
         """
@@ -200,7 +227,7 @@ class gpr:
            optimizer.step()
            losses.append(loss.item())
            lengthSc.append(model.covar_module.base_kernel.lengthscale.item())
-           if (i+1) % 100 == 0:
+           if i==0 or (i+1) % 100== 0:
                print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f - lengthsc: %.3f' % (i + 1, nIter, losses[-1],lengthSc[-1]))
         self.loss=losses     
         self.lengthSc=lengthSc
@@ -295,7 +322,7 @@ class gpr:
                 lengthSc_.append(model.covar_module.base_kernel.lengthscale.squeeze()[j].item())
                 #lengthSC_.append(model.covar_module.base_kernel.lengthscale.item())   
                 ##if all lengthscales are the same (see the definition of self.covar_module, above)
-            if (i+1) % 100 == 0:
+            if i==0 or (i+1) % 100 == 0:
                print('...... GPR-hyperparameters Optimization, iter %d/%d - loss: %.3f' %((i + 1), nIter, loss_),end="  ")
                print('lengthscales='+'%.3f '*p %(tuple(lengthSc_)))
             losses.append(loss_)
@@ -354,6 +381,10 @@ class gprPost:
          GPR posterior density created by GPyTorch
       `nTest`: A list of size p
          Containing number of test points in each parameter dimension: [nTest1,nTest2,...nTestp]
+      `shift`: Float scalar (optional)         
+         Value by which the original training data 'yTrain' were shifted for standardization
+      `scale`: Float scalar (optional)         
+         Value by which the original training data 'yTrain' were scaled for standardization
 
     Methods:
       `torchPost()`: Computing mean, standard-deviation, and CI of the GPR-posterior
@@ -368,14 +399,16 @@ class gprPost:
       `ciU`: pD numpy array of size (nTest1,nTest2,...,nTestp)
          Upper 95% CI of the GP-posterior
     """
-    def __init__(self,gpPost,nTest):
+    def __init__(self,gpPost,nTest,shift=0.0,scale=1.0):
         self.gpPost=gpPost
         self.nTest=nTest
+        self.shift=shift
+        self.scale=scale
 
     def torchPost(self):
         """
         Computes mean, standard-deviation, and CI of the GPR-posterior created by GPyTorch
-        """
+        """        
         with torch.no_grad():
             post_=self.gpPost
             nTest=self.nTest
@@ -385,6 +418,10 @@ class gprPost:
             lower_=lower_.detach().numpy().reshape(nTest,order='F')
             upper_=upper_.detach().numpy().reshape(nTest,order='F')
             post_sdev = (post_mean-lower_)/2.0   #sdev of the posterior mean of f(q)
+            post_sdev *= self.scale              #de-standardize sdev prediction
+            post_mean =post_mean * self.scale + self.shift   #de-standardize mean prediction
+            lower_ = post_mean-1.96*post_sdev
+            upper_ = post_mean+1.96*post_sdev
         self.mean=post_mean    
         self.sdev=post_sdev
         self.ciL=lower_
@@ -471,7 +508,7 @@ class gprPlot:
         fig.set_size_inches(self.figSize[0]/float(DPI),self.figSize[1]/float(DPI))
         plt.savefig(figOut+'.pdf',bbox_inches='tight')
                       
-    def torch1d(self,post_f,post_obs,xTrain,yTrain,xTest,fExTest):
+    def torch1d(self,post_f,post_obs,xTrain,yTrain,xTest,fExTest,shift=0.0,scale=1.0):
         """
         Plots the GPR constructed by GPyToch for a 1D input.
       
@@ -488,21 +525,38 @@ class gprPlot:
              Test samples taken from the input space
           `fExTest`: 1D numpy array of size nTest
              Exact response values at `xTest`
+          `shift`: Float scalar (optional)         
+             Value by which the original training data 'yTrain' were shifted for standardization
+          `scale`: Float scalar (optional)         
+             Value by which the original training data 'yTrain' were scaled for standardization
         """
         with torch.no_grad():
              lower_f, upper_f = post_f.confidence_region()
              lower_obs, upper_obs = post_obs.confidence_region()
+             post_obs_sample_=post_obs.sample().numpy()
+             #de-standardize mean and sdev
+             yTrain_=yTrain*scale+shift
+             post_f_mean_ = post_f.mean[:].numpy() * scale + shift
+             post_obs_mean_ = post_obs.mean[:].numpy() * scale + shift
+             #NOTE: confidence interval = 2* sdev, see
+             #https://github.com/cornellius-gp/gpytorch/blob/4a1ba02d2367e4e9dd03eb1ccbfa4707da02dd08/gpytorch/distributions/multivariate_normal.py             
+             post_f_sdev_ = ((upper_f.numpy() - lower_f.numpy())/4.0)*scale
+             post_obs_sdev_ = ((upper_obs.numpy() - lower_obs.numpy())/4.0)*scale
+             lower_f_=post_f_mean_ - 1.96 * post_f_sdev_
+             upper_f_=post_f_mean_ + 1.96 * post_f_sdev_
+             lower_obs_=post_obs_mean_ - 1.96 * post_obs_sdev_
+             upper_obs_=post_obs_mean_ + 1.96 * post_obs_sdev_
+             post_obs_sample_=post_obs_sample_*scale+shift
+
              plt.figure(figsize=(10,6))
              plt.plot(xTest,fExTest,'--b',label='Exact Output')
-             plt.plot(xTrain, yTrain, 'ok',markersize=4,label='Training obs. y')
-             plt.plot(xTest, post_f.mean[:].numpy(), '-r',lw=2,label='Mean Model')
-             plt.plot(xTest, post_obs.mean[:].numpy(), ':m',lw=2,label='Mean Posterior Pred')
-             plt.plot(xTest, post_obs.sample().numpy(), '-k',lw=1,label='Sample Posterior Pred')
-             plt.fill_between(xTest, lower_f.numpy(), upper_f.numpy(), alpha=0.3,label='CI for f(q)')
-             plt.fill_between(xTest, lower_obs.numpy(), upper_obs.numpy(), alpha=0.15, color='r',label='CI for obs. y')
+             plt.plot(xTrain, yTrain_, 'ok',markersize=4,label='Training obs. y')
+             plt.plot(xTest, post_f_mean_, '-r',lw=2,label='Mean Model')
+             plt.plot(xTest, post_obs_mean_, ':m',lw=2,label='Mean Posterior Pred')
+             plt.plot(xTest, post_obs_sample_, '-k',lw=1,label='Sample Posterior Pred')
+             plt.fill_between(xTest, lower_f_, upper_f_, alpha=0.3,label='CI for f(q)')
+             plt.fill_between(xTest, lower_obs_, upper_obs_, alpha=0.15, color='r',label='CI for obs. y')
              plt.legend(loc='best',fontsize=self.legFS)
-             #NOTE: confidence = 2* sdev, see
-             #https://github.com/cornellius-gp/gpytorch/blob/4a1ba02d2367e4e9dd03eb1ccbfa4707da02dd08/gpytorch/distributions/multivariate_normal.py             
              if hasattr(self,'title'):
                 plt.title(self.title,fontsize=self.titleFS) 
              else:   
@@ -547,7 +601,7 @@ class gprPlot:
            self._figSaver()
         plt.show()
              
-    def torch2d_3dSurf(self,xTrain,yTrain,qTest,post_):
+    def torch2d_3dSurf(self,xTrain,yTrain,qTest,post_,shift=0.0,scale=1.0):
         """
         3D plot of the GPR surface (mean+CI) constructed for a 2D input (parameter).
 
@@ -561,15 +615,21 @@ class gprPlot:
              samples taken from the space of i-th input
           `post_`: GpyTorch object
              Posterior density of model function f(q) or observations y
+          `shift`: Float scalar (optional)         
+             Value by which the original training data 'yTrain' were shifted for standardization
+          `scale`: Float scalar (optional)         
+             Value by which the original training data 'yTrain' were scaled for standardization
         """
         nTest=[len(qTest[i]) for i in range(len(qTest))]
         #Predicted mean and variance at the test grid
         fP_=gprPost(post_,nTest)
         fP_.torchPost()
-        post_mean=fP_.mean
-        post_sdev=fP_.sdev
-        lower_=fP_.ciL
-        upper_=fP_.ciU
+        #de-standardized the mean and sdev
+        yTrain=yTrain * scale + shift
+        post_mean=fP_.mean * scale + shift
+        post_sdev=fP_.sdev * scale
+        lower_=post_mean-1.96*post_sdev
+        upper_=post_mean+1.96*post_sdev
 
         xTestGrid1,xTestGrid2=np.meshgrid(qTest[0],qTest[1], sparse=False, indexing='ij')
         fig = plt.figure(figsize=(10,10))
@@ -579,7 +639,13 @@ class gprPlot:
         upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_, linewidth=1,alpha=0.25,color='r')
         lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_, linewidth=1,alpha=0.25,color='b')
         plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok',ms='5')
+        if hasattr(self,'xlab'):
+           plt.xlabel(self.xlab,fontsize=self.labFS[0])
+        if hasattr(self,'ylab'):
+           plt.ylabel(self.ylab,fontsize=self.labFS[1])
+        if hasattr(self,'title'):
+           plt.title(self.title,fontsize=self.titleFS)
         if self.figSave:
-           self._figSaver()
+           self._figSaver()         
         plt.show()
 #
