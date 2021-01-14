@@ -746,16 +746,16 @@ In <code class="code docutils literal notranslate"><span class="pre">UQit</span>
 <dd><p>Probabilistic Polynomial Chaos Expansion (PPCE) over a p-D parameter space, 
 where p=1,2,…
 Model: y=f(q)+e</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
+<dl>
+<dt>Args:</dt><dd><dl>
 <dt><cite>qTrain</cite>: 2D numpy array of shape (n,p)</dt><dd><p>Training samples for q</p>
 </dd>
 <dt><cite>yTrain</cite>: 1D numpy array of size n</dt><dd><p>Training observed values for y</p>
 </dd>
 <dt><cite>noiseV</cite>: 1D numpy array of size n</dt><dd><p>Standard-deviation of the noise in the training observations: e~N(0,noiseSdev)</p>
 </dd>
-<dt><cite>ppceDict</cite>: dict</dt><dd><dl class="simple">
-<dt>Dictionary containing controllers for PPCE, including:</dt><dd><ul class="simple">
+<dt><cite>ppceDict</cite>: dict</dt><dd><dl>
+<dt>Dictionary containing controllers for PPCE, including:</dt><dd><ul>
 <li><dl class="simple">
 <dt>‘nGQtest’: List of length p</dt><dd><p>Number of GQ test points in each of the p-directions</p>
 </dd>
@@ -763,7 +763,7 @@ Model: y=f(q)+e</p>
 </li>
 <li><dl class="simple">
 <dt>‘qInfo’: List of length p</dt><dd><dl class="simple">
-<dt>=[qInfo_1,…,qInfo_p], where qInfo_i is the information about distribution of q_i</dt><dd><ul>
+<dt>=[qInfo_1,…,qInfo_p], where qInfo_i is the information about distribution of q_i</dt><dd><ul class="simple">
 <li><p>if q_i~’Unif’, qInfo_i =[min(q_i),max(q_i)]</p></li>
 <li><p>if q_i~’Norm’, qInfo_i =[m,v] for q~N(m,v^2)</p></li>
 </ul>
@@ -784,6 +784,12 @@ Model: y=f(q)+e</p>
 </li>
 <li><dl class="simple">
 <dt>‘lr_gpr’: float</dt><dd><p>Learning rate for optimization of the GPR hyper-parameters</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>‘standardizeYTrain_gpr’: bool (optional, default: False)</dt><dd><p>If true, the training data are standardized by shifting by mean and scaling by sdev:</p>
+<p><span class="math notranslate nohighlight">\(yStnd =  (yTrain-mean(yTrain))/sdev(yTrain)\)</span></p>
 </dd>
 </dl>
 </li>

@@ -445,6 +445,12 @@ are too different from each other or are too large, the optimization
 of the length-scales can be problematic. To rectify this, the original
 parameter space can be mapped, for instance, into the hypercube
 [-1,1]^p. Then, the GPR can be constructed on this mapped space.</p>
+<p>4. Shifting and scaling (standardization) of the training data can result 
+in a better fit of GPR. This can be activated via making <cite>‘standardizeYTrain’:True</cite> 
+in <cite>gprOpts</cite>.</p>
+<p>5. Different options for kernel function are available by <code class="code docutils literal notranslate"><span class="pre">GPyTorch</span></code>. 
+One can change the default kernel in <cite>self.covar_module(…)</cite> (see below) 
+manually by modifying the source code of <code class="code docutils literal notranslate"><span class="pre">UQit</span></code>.</p>
 </dd>
 </dl>
 <dl class="py class">
@@ -507,7 +513,7 @@ is fixed for all observations, then epsilon_i~iid (homoscedastic).</p></li>
 </ul>
 </div></blockquote>
 <dl>
-<dt>Args:          </dt><dd><dl class="simple">
+<dt>Args:          </dt><dd><dl>
 <dt><cite>xTrain</cite>: 2D numpy array of size nxp</dt><dd><p>Training samples (size n) from the p-D input (parameter) space</p>
 </dd>
 <dt><cite>yTrain</cite>: 2D numpy array of size nxm (m: dimensionality of y)</dt><dd><p>Training model output (response)</p>
@@ -516,8 +522,8 @@ is fixed for all observations, then epsilon_i~iid (homoscedastic).</p></li>
 </dd>
 <dt><cite>xTest</cite>: 2D numpy array of size nTestxp</dt><dd><p>Test samples from the input (parameter) space</p>
 </dd>
-<dt><cite>gprOpts</cite>: dict</dt><dd><dl class="simple">
-<dt>Options for constructing GPR with the following keys:</dt><dd><ul class="simple">
+<dt><cite>gprOpts</cite>: dict</dt><dd><dl>
+<dt>Options for constructing GPR with the following keys:</dt><dd><ul>
 <li><dl class="simple">
 <dt>‘nIter’: int</dt><dd><p>Number of iterations in the optimization of hyperparameters</p>
 </dd>
@@ -525,6 +531,12 @@ is fixed for all observations, then epsilon_i~iid (homoscedastic).</p></li>
 </li>
 <li><dl class="simple">
 <dt>‘lr’: float </dt><dd><p>Learning rate in the optimization of hyperparameters</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>‘standardizeYTrain’: bool (optional, default:False)</dt><dd><p>If true, the training data are standardized by shifting by mean and scaling by sdev:</p>
+<p><span class="math notranslate nohighlight">\(yStnd =  (yTrain-mean(yTrain))/sdev(yTrain)\)</span></p>
 </dd>
 </dl>
 </li>
@@ -627,7 +639,7 @@ be either the same (iid=homoscedastic) or different (heteroscedastic).</p>
 </dl>
 <dl class="py method">
 <dt id="gpr_torch.gprPlot.torch1d">
-<code class="sig-name descname">torch1d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">post_f</span></em>, <em class="sig-param"><span class="n">post_obs</span></em>, <em class="sig-param"><span class="n">xTrain</span></em>, <em class="sig-param"><span class="n">yTrain</span></em>, <em class="sig-param"><span class="n">xTest</span></em>, <em class="sig-param"><span class="n">fExTest</span></em><span class="sig-paren">)</span><a class="headerlink" href="#gpr_torch.gprPlot.torch1d" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">torch1d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">post_f</span></em>, <em class="sig-param"><span class="n">post_obs</span></em>, <em class="sig-param"><span class="n">xTrain</span></em>, <em class="sig-param"><span class="n">yTrain</span></em>, <em class="sig-param"><span class="n">xTest</span></em>, <em class="sig-param"><span class="n">fExTest</span></em>, <em class="sig-param"><span class="n">shift</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">scale</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#gpr_torch.gprPlot.torch1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the GPR constructed by GPyToch for a 1D input.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
@@ -642,6 +654,10 @@ be either the same (iid=homoscedastic) or different (heteroscedastic).</p>
 <dt><cite>xTest</cite>: 1D numpy array of size nTest</dt><dd><p>Test samples taken from the input space</p>
 </dd>
 <dt><cite>fExTest</cite>: 1D numpy array of size nTest</dt><dd><p>Exact response values at <cite>xTest</cite></p>
+</dd>
+<dt><cite>shift</cite>: Float scalar (optional)         </dt><dd><p>Value by which the original training data ‘yTrain’ were shifted for standardization</p>
+</dd>
+<dt><cite>scale</cite>: Float scalar (optional)         </dt><dd><p>Value by which the original training data ‘yTrain’ were scaled for standardization</p>
 </dd>
 </dl>
 </dd>
@@ -670,7 +686,7 @@ samples taken from the space of i-th input</p>
 
 <dl class="py method">
 <dt id="gpr_torch.gprPlot.torch2d_3dSurf">
-<code class="sig-name descname">torch2d_3dSurf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xTrain</span></em>, <em class="sig-param"><span class="n">yTrain</span></em>, <em class="sig-param"><span class="n">qTest</span></em>, <em class="sig-param"><span class="n">post_</span></em><span class="sig-paren">)</span><a class="headerlink" href="#gpr_torch.gprPlot.torch2d_3dSurf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">torch2d_3dSurf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xTrain</span></em>, <em class="sig-param"><span class="n">yTrain</span></em>, <em class="sig-param"><span class="n">qTest</span></em>, <em class="sig-param"><span class="n">post_</span></em>, <em class="sig-param"><span class="n">shift</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">scale</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#gpr_torch.gprPlot.torch2d_3dSurf" title="Permalink to this definition">¶</a></dt>
 <dd><p>3D plot of the GPR surface (mean+CI) constructed for a 2D input (parameter).</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
@@ -683,6 +699,10 @@ samples taken from the space of i-th input</p>
 </dd>
 <dt><cite>post_</cite>: GpyTorch object</dt><dd><p>Posterior density of model function f(q) or observations y</p>
 </dd>
+<dt><cite>shift</cite>: Float scalar (optional)         </dt><dd><p>Value by which the original training data ‘yTrain’ were shifted for standardization</p>
+</dd>
+<dt><cite>scale</cite>: Float scalar (optional)         </dt><dd><p>Value by which the original training data ‘yTrain’ were scaled for standardization</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -692,13 +712,17 @@ samples taken from the space of i-th input</p>
 
 <dl class="py class">
 <dt id="gpr_torch.gprPost">
-<em class="property">class </em><code class="sig-prename descclassname">gpr_torch.</code><code class="sig-name descname">gprPost</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gpPost</span></em>, <em class="sig-param"><span class="n">nTest</span></em><span class="sig-paren">)</span><a class="headerlink" href="#gpr_torch.gprPost" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">gpr_torch.</code><code class="sig-name descname">gprPost</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gpPost</span></em>, <em class="sig-param"><span class="n">nTest</span></em>, <em class="sig-param"><span class="n">shift</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">scale</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#gpr_torch.gprPost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Post-processing a constructed GPR</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
 <dt><cite>gpPost</cite>: GpyTorch object</dt><dd><p>GPR posterior density created by GPyTorch</p>
 </dd>
 <dt><cite>nTest</cite>: A list of size p</dt><dd><p>Containing number of test points in each parameter dimension: [nTest1,nTest2,…nTestp]</p>
+</dd>
+<dt><cite>shift</cite>: Float scalar (optional)         </dt><dd><p>Value by which the original training data ‘yTrain’ were shifted for standardization</p>
+</dd>
+<dt><cite>scale</cite>: Float scalar (optional)         </dt><dd><p>Value by which the original training data ‘yTrain’ were scaled for standardization</p>
 </dd>
 </dl>
 </dd>

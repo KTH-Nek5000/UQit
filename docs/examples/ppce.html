@@ -542,16 +542,17 @@ samples, by the use of the Monte-Carlo approach stochastic estimates for <span c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ... Probabilistic PCE for 1D input parameter.
-...... GPR-hyperparameters Optimization, iter 100/1000 - loss: 1.168 - lengthsc: 1.727
-...... GPR-hyperparameters Optimization, iter 200/1000 - loss: 1.117 - lengthsc: 1.610
-...... GPR-hyperparameters Optimization, iter 300/1000 - loss: 1.109 - lengthsc: 1.574
-...... GPR-hyperparameters Optimization, iter 400/1000 - loss: 1.108 - lengthsc: 1.578
-...... GPR-hyperparameters Optimization, iter 500/1000 - loss: 1.106 - lengthsc: 1.593
-...... GPR-hyperparameters Optimization, iter 600/1000 - loss: 1.105 - lengthsc: 1.612
-...... GPR-hyperparameters Optimization, iter 700/1000 - loss: 1.104 - lengthsc: 1.630
-...... GPR-hyperparameters Optimization, iter 800/1000 - loss: 1.104 - lengthsc: 1.647
-...... GPR-hyperparameters Optimization, iter 900/1000 - loss: 1.103 - lengthsc: 1.664
-...... GPR-hyperparameters Optimization, iter 1000/1000 - loss: 1.102 - lengthsc: 1.680
+...... GPR-hyperparameters Optimization, iter 1/1000 - loss: 11.364 - lengthsc: 0.598
+...... GPR-hyperparameters Optimization, iter 100/1000 - loss: 1.093 - lengthsc: 1.606
+...... GPR-hyperparameters Optimization, iter 200/1000 - loss: 1.036 - lengthsc: 1.309
+...... GPR-hyperparameters Optimization, iter 300/1000 - loss: 1.024 - lengthsc: 1.222
+...... GPR-hyperparameters Optimization, iter 400/1000 - loss: 1.022 - lengthsc: 1.207
+...... GPR-hyperparameters Optimization, iter 500/1000 - loss: 1.021 - lengthsc: 1.214
+...... GPR-hyperparameters Optimization, iter 600/1000 - loss: 1.020 - lengthsc: 1.226
+...... GPR-hyperparameters Optimization, iter 700/1000 - loss: 1.019 - lengthsc: 1.239
+...... GPR-hyperparameters Optimization, iter 800/1000 - loss: 1.019 - lengthsc: 1.251
+...... GPR-hyperparameters Optimization, iter 900/1000 - loss: 1.018 - lengthsc: 1.263
+...... GPR-hyperparameters Optimization, iter 1000/1000 - loss: 1.018 - lengthsc: 1.274
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -607,9 +608,9 @@ samples, by the use of the Monte-Carlo approach stochastic estimates for <span c
 <div class="highlight"><pre>
 --------------------------------------------------------------------------------
 &gt;&gt; Exact mean(f) = 10.948
-   ppce estimated: E[mean(f)] = 10.9783 , sdev[mean(f)] = 0.192528
+   ppce estimated: E[mean(f)] = 11.0368 , sdev[mean(f)] = 0.281817
 &gt;&gt; Exact Var(f) = 3.18976
-   ppce estimated: E[Var(f)] = 3.00365 , sdev[Var(f)] = 0.604616
+   ppce estimated: E[Var(f)] = 3.98958 , sdev[Var(f)] = 1.02959
 </pre></div></div>
 </div>
 <p>Plot histogram and PDF (probability density function) of the mean and variance distributions:</p>
@@ -643,7 +644,7 @@ samples, by the use of the Monte-Carlo approach stochastic estimates for <span c
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;statsmodels.nonparametric.kde.KDEUnivariate at 0x7fbecc3298d0&gt;
+&lt;statsmodels.nonparametric.kde.KDEUnivariate at 0x7ff8a8046390&gt;
 </pre></div></div>
 </div>
 <p>Plot the GPR surrogate along with the response from the exact simulator</p>
@@ -785,16 +786,17 @@ samples, by the use of the Monte-Carlo approach stochastic estimates for <span c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 ... Probabilistic PCE for 2-D input parameter.
-...... GPR-hyperparameters Optimization, iter 100/1000 - loss: 0.747  lengthscales=1.014 0.971
-...... GPR-hyperparameters Optimization, iter 200/1000 - loss: 0.739  lengthscales=1.071 1.033
-...... GPR-hyperparameters Optimization, iter 300/1000 - loss: 0.737  lengthscales=1.101 1.065
-...... GPR-hyperparameters Optimization, iter 400/1000 - loss: 0.737  lengthscales=1.120 1.084
-...... GPR-hyperparameters Optimization, iter 500/1000 - loss: 0.736  lengthscales=1.132 1.096
-...... GPR-hyperparameters Optimization, iter 600/1000 - loss: 0.736  lengthscales=1.139 1.104
-...... GPR-hyperparameters Optimization, iter 700/1000 - loss: 0.736  lengthscales=1.144 1.109
-...... GPR-hyperparameters Optimization, iter 800/1000 - loss: 0.736  lengthscales=1.147 1.111
-...... GPR-hyperparameters Optimization, iter 900/1000 - loss: 0.736  lengthscales=1.148 1.113
-...... GPR-hyperparameters Optimization, iter 1000/1000 - loss: 0.736  lengthscales=1.149 1.114
+...... GPR-hyperparameters Optimization, iter 1/1000 - loss: 1.442  lengthscales=0.644 0.644
+...... GPR-hyperparameters Optimization, iter 100/1000 - loss: 0.808  lengthscales=0.692 0.624
+...... GPR-hyperparameters Optimization, iter 200/1000 - loss: 0.806  lengthscales=0.697 0.628
+...... GPR-hyperparameters Optimization, iter 300/1000 - loss: 0.806  lengthscales=0.698 0.628
+...... GPR-hyperparameters Optimization, iter 400/1000 - loss: 0.806  lengthscales=0.698 0.628
+...... GPR-hyperparameters Optimization, iter 500/1000 - loss: 0.806  lengthscales=0.698 0.628
+...... GPR-hyperparameters Optimization, iter 600/1000 - loss: 0.806  lengthscales=0.698 0.628
+...... GPR-hyperparameters Optimization, iter 700/1000 - loss: 0.806  lengthscales=0.697 0.628
+...... GPR-hyperparameters Optimization, iter 800/1000 - loss: 0.806  lengthscales=0.697 0.629
+...... GPR-hyperparameters Optimization, iter 900/1000 - loss: 0.805  lengthscales=0.698 0.631
+...... GPR-hyperparameters Optimization, iter 1000/1000 - loss: 0.805  lengthscales=0.698 0.631
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -892,11 +894,20 @@ samples, by the use of the Monte-Carlo approach stochastic estimates for <span c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 --------------------------------------------------------------------------------
-Reference mean(f) = 0.534414
-PPCE estimated: E[mean(f)] = 0.476933 , sdev[mean(f)] = 0.0314585
-Reference var(f) = 5.92556
-PPCE estimated: E[var(f)] = 5.42129 , sdev[var(f)] = 0.251345
+Reference mean(f) = 0.532868
+PPCE estimated: E[mean(f)] = 0.506305 , sdev[mean(f)] = 0.0672155
+Reference var(f) = 5.94557
+PPCE estimated: E[var(f)] = 6.60436 , sdev[var(f)] = 0.469718
 </pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
