@@ -45,6 +45,11 @@ class ppce:
               Number of iterations for optimization of the GPR hyper-parameters
            * 'lr_gpr': float
               Learning rate for optimization of the GPR hyper-parameters
+           * 'standardizeYTrain_gpr': bool (optional, default: False)
+              If true, the training data are standardized by shifting by mean and scaling by sdev:
+
+              :math:`yStnd =  (yTrain-mean(yTrain))/sdev(yTrain)`  
+
            * 'convPlot_gpr': bool
               If true, values of the hyper-parameters are plotted vs. iteration during the optimization.
               
@@ -106,6 +111,11 @@ class ppce:
                 'lr':ppceDict['lr_gpr'],          
                 'convPlot':ppceDict['convPlot_gpr'] 
                }
+       standardizeYTrain_=False
+       if 'standardizeYTrain_gpr' in ppceDict.keys():
+           gprOpts.update({'standardizeYTrain':ppceDict['standardizeYTrain_gpr']}) 
+           standardizeYTrain_=True
+
        #(1) Generate test points that are Gauss quadratures chosen based on the 
        # distribution of q (gPCE rule) 
        sampsGQ=sampling.trainSample(sampleType='GQ',GQdistType=distType,qInfo=qInfo,nSamp=nGQ)
@@ -115,6 +125,11 @@ class ppce:
        gpr_=gpr_torch.gpr(qTrain[:,None],yTrain[:,None],noiseSdev,qTest[:,None],gprOpts)
        post_f=gpr_.post_f
        post_obs=gpr_.post_y
+       shift_=0.0
+       scale_=1.0
+       if standardizeYTrain_:
+          shift_=gpr_.shift[0]  #0: single-response
+          scale_=gpr_.scale[0]    
 
        #(3) Use samples of GPR tested at GQ nodes to construct a PCE
        fMean_list=[]      
@@ -122,7 +137,7 @@ class ppce:
        pceDict={'p':p,'sampleType':'GQ','pceSolveMethod':'Projection','distType':[distType]}
        for j in range(nMC):
            # Draw a sample for f(q) from GPR surrogate
-           f_=post_obs.sample().numpy()
+           f_=post_obs.sample().numpy()*scale_+shift_
            # Construct PCE for the drawn sample
            pce_=pce(fVal=f_,xi=[],pceDict=pceDict,verbose=False)  #GP+TP
            fMean_list.append(pce_.fMean)
@@ -161,6 +176,11 @@ class ppce:
                 'lr':ppceDict['lr_gpr'],          
                 'convPlot':ppceDict['convPlot_gpr']  
               }
+       standardizeYTrain_=False
+       if 'standardizeYTrain_gpr' in ppceDict.keys():
+           gprOpts.update({'standardizeYTrain':ppceDict['standardizeYTrain_gpr']}) 
+           standardizeYTrain_=True
+
        #Make a dict for PCE (do NOT change)
        #Always use TP truncation with GQ sampling (hence Projection method) 
        pceDict={'p':p,
@@ -183,13 +203,21 @@ class ppce:
        gpr_=gpr_torch.gpr(qTrain,yTrain[:,None],noiseSdev,qTestGrid,gprOpts)
        post_f=gpr_.post_f
        post_obs=gpr_.post_y
+       shift_=0.0
+       scale_=1.0
+       if standardizeYTrain_:
+          shift_=gpr_.shift[0]  #0: single-response
+          scale_=gpr_.scale[0]    
+          
+       #optional: plot constructed response surface 
+       #gpr_torch.gprPlot().torch2d_3dSurf(qTrain,yTrain,qTestList,post_obs,shift=shift_,scale=scale_)
 
        #(3) Use samples of GPR tested at GQ nodes to construct a PCE
        fMean_list=[]      
        fVar_list =[]      
        for j in range(nMC):
            # Draw a sample for f(q) from GPR surrogate
-           f_=post_obs.sample().numpy()
+           f_=post_obs.sample().numpy()*scale_+shift_
            # Construct PCE for the drawn sample
            pce_=pce(fVal=f_,nQList=nGQ,xi=[],pceDict=pceDict,verbose=False)
            fMean_list.append(pce_.fMean)
