@@ -28,8 +28,8 @@ class sobol:
     Args:
       `q`: A list of length p
          q=[q1,q2,...,qp] where qi: 1D numpy array of size ni containing uniformly-spaced parameter samples
-      `f`: 1d numpy array of size (n1*n2*...*np) 
-         Response values at samples `q`. The tensor product with ordering='F' (Fortran-like) is considered.
+      `f`: pd numpy array of shape (n1,n2,...,np) 
+         Response values at samples `q`. The tensor product with ordering='F' (Fortran-like) is presumed.
       `pdf`: List of length p of 1D numpy arrays
          The i-th array in the list contains the values of the PDF of q_i, where i=1,2,...,p
     
