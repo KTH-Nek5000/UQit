@@ -209,8 +209,8 @@ class gpr:
         #  (b) prior GPR model
         model = SingletaskGPModel(xTrain, yTrain, likelihood)
         #(4) Train the model
-        model.train()
-        likelihood.train()
+        model.train().double()
+        likelihood.train().double()
         #(5) Optimize the model hyperparameters
         optimizer = torch.optim.Adam([  #Adam optimizaer: https://arxiv.org/abs/1412.6980
                  {'params': model.parameters()},  # Includes GaussianLikelihood parameters
@@ -294,8 +294,8 @@ class gpr:
         model = SingletaskGPModel_mIn(xTrain, yTrain, likelihood)
 
         #(3) Optimize the hyperparameters
-        model.train()
-        likelihood.train()
+        model.train().double()
+        likelihood.train().double()
         optimizer = torch.optim.Adam([
                     {'params': model.parameters()},  # Includes Likelihood parameters
 #                    {'params': list(model.parameters()) + list(likelihood.parameters())},
