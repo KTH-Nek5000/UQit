@@ -220,9 +220,10 @@ class testSample:
         if self.sampleType=='unifSpaced':
            q_=np.linspace(self.qBound[0],self.qBound[1],n) 
         elif self.sampleType=='GLL':
-             self.xiBound=[-1,1]
-             xi_,w_=nodes.gllPts(n) 
-             q_=xi_*(self.qBound[1]-self.qBound[0])+self.qBound[0]
+            self.xiBound=[-1,1]
+            xi_,w_=nodes.gllPts(n)
+            q_ = (xi_ - self.xiBound[0]) / (self.xiBound[1] - self.xiBound[0]) * \
+                 (self.qBound[1] - self.qBound[0]) + self.qBound[0]
         elif self.sampleType=='unifRand':
            if self.GQdistType!='Unif': 
               raise ValueError("#ERROR @ testSample: sampleType 'unifRand' should be with GQdistType 'Unif' or ''.")
