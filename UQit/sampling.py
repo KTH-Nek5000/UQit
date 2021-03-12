@@ -74,44 +74,44 @@ class trainSample:
 
     def check(self):
         if self.sampleType not in self.sampleTypeList:
-           raise KeyError('#ERROR @ parSample: Invalid sampleType! Choose from'\
+            raise KeyError('#ERROR @ parSample: Invalid sampleType! Choose from'\
                    ,self.sampleTypeList)
         if self.sampleType=='GQ' and self.GQdistType not in self.GQdistList:
-           raise KeyError('#ERROR @ parSample: Invalid GQdistType! Choose from'\
+            raise KeyError('#ERROR @ parSample: Invalid GQdistType! Choose from'\
                    ,self.GQdistList)
 
     def genSamples(self):       
         n=self.nSamp
         if self.sampleType=='GQ' and self.GQdistType in self.GQdistList:
-           self.gqPtsWts() 
+            self.gqPtsWts()
         elif self.sampleType=='normRand':
-           self.xi=np.random.normal(size=n)
-           self.xiBound=[min(self.xi),max(self.xi)]
-           self.mean=self.qInfo[0]
-           self.sdev=self.qInfo[1]
-           self.xi2q_map()         
+            self.xi=np.random.normal(size=n)
+            self.xiBound=[min(self.xi),max(self.xi)]
+            self.mean=self.qInfo[0]
+            self.sdev=self.qInfo[1]
+            self.xi2q_map()
         else:    
-           if self.sampleType=='GLL':
-              self.xiBound=[-1,1]
-              xi_,w_=nodes.gllPts(n) 
-              self.xi=xi_
-              self.w=w_
-           if self.sampleType=='unifSpaced':
-              xiBound_=[0,1]
-              self.xiBound=xiBound_
-              self.xi=np.linspace(xiBound_[0],xiBound_[1],n)
-           elif self.sampleType=='unifRand':
-              self.xiBound=[0,1]
-              self.xi=np.random.rand(n)
-           elif self.sampleType=='Clenshaw':
-              self.xiBound=[-1,1]
-              self.xi=nodes.Clenshaw_pts(n)
-           elif self.sampleType=='Clenshaw-Curtis':
-              self.xiBound=[0,1]
-              l_=1+int(mt.log(n-1)/mt.log(2))
-              self.xi=nodes.ClenshawCurtis_pts(l_)
-           self.qBound=self.qInfo
-           self.xi2q_map()
+            if self.sampleType=='GLL':
+                self.xiBound=[-1,1]
+                xi_,w_=nodes.gllPts(n)
+                self.xi=xi_
+                self.w=w_
+            if self.sampleType=='unifSpaced':
+                xiBound_=[0,1]
+                self.xiBound=xiBound_
+                self.xi=np.linspace(xiBound_[0],xiBound_[1],n)
+            elif self.sampleType=='unifRand':
+                self.xiBound=[0,1]
+                self.xi=np.random.rand(n)
+            elif self.sampleType=='Clenshaw':
+                self.xiBound=[-1,1]
+                self.xi=nodes.Clenshaw_pts(n)
+            elif self.sampleType=='Clenshaw-Curtis':
+                self.xiBound=[0,1]
+                l_=1+int(mt.log(n-1)/mt.log(2))
+                self.xi=nodes.ClenshawCurtis_pts(l_)
+            self.qBound=self.qInfo
+            self.xi2q_map()
 
     def gqPtsWts(self):
         """
@@ -119,18 +119,18 @@ class trainSample:
         """
         n=self.nSamp
         if self.GQdistType=='Unif':
-           x=np.polynomial.legendre.leggauss(n)
-           self.xi=x[0]
-           self.w=x[1]
-           self.xiBound=[-1,1]
-           self.qBound=self.qInfo 
+            x=np.polynomial.legendre.leggauss(n)
+            self.xi=x[0]
+            self.w=x[1]
+            self.xiBound=[-1,1]
+            self.qBound=self.qInfo
         elif self.GQdistType=='Norm':
-           x=np.polynomial.hermite_e.hermegauss(n)
-           self.xi=x[0]
-           self.w=x[1]
-           self.xiBound=[min(x[0]),max(x[0])]
-           self.mean=self.qInfo[0]
-           self.sdev=self.qInfo[1]
+            x=np.polynomial.hermite_e.hermegauss(n)
+            self.xi=x[0]
+            self.w=x[1]
+            self.xiBound=[min(x[0]),max(x[0])]
+            self.mean=self.qInfo[0]
+            self.sdev=self.qInfo[1]
         self.xi2q_map()
 
     def xi2q_map(self):
@@ -140,13 +140,13 @@ class trainSample:
         xi_=self.xi
         if (self.sampleType=='GQ' and self.GQdistType=='Norm') or \
             self.sampleType=='normRand':
-           self.q=self.qInfo[0]+self.qInfo[1]*xi_     
-           self.qBound=[min(self.q),max(self.q)]
+            self.q=self.qInfo[0]+self.qInfo[1]*xi_
+            self.qBound=[min(self.q),max(self.q)]
         else:
-           xiBound_=self.xiBound
-           qBound_=self.qBound
-           self.q=(xi_-xiBound_[0])/(xiBound_[1]-xiBound_[0])*\
-                  (qBound_[1]-qBound_[0])+qBound_[0]
+            xiBound_=self.xiBound
+            qBound_=self.qBound
+            self.q=(xi_-xiBound_[0])/(xiBound_[1]-xiBound_[0])*\
+                   (qBound_[1]-qBound_[0])+qBound_[0]
 #
 class testSample:
     R"""
@@ -207,37 +207,37 @@ class testSample:
 
     def check(self):
         if self.sampleType not in self.sampleTypeList:
-           raise KeyError('#ERROR @ testSample: Invalid sampleType! Choose from'\
-                   ,self.sampleTypeList)
+            raise KeyError('#ERROR @ testSample: Invalid sampleType! Choose from'\
+                    ,self.sampleTypeList)
         if self.GQdistType=='Norm' and len(self.qInfo)==0:
-           raise KeyError("#ERROR @ testSample: qInfo is mandatory for GQdistType='Norm'")
+            raise KeyError("#ERROR @ testSample: qInfo is mandatory for GQdistType='Norm'")
 
     def genTestSamples(self):       
         n=self.nSamp
         if self.GQdistType=='Unif':
-           self.xiBound=[-1,1]
+            self.xiBound=[-1,1]
 
         if self.sampleType=='unifSpaced':
-           q_=np.linspace(self.qBound[0],self.qBound[1],n) 
+            q_=np.linspace(self.qBound[0],self.qBound[1],n)
         elif self.sampleType=='GLL':
             self.xiBound=[-1,1]
             xi_,w_=nodes.gllPts(n)
             q_ = (xi_ - self.xiBound[0]) / (self.xiBound[1] - self.xiBound[0]) * \
                  (self.qBound[1] - self.qBound[0]) + self.qBound[0]
         elif self.sampleType=='unifRand':
-           if self.GQdistType!='Unif': 
-              raise ValueError("#ERROR @ testSample: sampleType 'unifRand' should be with GQdistType 'Unif' or ''.")
-           q_=np.random.rand(n)*(self.qBound[1]-self.qBound[0])+self.qBound[0]
-           q_=np.sort(q_)
+            if self.GQdistType!='Unif':
+                raise ValueError("#ERROR @ testSample: sampleType 'unifRand' should be with GQdistType 'Unif' or ''.")
+            q_=np.random.rand(n)*(self.qBound[1]-self.qBound[0])+self.qBound[0]
+            q_=np.sort(q_)
         elif self.sampleType=='normRand':
-           if self.GQdistType!='Norm': 
-               raise ValueError("#ERROR @ testSample: sampleType 'normRand' should be with\
-                       GQdistType 'Norm'.")
-           else:
-              xi_=np.random.normal(size=n)
-              xi_=np.sort(xi_)
-              self.xi=xi_
-              q_=self.qInfo[0]+xi_*self.qInfo[1]
+            if self.GQdistType!='Norm':
+                raise ValueError("#ERROR @ testSample: sampleType 'normRand' should be with\
+                                  GQdistType 'Norm'.")
+            else:
+                xi_=np.random.normal(size=n)
+                xi_=np.sort(xi_)
+                self.xi=xi_
+                q_=self.qInfo[0]+xi_*self.qInfo[1]
         self.q=q_
         self.q2xi_map()      
         
@@ -248,11 +248,11 @@ class testSample:
         q_=self.q
         qBound_=self.qBound
         if self.GQdistType=='Norm':   
-           xi_=(q_-self.qInfo[0])/self.qInfo[1]
-           self.xiBound=[min(xi_),max(xi_)]
+            xi_=(q_-self.qInfo[0])/self.qInfo[1]
+            self.xiBound=[min(xi_),max(xi_)]
         else:
-           xi_=(self.xiBound[1]-self.xiBound[0])*(q_-qBound_[0])\
-               /(qBound_[1]-qBound_[0])+self.xiBound[0]
+            xi_=(self.xiBound[1]-self.xiBound[0])*(q_-qBound_[0])\
+                /(qBound_[1]-qBound_[0])+self.xiBound[0]
         self.xi=xi_    
 #
 def LHS_sampling(n,xBound):
