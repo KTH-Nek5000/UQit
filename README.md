@@ -26,6 +26,13 @@ SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm,
 ### Documentation:
 The html documentation is on [this GitHub page](https://kth-nek5000.github.io/UQit/)
 
+### How to run a test:
+The tests associated to different UQ techniques are provided in `./tests/`. 
+Most of the tests have also been used in the notebooks and documentation. 
+For instance, to run a test from `pce_tests.py` in `./tests/`, do the following:
+
+`python3 -c 'import pce_tests as X;X.pce_1d_test()'`
+
 ### Required libraries:
  * General  
    - [`numpy`](https://numpy.org/)
