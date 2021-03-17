@@ -40,9 +40,9 @@ class sobol:
     Attributes:
        `Si`: A 1D numpy array of size p
           First-order main Sobol indices
-       `Sij`: A 1D numpy array
+       `Sij`: A 1D numpy array of size (p-1)!
           Second-order Sobol indices
-       'SijName': A list 
+       'SijName': A list of length (p-1)!
           Containing the name of the Sobol indices represented by `Sij`
        `STi`: A 1D numpy array of size p
           Total Sobol indices
