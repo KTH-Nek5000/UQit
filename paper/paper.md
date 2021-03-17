@@ -26,7 +26,7 @@ bibliography: paper.bib
 In computational physics, mathematical models are numerically solved and as a result, realizations for the quantities of interest (QoIs) are obtained. 
 Even when adopting the most accurate numerical methods for deterministic mathematical models, the QoIs can still be up to some extent uncertain. 
 Uncertainty is defined as the lack of certainty and it originates from the lack, impropriety or insufficiency of knowledge and information [@Smith:2013;@Ghanem:2017].
-It is important to note that uncertainty is different from error, which is defined as the deviation of a realization from a reference true value. 
+It is important to note that for a QoI, uncertainty is different from error which is defined as the deviation of a realization from a reference true value. 
 In computational models, various sources of uncertainties may exist.
 These include, but not limited to, the fidelity of the mathematical model (i.e. the extent by which the model can reflect the truth), the parameters in the models, initial data and boundary conditions, finite sampling time when computing the time-averaged QoIs, the way numerical errors interact and evolve, computer arithmetic, coding bugs, geometrical uncertainties, etc. 
 Various mathematical and statistical techniques gathered under the umbrella of uncertainty quantification (UQ) can be exploited to assess the uncertainty in different models and their QoIs, see [@Smith:2013;@Ghanem:2017]. 
