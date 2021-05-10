@@ -137,7 +137,7 @@ class gpr:
     """
     def __init__(self,xTrain,yTrain,noiseV,xTest,gprOpts):
         self.xTrain=xTrain
-        self.yTrain=yTrain
+        self.yTrain=yTrain.copy()
         self.noiseV=noiseV
         self.xTest=xTest
         self.gprOpts=gprOpts
@@ -636,6 +636,9 @@ class gprPlot:
         ax = fig.gca(projection='3d')
         mean_surf = ax.plot_surface(xTestGrid1, xTestGrid2, post_mean,cmap='jet', 
                 antialiased=True,rstride=1,cstride=1,linewidth=0,alpha=0.4)
+
+        ax.view_init(elev=30., azim=45) #default view
+
         upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_, linewidth=1,alpha=0.25,color='r')
         lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_, linewidth=1,alpha=0.25,color='b')
         plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok',ms='5')
