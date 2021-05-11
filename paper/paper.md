@@ -28,8 +28,8 @@ Even when adopting the most accurate numerical methods for deterministic mathema
 Uncertainty is defined as the lack of certainty and it originates from the lack, impropriety or insufficiency of knowledge and information [@Smith:2013;@Ghanem:2017].
 It is important to note that for a QoI, uncertainty is different from error which is defined as the deviation of a realization from a reference (true) value. 
 In computational models, various sources of uncertainties may exist.
-These include, but not limited to, the fidelity of the mathematical model (i.e. the extent by which the model can reflect the truth), the parameters in the models, initial data and boundary conditions, finite sampling time when computing the time-averaged QoIs, the way numerical errors interact and evolve, computer arithmetic, coding bugs, geometrical uncertainties, etc. 
-Various mathematical and statistical techniques gathered under the umbrella of uncertainty quantification (UQ) can be exploited to assess the uncertainty in different models and their QoIs, see [@Smith:2013;@Ghanem:2017]. 
+These include, but not limited to, the fidelity of the mathematical model (i.e., the extent by which the model can reflect the truth), the parameters in the models, initial data and boundary conditions, finite sampling time when computing the time-averaged QoIs, the way numerical errors interact and evolve, computer arithmetic, coding bugs, geometrical uncertainties, etc. 
+Various mathematical and statistical techniques gathered under the umbrella of uncertainty quantification (UQ) can be exploited to assess the uncertainty in different models and their QoIs [@Smith:2013;@Ghanem:2017]. 
 The UQ techniques not only facilitate systematic evaluation of validation and verification metrics, but also play a vital role in evaluation of the confidence and reliability of the data acquired in computations and experiments. 
 Note that accurate accounting for such confidence intervals is crucial in data-driven engineering designs. 
 
@@ -46,7 +46,7 @@ As a result, the UQ techniques can be combined with different features of comput
 These strategies constitute the foundations of developing `UQit`, a Python package for uncertainty quantification in computational physics, in general, and computational fluid dynamics (CFD), in particular. 
 In CFD, the Navier-Stokes equations are numerically integrated as a model of fluid flows. 
 The flows are, in general, three-dimensional and time-dependent (unsteady) and at most of the Reynolds numbers relevant to practical applications, turbulent. 
-A wide range of approaches has been used for numerical modeling of turbulence, see [@Sagaut:2013].
+A wide range of approaches has been used for numerical modeling of turbulence [@Sagaut:2013].
 Moving from low- toward high-fidelity approaches, the nature of the uncertainties inherent in the simulations change from model-based to numerical-driven. 
 Regardless of the approach, we may need to study the influence of different factors on the simulations QoIs, where UQ techniques are beneficial. 
 
@@ -78,7 +78,7 @@ In developing `UQit`, a high level of flexibility in constructing GPR surrogates
 
 
 The goal of **uncertainty propagation** or **UQ forward problem** is to estimate how the known uncertainties in the inputs and parameters propagate into the QoIs. 
-In `UQit`, these problems are efficiently handled using non-intrusive generalized polynomial chaos expansion (PCE), see [@Xiu:2002;@Xiu:2010]. 
+In `UQit`, these problems are efficiently handled using non-intrusive generalized polynomial chaos expansion (PCE) [@Xiu:2002;@Xiu:2010]. 
 For constructing a PCE, `UQit` offers a diverse set of options for the schemes of truncating the expansion, types of parameter samples, and methods to compute the coefficients in the expansion.
 For the latter, regression and projection methods can be adopted. 
 As a useful feature for computationally expensive CFD simulations, the compressed sensing method can be utilized when the number of training samples is less than the number of terms in the expansion. 
