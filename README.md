@@ -51,7 +51,12 @@ For instance, to run a test from `pce_tests.py` in `./tests/`, do the following:
   - Ricardo Vinuesa, rvinuesa@mech.kth.se 
   - Philipp Schlatter, pschlatt@mech.kth.se <br/>
 
-### Publications related to UQit:
+### To cite `UQit`:
+* [Rezaeiravesh S., Vinuesa R., Schlatter P., UQit: A Python package for uncertainty quantification (UQ) in computational fluid dynamics (CFD). Journal of Open Source Software, 6(60), 2871, 2021.](https://joss.theoj.org/papers/10.21105/joss.02871)
+
+### Publications using `UQit`:
+* [Rezaeiravesh S., Vinuesa R., Schlatter P., On numerical uncertainties in scale-resolving simulations of canonical wall turbulence, Computers & Fluids, 227:105024, 2021.](https://www.sciencedirect.com/science/article/pii/S0045793021001900)
+
 * [Rezaeiravesh S., Vinuesa R., Schlatter P., An Uncertainty-Quantification Framework for Assessing Accuracy, Sensitivity, and Robustness in Computational Fluid Dynamics, arXiv:2007.07071, 2020.](https://arxiv.org/abs/2007.07071)
 
 ## Release Notes
