@@ -81,6 +81,11 @@ class ppce:
         if self.qTrain.shape[0]==self.yTrain.shape:
            raise ValueError("Size of qTrain and yTrain should be the same.")
 
+        obligKeys=['nGQtest','qInfo','nMC','nIter_gpr','lr_gpr','convPlot_gpr']
+        for key_ in obligKeys:
+            if key_ not in self.ppceDict.keys():
+               raise KeyError("%s is required in ppceDict." %key_)
+       
     def cnstrct(self):
         if self.p==1:
            self.ppce_cnstrct_1d() 

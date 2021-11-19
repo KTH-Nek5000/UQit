@@ -26,6 +26,13 @@ SimEx/FLOW, Engineering Mechanics, KTH Royal Institute of Technology, Stockholm,
 ### Documentation:
 The html documentation is on [this GitHub page](https://kth-nek5000.github.io/UQit/)
 
+### How to run a test:
+The tests associated to different UQ techniques are provided in `./tests/`. 
+Most of the tests have also been used in the notebooks and documentation. 
+For instance, to run a test from `pce_tests.py` in `./tests/`, do the following:
+
+`python3 -c 'import pce_tests as X;X.pce_1d_test()'`
+
 ### Required libraries:
  * General  
    - [`numpy`](https://numpy.org/)
@@ -44,7 +51,12 @@ The html documentation is on [this GitHub page](https://kth-nek5000.github.io/UQ
   - Ricardo Vinuesa, rvinuesa@mech.kth.se 
   - Philipp Schlatter, pschlatt@mech.kth.se <br/>
 
-### Publications related to UQit:
+### To cite `UQit`:
+* [Rezaeiravesh S., Vinuesa R., Schlatter P., UQit: A Python package for uncertainty quantification (UQ) in computational fluid dynamics (CFD). Journal of Open Source Software, 6(60), 2871, 2021.](https://joss.theoj.org/papers/10.21105/joss.02871)
+
+### Publications using `UQit`:
+* [Rezaeiravesh S., Vinuesa R., Schlatter P., On numerical uncertainties in scale-resolving simulations of canonical wall turbulence, Computers & Fluids, 227:105024, 2021.](https://www.sciencedirect.com/science/article/pii/S0045793021001900)
+
 * [Rezaeiravesh S., Vinuesa R., Schlatter P., An Uncertainty-Quantification Framework for Assessing Accuracy, Sensitivity, and Robustness in Computational Fluid Dynamics, arXiv:2007.07071, 2020.](https://arxiv.org/abs/2007.07071)
 
 ## Release Notes
