@@ -1,9 +1,9 @@
 ###############################################################
 #     Interpolation from a surrogate to another surrogate
 ###############################################################
-#--------------------------------------------------------------
+# --------------------------------------------------------------
 # Saleh Rezaeiravesh, salehr@kth.se
-#--------------------------------------------------------------
+# --------------------------------------------------------------
 #
 import os
 import sys
@@ -12,7 +12,9 @@ from UQit.lagInt import lagInt
 import UQit.reshaper as reshaper
 #
 #
-def lagIntAtGQs(fValM1,qM1,spaceM1,nM2,spaceM2,distType):
+
+
+def lagIntAtGQs(fValM1, qM1, spaceM1, nM2, spaceM2, distType):
     """    
     Given response values `fValM1` at `nM1` arbitrary samples over the p-D `spaceM1`, the values at 
     `nM2` Gauss quadrature points over `spaceM2` are computed using Lagrange interpolation. 
@@ -51,35 +53,37 @@ def lagIntAtGQs(fValM1,qM1,spaceM1,nM2,spaceM2,distType):
       `fValM2`: 1D numpy array of size (nM1_1*nM1_2*...*nM1_p).
          Interpolated response values at `xiM2`
     """
-    #(1) Check the inputs
-    ndim=len(spaceM1)   
-    if (ndim!=len(spaceM2) or ndim!=len(qM1)):
-       raise ValueError('SpaceM1 and SpaceM2 should have the same dimension, p.')
+    # (1) Check the inputs
+    ndim = len(spaceM1)
+    if (ndim != len(spaceM2) or ndim != len(qM1)):
+        raise ValueError(
+            'SpaceM1 and SpaceM2 should have the same dimension, p.')
     for idim in range(ndim):
-       d1=spaceM1[idim][1]-spaceM1[idim][0]
-       d2=spaceM2[idim][1]-spaceM2[idim][0]
-       if (d2>d1):
-          print("Wrong parameter range in direction ",ldim+1) 
-          raise ValueError("||spaceM2|| should be smaller than ||spaceM1||.") 
-    #(2) Construct the Gauss-quadrature stochastic samples for model2
-    qM2=[]
-    xiM2=[]
+        d1 = spaceM1[idim][1]-spaceM1[idim][0]
+        d2 = spaceM2[idim][1]-spaceM2[idim][0]
+        if (d2 > d1):
+            print("Wrong parameter range in direction ", ldim+1)
+            raise ValueError("||spaceM2|| should be smaller than ||spaceM1||.")
+    # (2) Construct the Gauss-quadrature stochastic samples for model2
+    qM2 = []
+    xiM2 = []
     for i in range(ndim):
-        xi_,w=pce.gqPtsWts(nM2[i],distType[i])   
-        qM2_=pce.mapFromUnit(xi_,spaceM2[i])
+        xi_, w = pce.gqPtsWts(nM2[i], distType[i])
+        qM2_ = pce.mapFromUnit(xi_, spaceM2[i])
         qM2.append(qM2_)
         xiM2.append(xi_)
-    if (ndim==1): 
-       qM2=qM2[0]
-       xiM2=xiM2[0]
-    elif (ndim>1):
-       xiM2=reshaper.vecs2grid(xiM2) 
-    #(3) Use lagrange interpolation to find values at q2, given fVal1 at q1
-    if ndim==1:
-       fVal2Interp=lagInt(fNodes=fValM1,qNodes=[qM1[0]],qTest=[qM2]).val
-    elif (ndim>1):
-       fVal2Interp_=lagInt(fNodes=fValM1,qNodes=qM1,qTest=qM2,liDict={'testRule':'tensorProd'}).val
-       nM2_=fVal2Interp_.size
-       fVal2Interp=fVal2Interp_.reshape(nM2_,order='F')
-    return qM2,xiM2,fVal2Interp
+    if (ndim == 1):
+        qM2 = qM2[0]
+        xiM2 = xiM2[0]
+    elif (ndim > 1):
+        xiM2 = reshaper.vecs2grid(xiM2)
+    # (3) Use lagrange interpolation to find values at q2, given fVal1 at q1
+    if ndim == 1:
+        fVal2Interp = lagInt(fNodes=fValM1, qNodes=[qM1[0]], qTest=[qM2]).val
+    elif (ndim > 1):
+        fVal2Interp_ = lagInt(fNodes=fValM1, qNodes=qM1, qTest=qM2, liDict={
+                              'testRule': 'tensorProd'}).val
+        nM2_ = fVal2Interp_.size
+        fVal2Interp = fVal2Interp_.reshape(nM2_, order='F')
+    return qM2, xiM2, fVal2Interp
 #
