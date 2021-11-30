@@ -2,7 +2,7 @@
 #    Tools for printing or writing data in file
 #####################################################
 # Saleh Rezaeiravesh,   salehr@kth.se
-#----------------------------------------------------
+# ----------------------------------------------------
 #
 def printRepeated(string_to_expand, length):
     """ 
