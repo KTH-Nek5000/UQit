@@ -622,12 +622,11 @@ class gprPlot:
         """
         nTest=[len(qTest[i]) for i in range(len(qTest))]
         #Predicted mean and variance at the test grid
-        fP_=gprPost(post_,nTest)
+        fP_=gprPost(post_,nTest,shift,scale)
         fP_.torchPost()
         #de-standardized the mean and sdev
-        yTrain=yTrain * scale + shift
-        post_mean=fP_.mean * scale + shift
-        post_sdev=fP_.sdev * scale
+        post_mean=fP_.mean 
+        post_sdev=fP_.sdev
         lower_=post_mean-1.96*post_sdev
         upper_=post_mean+1.96*post_sdev
 
