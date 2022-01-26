@@ -433,8 +433,9 @@ class gprPlot:
 
     Args:
       `pltOpts`: dict (optional) 
-       Options for planar plots (p=1 or 2) with the following keys:
+       Options for plots (p=2 or 3) with the following keys (optional):
          * 'title': string, plot title
+         * 'xlab', 'ylab', 'zlab': string, axis label 
          * 'legFS': float, legend fontsize
          * 'labFS': [float,float], x,y-axes label fontsize
          * 'ticksFS': [float,float], x,y-ticks fontsize
@@ -464,6 +465,9 @@ class gprPlot:
            self.xlab=self.pltOpts['xlab']
         if 'ylab' in keys_:
            self.ylab=self.pltOpts['ylab']
+        if 'zlab' in keys_:
+           self.zlab=self.pltOpts['zlab']
+
         #default values for fontsizes
         self.titleFS=15        #title fs
         self.legFS=15          #legend fs
@@ -475,12 +479,13 @@ class gprPlot:
            self.legFS=self.pltOpts['legFS']
         if 'labFS' in keys_:
            self.labFS=self.pltOpts['labFS']
-           if len(self.labFS)!=2:
-              raise ValueError("Value of 'labFS' should have length 2 (x,y-axes label fontsize).")
+           if len(self.labFS)<2:
+              raise ValueError("Length of 'labFS' should be at least 2 (x,y-axes label fontsize).")
         if 'ticksFS' in keys_:
            self.ticksFS=self.pltOpts['ticksFS']
-           if len(self.ticksFS)!=2:
-              raise ValueError("Value of 'ticksFS' should have length 2 (x,y-axes label fontsize).")
+           if len(self.ticksFS)<2:
+              raise ValueError("Length of 'ticksFS' should be at least 2 (x,y-axes label fontsize).")
+
         #options for saving the plot        
         self.figSave=False
         if 'save' in keys_ and self.pltOpts['save']:
@@ -636,17 +641,29 @@ class gprPlot:
         mean_surf = ax.plot_surface(xTestGrid1, xTestGrid2, post_mean,cmap='jet', 
                 antialiased=True,rstride=1,cstride=1,linewidth=0,alpha=0.4)
 
+        fig.colorbar(mean_surf, ax=ax, shrink=0.5, aspect=20,pad=0.000001,orientation='horizontal')
         ax.view_init(elev=30., azim=45) #default view
 
         upper_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, upper_, linewidth=1,alpha=0.25,color='r')
         lower_surf_obs = ax.plot_wireframe(xTestGrid1, xTestGrid2, lower_, linewidth=1,alpha=0.25,color='b')
         plt.plot(xTrain[:,0],xTrain[:,1],yTrain,'ok',ms='5')
+
         if hasattr(self,'xlab'):
-           plt.xlabel(self.xlab,fontsize=self.labFS[0])
+           ax.set_xlabel(self.xlab,fontsize=self.labFS[0],labelpad=12)
         if hasattr(self,'ylab'):
-           plt.ylabel(self.ylab,fontsize=self.labFS[1])
+           ax.set_ylabel(self.ylab,fontsize=self.labFS[1],labelpad=12)
+        if hasattr(self,'zlab'):
+           ax.set_zlabel(self.zlab,fontsize=self.labFS[-1],labelpad=12,rotation=90)           
+        ax.zaxis.set_rotate_label(False)  # disable automatic rotation           
+
         if hasattr(self,'title'):
            plt.title(self.title,fontsize=self.titleFS)
+
+        if hasattr(self,'ticksFS'):
+           ax.tick_params(axis="x", labelsize=self.ticksFS[0])
+           ax.tick_params(axis="y", labelsize=self.ticksFS[1])
+           ax.tick_params(axis="z", labelsize=self.ticksFS[-1])
+           
         if self.figSave:
            self._figSaver()         
         plt.show()
